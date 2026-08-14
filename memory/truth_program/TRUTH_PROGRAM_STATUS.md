@@ -414,7 +414,7 @@ LIVE VERIFICATION (testing agent iteration_26, authenticated): PC-COST overall_p
 match canonical; regression employee-completeness + asset onboarding green; zero 500s.
 
 ### WAVE 5 DURABLE COUNTERS (cumulative)
-- Truth surfaces reconciled: ~28 / 547
+- Truth surfaces reconciled: 32 / 547 (EXACT: 13 baseline [Wave 1-4] + 19 Wave-5 enumerated as register rows TS-0018..TS-0036)
 - KPI concepts discovered: 12
 - KPI concepts FULLY reconciled: 4 (KPI-OWNERSHIP-SCORE[W2], KPI-PERCENT-COMPLETE, KPI-EXPIRING-RATE, KPI-UTILIZATION)
 - Percent-Complete: 84 / 84 FINAL · Expiring-Rate: 50 / 50 FINAL · Utilization: 45 / 45 FINAL
@@ -438,3 +438,53 @@ SAVE/DEPLOY EVALUATION (owner decision): the accumulated preview candidate (Wave
 percent-complete + expiring-rate + utilization, 3 KPI families fully dispositioned, +1 compliance-blackout fix, all
 guard + live tests green) is coherent and self-contained. It is a reasonable next Truth Engine Save/Deploy checkpoint
 candidate — AWAITING explicit owner authorization (no Save/Deploy performed).
+
+## ===== TRUTH ENGINE CHECKPOINT 3 — READY FOR OWNER SAVE (governance-scope hardened) =====
+CHECKPOINT_2 FROZEN: CHECKPOINT_2_LIVE_VERIFIED = YES · AUTH_GATED_PROBES_PENDING = 0 (unchanged). Preview-only. No Save/Deploy.
+
+GOVERNANCE-SCOPE BLAST-RADIUS AUDIT (D-EXPIRY-SCOPE defect class):
+- Audited ALL 11 served modules that build a governance actor context (callers of build_governance_actor_context):
+  server.py, po_requests, operations_center, employee_records, employee_lifecycle, asset_documents, global_search,
+  safety, transportation_dispatch_gate, document_expirations, tasks_notifications.
+- PROVEN live: the resolved context emits {direct_permissions, delegated_permissions, governance_scope_mode,
+  temporary_authority, project_numbers} — NEVER `permissions`/`is_super_admin`/`authority_level`.
+- CLASSIFICATION:
+  * STALE_KEY / DEFECT (6, all repaired): document_expirations (original D-EXPIRY-SCOPE, BLACKOUT) + 5 blast-radius
+    (server.py asset-admin authorize, employee_lifecycle require_hr_or_admin, employee_records lanes, asset_documents
+    read, transportation_dispatch_gate capabilities). The 5 were FALSE-DENY (role fast-path/admin-always-wins kept
+    primary users working; only delegated-permission-without-role users were wrongly denied — fail-closed, no
+    security weakening). document_expirations was the only true blackout (no working read fast-path).
+  * CANONICAL/LEGITIMATE (5): po_requests, operations_center, global_search, safety, tasks_notifications — pass the
+    context to require_governed_action (proper internal evaluation), never read a stale scope key.
+- REPAIR: added ONE canonical authority in lib/enterprise_governance.py — governance_effective_permissions(context)
+  (direct ∪ delegated) + governance_is_global_scope(context) (governance_scope_mode=="global"). All 6 defect sites
+  route through it. No permission broadening, no auth weakening, least privilege preserved (verified iteration_27:
+  Super Admin restored at all 5 sites; cert.foreman/cert.dispatch still 401/403/empty).
+- PERMANENT GUARD: GD-0019 (contract + failure injection + STATIC anti-pattern scan that FAILS if any served file
+  reads a stale governance scope key — prevents reintroduction; one authority, no second contract). GD-0020 (21) live
+  blast-radius (admin-allowed / unauthorized-denied / no-500 across all 5 sites + document-expirations).
+
+EXACT CHECKPOINT-3 COUNTERS (no approximations):
+- Truth surfaces reconciled: 32 / 547 (13 baseline + 19 Wave-5 register rows TS-0018..TS-0036)
+- KPI concepts discovered: 12 (WAVE5_KPI_CONCEPTS.json)
+- KPI concepts fully reconciled: 4 (ownership_score[W2], percent_complete, expiring_rate, utilization)
+- Percent-Complete: 84 / 84 · Expiring-Rate: 50 / 50 · Utilization: 45 / 45
+- Governance-scope endpoints audited: 11 / 11 governance-context consumer modules
+- Additional scope defects found: 5 · Additional scope defects repaired: 5
+- Formula/denominator defects (Wave 5): 2 (HrCompletenessTile re-derivation divergence; asset-onboarding 404 reachability)
+- Governance-scope defects (Wave 5): 6 (D-EXPIRY-SCOPE + 5 blast-radius), all repaired
+- Shared-root repairs: 5 (checklist_percent, quantity_progress_percent, utilization_percent, kpi_expiry,
+  governance_effective_permissions/governance_is_global_scope)
+- Executable guards: 7 (GD-0014, GD-0015, GD-0016, GD-0017, GD-0018, GD-0019, GD-0020)
+- Regression total: 123 passed (GD-0014/15/16 + GD-0017[30] + GD-0018[10] + GD-0019[7] + GD-0020[21] +
+  pc_checklist live[17] + reconciliation live[22]) + release verifier ok + fingerprint deterministic ×2
+- Unexplained contradictions: 0 · Production writes: 0 · Save: NO · Deploy: NO
+- Candidate deployable fingerprint (×2 identical): dcf-5fb407c38a6d4a54ed2f1dda59c31328a5e22311753bef1cddb44f7b6fb1299f
+- Release verifier: ok=true, errors=[], truth_population_gate_ok=true, contract digest c-eb2678...533 unchanged,
+  workspace_dirty=true (expected pre-Save; attestation regenerates on owner Save).
+
+LEGACY AUTH: unchanged — LATENT LOW-SEVERITY DUAL AUTHORITY (SPA does not use legacy /api/auth/*). No retirement/refactor
+this checkpoint (per owner). No production account/data mutation.
+
+STATUS: MASCI OPS — TRUTH ENGINE CHECKPOINT 3 — READY FOR OWNER SAVE. STOP for owner Save. Do not resume additional
+Wave-5 KPI concepts before Checkpoint 3 is live-verified.

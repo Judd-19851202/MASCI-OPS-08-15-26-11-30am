@@ -40,6 +40,8 @@ from pydantic import BaseModel, Field, field_validator
 
 from lib.enterprise_governance import (
     build_governance_actor_context,
+    governance_effective_permissions,
+    governance_is_global_scope,
     require_governed_action,
 )
 
@@ -331,10 +333,10 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
         # Global-authority actors (system admin / executive / cross-project portals)
         # see every category. The governance context surfaces this as
         # governance_scope_mode == "global" (see enterprise_governance._is_cross_project_actor).
-        if context.get("governance_scope_mode") == "global":
+        if governance_is_global_scope(context):
             return {}
         # Category-scoped actors: read permissions come from direct + delegated permissions.
-        perms = set(context.get("direct_permissions") or []) | set(context.get("delegated_permissions") or [])
+        perms = governance_effective_permissions(context)
         category_map = {
             "employee": "document_expirations.read.employee",
             "training_cert": "document_expirations.read.training_cert",

@@ -44,7 +44,7 @@ from typing import Any, Dict, List, Optional
 
 from fastapi import APIRouter, Body, Depends, File, Form, HTTPException, Query, UploadFile
 from pydantic import BaseModel, Field, field_validator
-from lib.enterprise_governance import build_governance_actor_context
+from lib.enterprise_governance import build_governance_actor_context, governance_effective_permissions
 
 logger = logging.getLogger(__name__)
 
@@ -933,7 +933,7 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
         if role in {"hr", "admin"}:
             return normalized
         context = await build_governance_actor_context(db, normalized)
-        perms = set(context.get("permissions") or [])
+        perms = governance_effective_permissions(context)
         if "employee_lifecycle.manage" in perms:
             return normalized
         raise HTTPException(403, "HR or Admin only")

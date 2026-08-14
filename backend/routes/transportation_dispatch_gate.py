@@ -23,6 +23,7 @@ from typing import Any, Dict, List, Optional
 from fastapi import APIRouter, Depends, Header, HTTPException, Query, Request
 from pydantic import BaseModel, Field
 from lib.enterprise_governance import build_governance_actor_context
+from lib.enterprise_governance import governance_effective_permissions
 
 from lib.transport_dispatch_gate import (
     evaluate_dispatch_gate, HUMAN_REASONS,
@@ -178,7 +179,7 @@ def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
         raw["role"] = role
         raw["_actor"] = role
         context = await build_governance_actor_context(db, raw)
-        raw["_governance_permissions"] = list(context.get("permissions") or [])
+        raw["_governance_permissions"] = sorted(governance_effective_permissions(context))
         return raw
 
     # Inline dispatch-or-admin resolver — works around the server.py

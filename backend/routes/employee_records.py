@@ -53,6 +53,7 @@ from fastapi import APIRouter, Body, Depends, File, Form, Header, HTTPException,
 from fastapi.responses import RedirectResponse
 from pydantic import BaseModel, ConfigDict, Field
 from lib.enterprise_governance import build_governance_actor_context
+from lib.enterprise_governance import governance_effective_permissions
 
 # TRACK 27.03 · Phase 2b · HR employee package PDF header uses the
 # canonical local formatter so the "Generated" stamp shown to HR /
@@ -420,7 +421,7 @@ def build_employee_records_router(*, db, require_actor):
         normalized = _normalize_employee_records_actor(actor)
         context = await build_governance_actor_context(db, normalized)
         enriched = dict(normalized)
-        enriched["_governance_permissions"] = list(context.get("permissions") or [])
+        enriched["_governance_permissions"] = sorted(governance_effective_permissions(context))
         return enriched
 
     # ── Vocabulary (public within the router) ─────────────────────

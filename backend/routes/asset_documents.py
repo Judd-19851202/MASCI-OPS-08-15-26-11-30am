@@ -48,6 +48,7 @@ from typing import Any, Callable, Dict, List, Optional
 # TRACK 27.03 · Phase 2b · Asset profile PDF "Generated" stamp uses the
 # canonical local formatter.
 from lib.enterprise_governance import build_governance_actor_context, require_governed_action
+from lib.enterprise_governance import governance_effective_permissions
 from lib.platform_time import format_platform_stamp
 
 from fastapi import APIRouter, Depends, File, Form, HTTPException, Path, Query, UploadFile
@@ -226,7 +227,7 @@ def register_asset_documents_routes(
         normalized = _normalize_asset_documents_actor(actor)
         context = await build_governance_actor_context(db, normalized)
         enriched = dict(normalized)
-        enriched["_governance_permissions"] = list(context.get("permissions") or [])
+        enriched["_governance_permissions"] = sorted(governance_effective_permissions(context))
         return enriched
 
     async def _require_asset_documents_read(actor=Depends(require_any_portal_dep)):

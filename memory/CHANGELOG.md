@@ -1392,3 +1392,14 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
   (no auth-weakening, no policy change). Live-verified.
 - Guards: GD-0017 expanded to 30 cases; GD-0018 10; live suites 17 + 22 (testing agent iteration_26 all green).
 - Production writes 0 · Save NO · Deploy NO · Checkpoint 2 frozen LIVE_VERIFIED.
+
+## 2026-06 — TRUTH ENGINE CHECKPOINT 3 (governance-scope hardening) [preview-only, ready for owner Save]
+- Governance-scope blast-radius audit of D-EXPIRY-SCOPE: audited all 11 governance-context consumer modules; found 5
+  additional stale-key (`context.get("permissions")`) FALSE-DENY defects (server.py asset-admin, employee_lifecycle
+  require_hr_or_admin, employee_records lanes, asset_documents read, transportation_dispatch_gate). All 5 repaired.
+- Added ONE canonical authority: lib.enterprise_governance.governance_effective_permissions + governance_is_global_scope;
+  all 6 defect sites (incl. document_expirations) routed through it. No broadening, no auth-weakening, least privilege intact.
+- Permanent guards: GD-0019 (contract + failure injection + static anti-pattern scan) and GD-0020 (21 live blast-radius).
+- Exact counters: truth surfaces 32/547 (13+19); KPI concepts 12 discovered / 4 fully reconciled; PC 84/84; expiring 50/50;
+  utilization 45/45; shared-root repairs 5; executable guards 7; regression 123 passed + verifier ok + fingerprint ×2 stable.
+- Candidate fingerprint dcf-5fb407c3...1299f (deterministic ×2). Production writes 0 · Save NO · Deploy NO.

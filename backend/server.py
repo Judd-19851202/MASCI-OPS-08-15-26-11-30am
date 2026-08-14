@@ -25,7 +25,7 @@ import uuid
 from datetime import datetime, timezone, timedelta
 from branded_portal_emails import render_portal_email
 from lib.email_audit_status import normalized_failure_statuses
-from lib.enterprise_governance import build_governance_actor_context
+from lib.enterprise_governance import build_governance_actor_context, governance_effective_permissions
 from lib.operator_safety import require_destructive_confirmation, require_destructive_runtime_guard
 from lib.operator_safety import require_non_empty_destructive_scope
 from lib.runtime_identity import (
@@ -1370,7 +1370,7 @@ async def require_admin_or_asset_admin(
         if actor.get("_actor") == "admin" or actor.get("role") in {"admin", "asset_admin"}:
             return actor
         context = await build_governance_actor_context(db, actor)
-        if "asset_documents.read" in set(context.get("permissions") or []):
+        if "asset_documents.read" in governance_effective_permissions(context):
             return actor
         raise HTTPException(
             status_code=403,

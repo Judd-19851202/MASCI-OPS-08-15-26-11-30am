@@ -154,6 +154,28 @@ async def build_governance_actor_context(db, actor: Dict[str, Any]) -> Dict[str,
     return await resolve_governance_actor_context(db, actor)
 
 
+# Canonical governance scope keys that a resolved governance actor context ACTUALLY emits.
+# (Reading any other permission-ish key — e.g. the legacy "permissions" — silently yields an
+#  empty set: this was the D-EXPIRY-SCOPE defect class that blacked out 423 rows. GD-0019 guards it.)
+GOVERNANCE_SCOPE_CONTRACT_KEYS = frozenset(
+    {"direct_permissions", "delegated_permissions", "governance_scope_mode", "temporary_authority", "project_numbers"}
+)
+
+
+def governance_effective_permissions(context: Dict[str, Any]) -> set:
+    """ONE authority for a governance actor's effective permission set.
+
+    The resolved governance context emits `direct_permissions` + `delegated_permissions`
+    (NOT `permissions`). Served read/gate paths MUST use this helper instead of guessing a
+    key name, so a stale/nonexistent key can never silently deny (false-deny) or over-scope."""
+    return set(context.get("direct_permissions") or []) | set(context.get("delegated_permissions") or [])
+
+
+def governance_is_global_scope(context: Dict[str, Any]) -> bool:
+    """Canonical global-authority signal (system admin / executive / cross-project portal)."""
+    return str(context.get("governance_scope_mode") or "") == "global"
+
+
 async def governance_project_scope_numbers(db, actor: Any) -> Optional[List[str]]:
     if actor is True:
         return None
