@@ -47,6 +47,15 @@ const SHARED_API_PREFIXES = [
   "/inspections",
   "/meetings",
   "/equipment-inspections",
+  // TD-0015 · Equipment Master canonical list. Uses the same
+  // `_require_any_portal_read` (portal token + directory) gate as
+  // `/employees`. It was MISSING from every scope list, so
+  // `api.get("/equipment-master")` attached NO tokens -> 401 ->
+  // EquipmentMasterPanel rendered a FALSE "0 units / Fleet is empty"
+  // (observed on live production: API total 604 vs UI 0). Scoping it
+  // here attaches the active portal token + directory token so the
+  // canonical 604-unit fleet renders for every portal picker.
+  "/equipment-master",
   "/qaqc-inspections",
   "/job-photos",
   "/incidents",

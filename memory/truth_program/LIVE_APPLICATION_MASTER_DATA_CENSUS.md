@@ -41,17 +41,23 @@ Production business-data writes: **0** (only the normal `/api/auth/multi-login` 
 - **Dispatch eligible-drivers** `/api/dispatch/transportation/eligible-drivers` = 0 — requires linked
   `transport_persons` records (empty in prod). Distinct concept from the HR-CDL eligible list (40).
 
-## 766 / 951 RECONCILIATION (retired as preview fixtures)
-- `766` = today's **preview** `equipment_master` synthetic-excluded total (proven live: preview
-  `/api/equipment-master` returned 766; add→767, soft-delete→766 — dynamically derived, never hard-coded).
-- `951` = the preview **status-board** figure (status board applies `ACTIVE_FILTER` only, WITHOUT synthetic
-  exclusion → it counted ~185 extra preview synthetic/certification rows).
-- **PRODUCTION reality:** Equipment Master list total = **604** AND Equipment Status Board count = **604** —
-  identical. **Classification: `SAME_LIVE_POPULATION` (604).** The two endpoints read the same
-  `db.equipment_master` with `ACTIVE_FILTER`; the only governed difference is synthetic-row exclusion, which
-  has zero effect in production (no synthetic rows). Labels are NOT misleading: in production both surfaces
-  describe the same population.
-- `766` and `951` are **NON-AUTHORITATIVE preview test data** and must never be cited as MASCI counts.
+## 766 / 951 RECONCILIATION — CORRECTED (finalization: GOVERNED_DISTINCT)
+> CORRECTION: my first pass mis-mapped "Equipment Status Board" to
+> `/api/admin/equipment-master/status` (a status panel OVER equipment_master = 604)
+> and wrongly concluded SAME_LIVE_POPULATION. The HUMAN-VISIBLE "Equipment Status Board"
+> card (`EquipmentStatusBoard.jsx`) actually reads `/api/equipment-status-board`. The live
+> visual proof caught this.
+
+- **Equipment Master** = `/api/equipment-master` → `db.equipment_master` (ACTIVE_FILTER + synthetic-excl)
+  → production **604**. Canonical asset/fleet master (every owned asset, numbered or not).
+- **Equipment Status Board** = `/api/equipment-status-board` → `db.equipment_units` ∪ units referenced by
+  `db.equipment_inspections` (distinct `equipment_type||unit_label` keys) → production **509**
+  (out_of_service 5, never_inspected 474, stale 508). The INSPECTION-tracked unit population.
+- **Classification: `GOVERNED_DISTINCT_LIVE_POPULATIONS`.** Different collections, different business
+  concept (asset master vs inspection-unit tracking). UI labels are distinct
+  ("MASCI Equipment Master Fleet" vs "Equipment Status Board") → not misleading.
+- Preview values `766` (equipment-master) and `951` (status-board) were the SAME two distinct concepts
+  measured on preview synthetic data — **NON-AUTHORITATIVE**. Proven dynamic in preview (766→767→766).
 
 ## DYNAMIC CONTRACTS — permanent truth (not the snapshot)
 Every human-visible population above is derived at runtime via `count_documents(<governed filter>)` over a
@@ -78,3 +84,67 @@ single canonical collection (or a governed derivative of one). Verified:
 - Source repairs required: **NO** (guards clean, no hard-coded totals, all populations dynamic).
 - Candidate fingerprint (unchanged; no tracked source edited this run):
   `dcf-b9da31c9836191f9a40984f007f15ac1baa9ba4690fba77a8a8209426b97e3aa` (deterministic ×2).
+
+## FINALIZATION (owner directive — close before re-Save)
+
+### 1. Permanent dynamic-population guard — DONE (GD-0033)
+Extended the ONE canonical guard `backend/lib/truth_population_guard.py` with
+`CANONICAL_POPULATION_AUTHORITIES` (12 registered human-visible authorities) + `scan_authority_registry`,
+wired into `gate_violations` (so the pre-Save release gate + `verify_release_identity.py` enforce it).
+It fails the release if a registered authority: (a) stops reading its canonical `db.<collection>` handle
+(shadow population), (b) stops deriving its total via `count_documents`/`$count` (count_documents authorities),
+or (c) hard-codes a literal population total. Tests: `backend/tests/test_gd0033_dynamic_population_authority.py`
+(registry coverage, source-drift, self-tests for hard-coded-total and shadow-collection, + env-gated PREVIEW
+propagation add→N+1→soft-delete→N which PASSED live). GD-0014/GD-0015 (cap/first-page/filter-drift) and the
+truth-surface guard remain the sibling enforcers — no competing framework added.
+
+### 2. 149 vs 136 — GOVERNED_DISTINCT_POPULATIONS (zero unexplained delta)
+- **Truck/Trailer Master = 149** = every `equipment_master` truck category (96) + Trailers (53).
+- **Transport-Capable Fleet = 136** = `equipment_master` ∩ `TRANSPORT_CAPABLE_CATEGORIES`
+  {Dump, Tractor Trailer, Service, Water, Misc, Flatbed Trucks, Trailers}.
+- **Exact excluded delta = 13**: `Pickup Trucks` (11) + `Supervisor / Mgmt Trucks` (2) — light-duty /
+  management vehicles that are NOT dispatchable haul assets, governed out of the transport fleet by design.
+- Both derive from the same canonical Equipment Master (registered `transport_fleet` in GD-0033), so they
+  can never silently diverge into shadow populations. Labels are distinct → no conflation.
+
+### 3. Numbered 357 / Parts 2 — precise definitions
+- **Equipment Master: 604** — `db.equipment_master` (ACTIVE_FILTER + synthetic-excl); canonical asset master.
+- **Numbered / Parts-Eligible Equipment: 357** — equipment_master rows carrying an assigned `unit_number`
+  (parts sheets are keyed by unit_number, so numbered == parts-eligible). Governed subset attribute of the master.
+- **Equipment Parts Catalog Sheets: 2** — `db.equipment_parts` records (`/api/admin/equipment-parts/status`).
+  This is a COUNT OF PARTS-CATALOG SHEETS uploaded (only 2 units have a parts sheet), NOT a population of
+  parts-eligible equipment. RENAMED here so the two are never confused again.
+
+### 4. Fingerprint reconciliation
+- Prior repaired-candidate fingerprint `dcf-80253472a2127fb54560731abe2e5a38480ba006e422fafc745c1318de9cc146`
+  was RESTORED exactly after moving my read-only census helper scripts out of the fingerprint-scoped
+  `scripts/` root into `memory/truth_program/census_tools/` (memory is excluded). This proved the transient
+  `dcf-b9da31c9...` reported mid-census was caused SOLELY by non-deployable investigation scripts, not app source.
+- Then TWO REAL deployable source changes were made and tested:
+  `backend/lib/truth_population_guard.py` (GD-0033 guard) and `frontend/src/lib/portalAuthScope.js` (TD-0015 fix).
+- **New candidate deployable fingerprint = `dcf-31b64c8d2ffbca14b628d67cc0208e4cf16bc07c2d718ed4d8d59f10246059ee`**
+  (deterministic ×2). It differs from `dcf-80253472...` BY DESIGN (two intended, tested source repairs).
+  The word "unchanged" no longer applies — this is a genuinely new, tested candidate.
+
+### 5. Live visual proof — executed (read-only production Super Admin browser)
+- Logged into `https://mascidocs.com/admin/login` as Super Admin, navigated to `/admin/equipment`.
+- **Equipment Status Board card rendered "509 units tracked"** (matches `/api/equipment-status-board` = 509). MATCH.
+- **MASCI Equipment Master Fleet panel rendered "0 UNITS IN FLEET / Fleet is empty"** while the API returns 604.
+  → **LIVE UI/API CONTRADICTION (deployed production defect).**
+
+### 6. LIVE UI/API CONTRADICTION → ROOT CAUSE → REPAIR (in preview; production untouched)
+- **Defect:** Equipment Master panel shows a FALSE "0 units / Fleet is empty" (API total 604).
+- **Root cause:** `/equipment-master` (a `_require_any_portal_read` endpoint needing portal token + directory)
+  was MISSING from every scope list in `frontend/src/lib/portalAuthScope.js`, so `api.get("/equipment-master")`
+  attached NO auth tokens → 401 → the panel rendered the failure as a genuine empty fleet.
+- **Repair (preview):** added `/equipment-master` to `SHARED_API_PREFIXES` so it inherits the active portal
+  token + directory token (mirrors `/employees`, same gate). Verified deterministically:
+  `inferPortalsForApiPath('/equipment-master','admin'|'pm'|'shop')` → `['admin']|['pm']|['shop']`; the public
+  `/public/equipment-master-lookup` correctly stays `[]` (no regression). Regression test added to
+  `frontend/src/lib/__tests__/portalAuthScoping.test.js`. Production was NOT modified. Browser confirmation of
+  the FIX is deferred to post-reSave because the preview frontend correctly fail-closes on the (expected)
+  provenance mismatch until the owner re-Saves — do NOT weaken that guard.
+
+**Result:** Source repairs required = **YES** (1 frontend fix + 1 new guard). Live contradictions discovered = **1**
+(deployed Equipment Master panel false-empty) — root-caused and repaired in preview. New fingerprint
+`dcf-31b64c8d...`. Save NO · Deploy NO.

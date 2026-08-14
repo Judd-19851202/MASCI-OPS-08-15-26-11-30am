@@ -87,4 +87,14 @@ describe("portal auth scoping", () => {
     expect(inferPortalsForApiPath("/api/hr/employee-roster", "dispatch")).toEqual(["dispatch"]);
     expect(inferPortalsForApiPath("/api/hr/employee-roster/public", "pm")).toEqual([]);
   });
+
+  // TD-0015 regression: equipment-master canonical list MUST attach the active
+  // portal token (+ directory) or the panel 401s -> false "0 units / Fleet is
+  // empty" (observed live: API 604 vs UI 0). The public lookup MUST stay unscoped.
+  test("equipment-master canonical list inherits the active portal token", () => {
+    expect(inferPortalsForApiPath("/api/equipment-master", "admin")).toEqual(["admin"]);
+    expect(inferPortalsForApiPath("/api/equipment-master", "pm")).toEqual(["pm"]);
+    expect(inferPortalsForApiPath("/api/equipment-master", "shop")).toEqual(["shop"]);
+    expect(inferPortalsForApiPath("/api/public/equipment-master-lookup", "admin")).toEqual([]);
+  });
 });

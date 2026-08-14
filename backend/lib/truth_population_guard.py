@@ -69,6 +69,8 @@ class Violation:
     def message(self) -> str:
         if self.guard == "GD-0014":
             return f"GD-0014 POPULATION CONTRACT VIOLATION: {self.label}::{self.fn} — {self.reason}"
+        if self.guard == "GD-0033":
+            return f"GD-0033 DYNAMIC POPULATION AUTHORITY VIOLATION: {self.label}::{self.fn} — {self.reason}"
         return f"GD-0015 TOTAL FILTER DRIFT: {self.label}::{self.fn} — {self.reason}"
 
 
@@ -220,9 +222,99 @@ def served_backend_files(repo_root: Path) -> List[Tuple[str, str]]:
     return files
 
 
+# ── GD-0033 · canonical DYNAMIC population-authority registry ─────────────────
+# Every HUMAN-VISIBLE master population must derive its total DYNAMICALLY from a
+# canonical master authority at runtime — never a hard-coded number, first-page
+# length, or capped-query count. This registry names the canonical authority
+# endpoint for each human-visible population from the LIVE production census
+# (see memory/truth_program/LIVE_APPLICATION_MASTER_DATA_CENSUS.md) and the gate
+# below fails the release if any of them stops deriving dynamically. `mode`:
+#   count_documents      -> total MUST come from count_documents/$count (dynamic)
+#   governed_derivative  -> a governed derivative of a canonical master (picker;
+#                           GD-0014 already governs its cap); it must still read
+#                           the canonical collection and carry NO literal total.
+CANONICAL_POPULATION_AUTHORITIES = [
+    {"domain": "employees_active", "label": "Active Employee Roster",
+     "file": "backend/server.py", "fn": "list_employees", "collection": "employees", "mode": "count_documents"},
+    {"domain": "employees_master", "label": "Employee Master status",
+     "file": "backend/server.py", "fn": "employees_status", "collection": "employees", "mode": "count_documents"},
+    {"domain": "equipment_master", "label": "Equipment Master",
+     "file": "backend/server.py", "fn": "list_equipment_master", "collection": "equipment_master", "mode": "count_documents"},
+    {"domain": "equipment_status", "label": "Equipment Status Board",
+     "file": "backend/server.py", "fn": "equipment_master_status", "collection": "equipment_master", "mode": "count_documents"},
+    {"domain": "suppliers", "label": "Suppliers/Vendors/Subcontractors",
+     "file": "backend/server.py", "fn": "list_suppliers", "collection": "suppliers", "mode": "count_documents"},
+    {"domain": "suppliers_status", "label": "Suppliers status",
+     "file": "backend/server.py", "fn": "suppliers_status", "collection": "suppliers", "mode": "count_documents"},
+    {"domain": "jobs", "label": "Projects/Jobs master",
+     "file": "backend/server.py", "fn": "list_jobs_public_lookup", "collection": "jobs_master", "mode": "count_documents"},
+    {"domain": "users_stats", "label": "User Directory stats",
+     "file": "backend/routes/admin_directory_k4.py", "fn": "directory_stats", "collection": "user_directory", "mode": "count_documents"},
+    {"domain": "users_list", "label": "User Directory list",
+     "file": "backend/routes/admin_directory_k4.py", "fn": "list_directory_users", "collection": "user_directory", "mode": "count_documents"},
+    {"domain": "equipment_parts", "label": "Equipment Parts Catalog Sheets",
+     "file": "backend/routes/shop_parts.py", "fn": "equipment_parts_status", "collection": "equipment_parts", "mode": "count_documents"},
+    {"domain": "transport_fleet", "label": "Transport-Capable Fleet (derivative of Equipment Master)",
+     "file": "backend/routes/transportation.py", "fn": "list_fleet_equipment", "collection": "equipment_master", "mode": "governed_derivative"},
+    {"domain": "eligible_drivers", "label": "Eligible CDL Drivers (derivative of Employee Master)",
+     "file": "backend/routes/transportation.py", "fn": "list_eligible_hr_cdl_drivers", "collection": "employees", "mode": "governed_derivative"},
+]
+
+# hard-coded population total := literal int >= 10 assigned to a total-ish key
+_LITERAL_TOTAL = re.compile(r"""["']?([A-Za-z_]\w*)["']?\s*[:=]\s*(\d{2,})\b""")
+_LITERAL_TOTAL_SKIP = re.compile(r"limit|page|per_page|threshold|\bmax\b|\bmin\b|slice|\[:|status_code|version|timeout|port|retain|days|hours|chars|width|height", re.I)
+
+
+def _find_fn_body(text: str, fn: str):
+    for name, body in funcs(text.splitlines()):
+        if name == fn:
+            return body
+    return None
+
+
+def scan_authority_registry(files: Iterable[Tuple[str, str]]) -> List[Violation]:
+    """GD-0033: each registered human-visible population authority must still
+    derive its total dynamically from its canonical collection, with no literal
+    total. A registered fn that moved/renamed fails closed (update the registry
+    deliberately with the census artifact)."""
+    by_path = {label: text for (label, text) in files}
+    out: List[Violation] = []
+    for a in CANONICAL_POPULATION_AUTHORITIES:
+        tag = "%s (%s)" % (a["label"], a["domain"])
+        text = by_path.get(a["file"])
+        if text is None:
+            out.append(Violation("GD-0033", a["file"], a["fn"],
+                                  "registered population authority file missing for %s" % tag))
+            continue
+        body = _find_fn_body(text, a["fn"])
+        if body is None:
+            out.append(Violation("GD-0033", a["file"], a["fn"],
+                                  "registered authority function missing for %s (source moved/renamed? update the registry WITH the census artifact)" % tag))
+            continue
+        # 1. canonical collection must still be the read source (as a db handle,
+        #    not merely a substring of the function name)
+        _handle = re.compile(r"db\.%s\b|db\[\s*[\"']%s[\"']\s*\]" % (re.escape(a["collection"]), re.escape(a["collection"])))
+        if not _handle.search(body):
+            out.append(Violation("GD-0033", a["file"], a["fn"],
+                                  "%s no longer reads canonical collection '%s' (shadow population?)" % (tag, a["collection"])))
+        # 2. count_documents authorities must keep deriving the total dynamically
+        if a["mode"] == "count_documents" and not CANON_TOTAL.search(body):
+            out.append(Violation("GD-0033", a["file"], a["fn"],
+                                  "%s must derive its total via count_documents/$count (dynamic), not a page length or literal" % tag))
+        # 3. no hard-coded literal population total in any registered authority
+        for m in _LITERAL_TOTAL.finditer(body):
+            key, lit = m.group(1), m.group(2)
+            line = m.group(0)
+            if TOTALISH.search(key) and not PAGEQ.search(key) and not _LITERAL_TOTAL_SKIP.search(line):
+                out.append(Violation("GD-0033", a["file"], a["fn"],
+                                      "hard-coded population total '%s = %s' in %s — totals must be computed from canonical authority at runtime" % (key, lit, tag)))
+    return out
+
+
 def gate_violations(repo_root: Path) -> List[str]:
     """Canonical pre-Save enforcement: returns formatted fail-closed messages (empty == clean)."""
     files = served_backend_files(repo_root)
     msgs = [v.message() for v in scan_population_contract(files)]
     msgs += [v.message() for v in scan_filter_drift(files)]
+    msgs += [v.message() for v in scan_authority_registry(files)]
     return msgs
