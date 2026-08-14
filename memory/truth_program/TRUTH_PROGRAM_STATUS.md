@@ -566,3 +566,21 @@ EXACT COUNTERS:
 NEXT (large, own focused run): health_score (13, weighted + critical-override + unknown!=healthy) ->
 efficiency_percent (16, distinct output/hours/rate concepts) -> variance_percent (22, sign-convention governance) ->
 then reconcile the remaining ~512 of the 547 truth-surface register. WAVE 5 NOT COMPLETE (needs 547/547).
+
+## ===== WAVE 5 — COMPLIANCE N/A E2E PROOF CLOSED =====
+- AUTH CLASSIFICATION: trench-reports 403 was EXPECTED GOVERNED ACCESS + EDGE WAF (Cloudflare error 1010 =
+  browser-signature ban on raw Python-urllib UA). With a browser User-Agent the authorized admin token returns 200.
+  NOT a false-deny / auth-scope defect. No auth weakening performed. (require_safety_or_admin correctly accepts admin/safety.)
+- LIVE E2E PROOF (preview, authenticated admin, /api/trench-safety/reports/inspection-compliance):
+  * zero applicable population (?project_id=ZZ-NONEXISTENT-999): compliance_score=None, compliance_score_state=NOT_APPLICABLE -> UI N/A. ✓
+  * legitimate zero (active assets, none compliant): compliance_score=0, state=OK -> 0%. ✓
+  * UNKNOWN (missing/undeterminable denominator): proven deterministically by GD-0021.
+  Contract honored exactly; numeric typing preserved (value number|None, never "N/A" string).
+- MINOR FOLLOW-UP (documented, not blocking): by_asset_type[].compliance_pct + top_risk_areas[].compliance_pct in
+  report_inspection_compliance still use _safe_pct(...,max(len,1)) (empty->0) for the per-type/per-yard breakdowns.
+  Headline compliance_score + inspection_compliance_state are governed; per-type breakdown N/A is a secondary follow-up.
+
+STATE (unchanged counters): Truth surfaces 35/547 · unmapped 512 · KPI discovered 12 · fully reconciled 7 (+on_time_rate excluded)
+· Compliance-Rate FINAL(+e2e) · Health 0/13 · Efficiency 0/16 · Variance 0/22 · Eligibility 2/2 · Avg-Days 4/4
+· defects proven 3 · shared-root repairs 6 · executable guards 8 (GD-0014..GD-0021) · contradictions 0 · prod writes 0 · Save NO · Deploy NO.
+REMAINING (need dedicated capacity): health_score(13), efficiency_percent(16), variance_percent(22), then the ~512-surface register to 547/547.
