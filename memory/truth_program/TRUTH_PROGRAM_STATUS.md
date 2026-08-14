@@ -136,3 +136,68 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - 150→149 delta explained EXACTLY: TD-0012 hardened backend/server.py list_employees (GET /api/employees), moving that site D_DEFECT → B_TRUE_TOTAL (added total=count_documents). Recorded in WAVE4_SITE_CLASSIFICATION.json exact_reconciliation.
 - Wave 4 status: CLASSIFIED 1,042/1,042; QUERY_BATCH 586/735; NOT FULLY PROVEN (149 D remaining).
 - REMAINING WORK (genuine multi-turn, budget-bounded): per-consumer dataflow proof + count_documents hardening + parameterized scale guard for the 149 D-class sites (systemic {items,count:=len()} fixed-cap pattern across server.py + route files). Then Wave 5.
+
+## ===== WAVE 4 — FULLY PROVEN (735/735, unresolved 0) — this session =====
+- Method: per-site source→consumer proof for every one of the 149 unresolved QUERY_BATCH sites.
+  Durable scanners: scripts/wave4_final_proof.py (drift-safe snippet relocation + deterministic class),
+  scripts/wave4_dump_dprecise.py (per-site function dumps), scripts/wave4_comprehensive_len_tie.py
+  (codebase-wide bounded-len total tie), scripts/wave4_finalize.py (denominator math).
+- Resolution of the 149 (see WAVE4_FINAL_PROOF.json per-site evidence + WAVE4_SITE_CLASSIFICATION.json.wave4_final):
+  - A_PAGE_ONLY 110 (request/variable bound, None-unbounded, or fixed bound with NO non-page total:=len(truncated var) — page/window length, no population-total lie; each site has a proof_reason).
+  - SAFE_INTERNAL 3 (backend/scripts/* — grep-proven NOT imported by any served module).
+  - D_DEFECT_REPAIRED 36 (fleet-units contract class {items, count/total:=len(fixed-cap read)}).
+  - (+1 already-B TD-0012 employees in the 150 universe.)
+  - Sum 110+3+36 = 149 ✓ · verified 586+149 = 735 ✓ · unresolved 0 ✓ · unrepaired D 0.
+- INVARIANT: verified + unresolved = 735 held at every step. Wave-4 status: **FULLY PROVEN**.
+- Repair pattern (owner-approved TD-0009/TD-0012): preserve legacy page `count`=len(items); add canonical
+  `total`=count_documents(same filter). For aggregation/summary endpoints that computed math over a capped
+  read, replaced the fixed-cap `.to_list(N)` with full-population streaming (`async for` / `.to_list(length=None)`)
+  so the math + total never truncate. No consumer contract weakened (additive `total`; `window` added where a
+  legacy total key was redefined to its true value).
+- D_DEFECT_REPAIRED sites (36): field_leadership list_jobs/list_employees/list_equipment_catalog/list_equipment_makes/
+  hr_list_time_off/hr_list_public_links; field_revision project_team; jha my_acknowledgements/by_project(total_files,
+  total_acknowledgements)/by_employee; promo_assets list_assets; transportation_dispatch_gate list_overrides;
+  transportation_orientation invite_list_certificates (+stream driver ids); asset_spine list_transfers; job_photos
+  list_photos; enterprise_governance governance_audit; trench excavations reinspection_queue + reports_summary(stream);
+  trench public public_overview(stream); trench report_distribution list_presets/list_subscriptions; trench operations
+  by_project(current+history)/operations_picker; trench assets list_assets; project_forecasting_commitments
+  _load_constraints(stream); oppc_execution build_project_execution_workspace(stream); transport_carrier_intelligence
+  _fleet_signals; transport_command_digest(stream); transport_dispatch_learning(stream); server.py project_pnl(stream)
+  + email routes ×3(stream); transportation fleet_adoption_rollback(stream ids + full delete/cleanup); safety
+  delete_incident (count_documents for accurate 409 linked_capa_count).
+- DOWNGRADE (documented, not D): control_plane.build_readiness_evidence_package.capture_count = intentional recent-10
+  evidence-bundle window (A_PAGE_ONLY).
+- WITHIN-149 ternary-cap D also repaired (auto-parser missed `to_list(200 if search else 5000)`): server.py
+  list_equipment_master (admin+public), list_jobs_public_lookup, public roster (24.9-public), list_suppliers,
+  equipment_status_board(stream). All now count_documents/streamed. Live-verified: suppliers 162/162, jobs 42/42,
+  trench public_overview 21.
+- BONUS D found OUTSIDE the 735 denominator via codebase-wide scan + repaired (future-scale hardening, recorded in
+  WAVE4_FINAL_PROOF.final_accounting.bonus_D_outside_149_repaired): operations utilization_overview(fleet_size stream),
+  employee_records get_queue + employee_records (count_documents), cross_entity_exception_reconciliation scan(stream),
+  operational_events location rollup(aggregate stream), trench_project_intelligence facts(aggregate stream),
+  hr_portal daily-reports list(count_documents total).
+- NOTE (scope): the codebase-wide `total-like : len()` universe is ~674 sites, far larger than the Wave-4 735 denominator.
+  The 735 (defined QUERY_BATCH population) is FULLY PROVEN. The broader universe is a permanent-guard concern (Wave 11):
+  the durable scanner scripts/wave4_comprehensive_len_tie.py is the regression seed. Remaining scanner flags are
+  documented non-D: operations_actions/api (already exposes total via $count), trench_safety/reports.open_repairs
+  (already count_documents), governance.match_count (per-name ambiguity cardinality, not a population total).
+- Guards: GD-0013 (backend/tests/test_gd0013_wave4_population_count_contract.py) 10/10 — parameterized scale proof of
+  both shared patterns (capped-list+count_documents; streaming aggregation) at below/at/above/large bound.
+  TD-0009 5/5 still green. Backend boots clean (preview db=masci_safety_preview, isolation OK). NO Save/Deploy.
+- NEXT: WAVE 5 — canonical KPI concept register + highest-blast-radius reconciliation (started; see WAVE5_KPI_REGISTER.md).
+
+## ===== WAVE 4 — LIVE-VERIFIED + GAP CLOSURE (testing agent iteration_24) =====
+- Live contract suite backend/tests/test_wave4_live_count_total_contract.py: **62/62 PASS** against preview URL.
+  Strongest proof: /api/admin/governance/audit count=200 (window) vs total=45281 (true population);
+  /api/trench-safety/excavations/reports/summary total=1081 with by_status summing EXACTLY to total (stream, no truncation);
+  /api/public/equipment-master-lookup 766/766; /api/suppliers 162/162; /api/public/jobs-lookup 42/42.
+- Testing agent found 4 MORE genuine bounded-list gaps (outside original 149) + repaired this session:
+  GET /api/asset-spine/assets (added AssetSpine.count_assets + total), GET /api/trench-safety/excavations (was
+  truncating TODAY at limit 200 vs pop >1081 → added total), GET /api/trench-safety/reports/digest/history (total),
+  GET /api/employee-records/batches (count+total). Plus jha /me early-return branch made shape-stable (total:0).
+- CANONICAL VOCABULARY DECISION (owner-consistency): every count/total surface uses `count` = returned page/window
+  length, `total` = true population (count_documents on same filter). employee_records reverted from the transient
+  count=population/window=page shape to this canonical form. No `_id` leakage; `total` is purely additive.
+- Guards green: GD-0013 10/10, TD-0009 5/5, live suite 62/62. Backend boots clean (preview). NO Save/Deploy.
+- FOLLOW-UP (recommended permanent guard, Wave 11): a route-table walker test that fails any GET returning
+  {count, items} without `total`. Durable seed scanner: scripts/wave4_comprehensive_len_tie.py.

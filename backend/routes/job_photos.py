@@ -895,7 +895,8 @@ def attach_routes(app, db, require_caller, send_email_fn) -> None:
         # plain <img src> with no axios overhead.
         for it in items:
             it["thumb_token"] = make_thumb_token(it["id"], ttl_seconds=3600)
-        return {"items": items, "count": len(items)}
+        return {"items": items, "count": len(items),
+                "total": await db.job_photos.count_documents(scope_query)}
 
     @router.get("/{photo_id}/raw")
     async def get_photo_raw(

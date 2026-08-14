@@ -582,7 +582,8 @@ def build_hr_portal_router(db, require_admin_dep: Callable, send_email_fn: Optio
             }},
         ]
         items = await db.daily_reports.aggregate(pipeline).to_list(500)
-        return {"ok": True, "items": items, "count": len(items)}
+        return {"ok": True, "items": items, "count": len(items),
+                "total": await db.daily_reports.count_documents(apply_synthetic_dr_exclusion(match))}
 
     @router.get("/hr/daily-reports/{report_id}")
     async def hr_get_daily_report(report_id: str, actor=Depends(require_hr_user)):

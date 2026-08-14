@@ -1428,17 +1428,16 @@ def register_transportation_routes(
         if not batch_id or len(batch_id) < 8:
             raise HTTPException(422, "invalid batch_id")
         # Only remove overlays produced by the named bulk batch.
-        overlays = await db.transport_trucks.find(
-            {"tenant": TENANT,
-             "bulk_adoption_batch_id": batch_id}).to_list(5000)
-        if not overlays:
+        overlay_query = {"tenant": TENANT, "bulk_adoption_batch_id": batch_id}
+        # Stream ALL overlay ids for this batch so rollback + eligibility
+        # cleanup + the removed count are never truncated at a fixed cap.
+        ids = [o["id"] async for o in db.transport_trucks.find(
+            overlay_query, {"_id": 0, "id": 1}) if o.get("id")]
+        if not ids:
             return {"success": True, "batch_id": batch_id,
                     "removed": 0,
                     "message": "no overlays match this batch_id"}
-        ids = [o.get("id") for o in overlays]
-        await db.transport_trucks.delete_many(
-            {"tenant": TENANT,
-             "bulk_adoption_batch_id": batch_id})
+        await db.transport_trucks.delete_many(overlay_query)
         await db.transport_eligibility_state.delete_many(
             {"target_type": "truck", "target_id": {"$in": ids}})
         await _audit(db, kind="transport_bulk_adoption_rolled_back",

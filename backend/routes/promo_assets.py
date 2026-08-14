@@ -142,6 +142,7 @@ def build_promo_assets_router(
         return {
             "ok": True,
             "count": len(items),
+            "total": await coll.count_documents(match),
             "items": items,
             "categories": PROMO_CATEGORIES,
         }

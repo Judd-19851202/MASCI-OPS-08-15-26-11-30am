@@ -809,7 +809,8 @@ def register_enterprise_governance_routes(api_router: APIRouter, db, require_adm
     async def governance_audit(request: Request, actor=Depends(require_admin)):
         runtime_db = _runtime_db(request, db)
         rows = [row async for row in runtime_db.enterprise_governance_audit.find({}, {"_id": 0}).sort("created_at", -1).limit(200)]
-        return {"count": len(rows), "items": rows}
+        return {"count": len(rows), "items": rows,
+                "total": await runtime_db.enterprise_governance_audit.count_documents({})}
 
     @api_router.get("/api/admin/governance/versions")
     async def governance_versions(request: Request, actor=Depends(require_admin)):

@@ -108,8 +108,9 @@ def register_operations_routes(
         if project_name:
             or_clauses.append({"current_project_name": project_name})
 
+        current_query = {"$or": or_clauses, "is_active": True}
         current_docs = await db.trench_safety_assets.find(
-            {"$or": or_clauses, "is_active": True},
+            current_query,
             {"_id": 0},
         ).sort("asset_id", 1).to_list(2000)
 
@@ -117,7 +118,8 @@ def register_operations_routes(
             "current": await _enrich_with_holds_and_certs(
                 db, [_project_view(d) for d in current_docs]
             ),
-            "current_count": len(current_docs),
+            "current_count": await db.trench_safety_assets.count_documents(current_query),
+            "current_window": len(current_docs),
         }
 
         if include_history:
@@ -137,7 +139,8 @@ def register_operations_routes(
                 .to_list(500)
             )
             out["history"] = history
-            out["history_count"] = len(history)
+            out["history_count"] = await db.trench_safety_deployments.count_documents({"$or": dep_clauses})
+            out["history_window"] = len(history)
 
         return out
 
@@ -170,4 +173,5 @@ def register_operations_routes(
                 db, [_project_view(d) for d in docs]
             ),
             "count": len(docs),
+            "total": await db.trench_safety_assets.count_documents(q),
         }

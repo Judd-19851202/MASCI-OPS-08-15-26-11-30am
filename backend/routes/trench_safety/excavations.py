@@ -767,7 +767,8 @@ def register_excavation_routes(
 
         cursor = db.trench_excavations.find(q, {"_id": 0}).sort("created_at", -1).limit(limit)
         items = await cursor.to_list(limit)
-        return {"items": items, "count": len(items)}
+        return {"items": items, "count": len(items),
+                "total": await db.trench_excavations.count_documents(q)}
 
     # ── FV-7.5 / FV-7.6 · Oversight chip counts ────────────────────
     @api_router.get(PREFIX + "/oversight-chips")
@@ -843,13 +844,15 @@ def register_excavation_routes(
     # ── Reinspection queue (Correction 10) ─────────────────────────
     @api_router.get(PREFIX + "/reinspection-queue")
     async def reinspection_queue(_actor: dict = Depends(require_safety_or_admin)):
+        query = {"reinspection_required": True, "reinspection_completed": {"$ne": True},
+                 "status": {"$nin": ["Closed"]}}
         cursor = db.trench_excavations.find(
-            {"reinspection_required": True, "reinspection_completed": {"$ne": True},
-             "status": {"$nin": ["Closed"]}},
+            query,
             {"_id": 0},
         ).sort("updated_at", -1).limit(500)
         items = await cursor.to_list(500)
-        return {"items": items, "count": len(items)}
+        total = await db.trench_excavations.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @api_router.get(PREFIX + "/{ex_id}")
     async def get_excavation(ex_id: str, _actor: dict = Depends(require_safety_or_admin)):
@@ -1076,9 +1079,8 @@ def register_excavation_routes(
 
     @api_router.get(PREFIX + "/reports/summary")
     async def reports_summary(_actor: dict = Depends(require_safety_or_admin)):
-        docs = await db.trench_excavations.find({}, {"_id": 0}).to_list(2000)
         out = {
-            "total": len(docs),
+            "total": 0,
             "active": 0,
             "by_status": {},
             "action_required": [],
@@ -1088,7 +1090,9 @@ def register_excavation_routes(
             "utility_locate_review": [],
             "reinspection_required": [],
         }
-        for d in docs:
+        # Stream the full population so summary counts never truncate at a cap.
+        async for d in db.trench_excavations.find({}, {"_id": 0}):
+            out["total"] += 1
             st = d.get("status") or "Submitted"
             out["by_status"][st] = out["by_status"].get(st, 0) + 1
             if st not in ("Closed",):

@@ -24,12 +24,7 @@ def register_public_routes(api_router: APIRouter, db) -> None:
     @api_router.get("/trench-safety/public/overview")
     async def public_overview():
         """Anonymous fleet shape. Counts only — no asset identities."""
-        # Single in-memory rollup (fleet ≤ 250 indefinitely; see audit §5).
-        docs = await db.trench_safety_assets.find(
-            {"is_active": True},
-            {"_id": 0, "operational_status": 1, "asset_type": 1},
-        ).to_list(5000)
-
+        # Stream the full active population so the rollup never truncates at a cap.
         counts_by_status = {
             "Available": 0,
             "Assigned": 0,
@@ -49,7 +44,12 @@ def register_public_routes(api_router: APIRouter, db) -> None:
             # Phase 8A — Road Plate is a first-class native asset type.
             "Road Plate": 0,
         }
-        for d in docs:
+        total_active_assets = 0
+        async for d in db.trench_safety_assets.find(
+            {"is_active": True},
+            {"_id": 0, "operational_status": 1, "asset_type": 1},
+        ):
+            total_active_assets += 1
             s = d.get("operational_status") or "Available"
             if s in counts_by_status:
                 counts_by_status[s] += 1
@@ -58,7 +58,7 @@ def register_public_routes(api_router: APIRouter, db) -> None:
                 counts_by_type[t] += 1
 
         return {
-            "total_active_assets": len(docs),
+            "total_active_assets": total_active_assets,
             "counts_by_status": counts_by_status,
             "counts_by_type": counts_by_type,
         }

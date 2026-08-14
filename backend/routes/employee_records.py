@@ -495,7 +495,8 @@ def build_employee_records_router(*, db, require_actor):
         items: List[Dict[str, Any]] = []
         async for b in db.record_import_batches.find(q, {"_id": 0}).sort("created_at", -1).limit(200):
             items.append(b)
-        return {"ok": True, "batches": items}
+        return {"ok": True, "batches": items, "count": len(items),
+                "total": await db.record_import_batches.count_documents(q)}
 
     # ── Records ───────────────────────────────────────────────────
     @router.post("/records")
@@ -930,6 +931,7 @@ def build_employee_records_router(*, db, require_actor):
             "ok": True,
             "lane": lane,
             "count": len(items),
+            "total": await db.employee_records.count_documents(q),
             "records": items,
         }
 
@@ -963,7 +965,8 @@ def build_employee_records_router(*, db, require_actor):
         items: List[Dict[str, Any]] = []
         async for r in db.employee_records.find(q, {"_id": 0}).sort("effective_date", -1).limit(500):
             items.append(r)
-        return {"ok": True, "records": items, "count": len(items)}
+        return {"ok": True, "records": items, "count": len(items),
+                "total": await db.employee_records.count_documents(q)}
 
     # ── File preservation (immutable) ─────────────────────────────
     # Upload original file → R2 (or base64 fallback). Returns:

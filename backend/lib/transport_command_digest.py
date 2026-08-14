@@ -56,8 +56,8 @@ async def build_transport_command_digest(db, *, now: Optional[datetime] = None
     horizon = now + timedelta(days=7)
 
     # 1. Open action items.
-    actions = await db.transport_action_items.find(
-        {"tenant": TENANT, "status": "open"}).to_list(2000)
+    actions = [a async for a in db.transport_action_items.find(
+        {"tenant": TENANT, "status": "open"})]
     by_severity: Dict[str, List[Dict[str, Any]]] = {
         "blocking": [], "urgent": [], "action_required": [],
         "advisory": [], "info": [],

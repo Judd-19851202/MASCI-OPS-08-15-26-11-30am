@@ -1326,3 +1326,23 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
 - TD-0008 SO-06 blast radius: AdminGovernanceTrust + AdminOS governance evaluators re-derived red/critical from raw counts (highs>20 / highs>0). Aligned both to governed contract (red requires genuine critical). Test GovernanceSeverityContract.so06.test.jsx 5/5.
 - WAVE 3: reconciled master populations on LIVE production — users 44, vehicles/fleet units 149 (96 truck+53 trailer), eligible CDL drivers 43; all server-side full-population q search, no current truncation.
 - All evidence/repairs/tests durable in /app/memory/truth_program/. Production READ-ONLY only. No Save/Deploy. Product Quality v4 remains PAUSED; Gate 16 remains owner-deferred.
+
+## 2026-06 (fork) — WAVE 4 FULLY PROVEN + WAVE 5 started (Truth & Trust Program)
+- WAVE 4 (future-scale count/total truncation) FULLY PROVEN: QUERY_BATCH 735/735, unresolved 0, unrepaired D 0.
+  Invariant verified+unresolved=735 held throughout. Per-site evidence in memory/truth_program/WAVE4_FINAL_PROOF.json.
+- Resolution of the 149 unresolved: A_PAGE_ONLY 110 (deterministic proof) + SAFE_INTERNAL 3 (import-proven scripts)
+  + D_DEFECT_REPAIRED 36. Repair pattern (TD-0009/TD-0012): keep page `count`=len(items), add canonical
+  `total`=count_documents(same filter); aggregation/summary endpoints switched from fixed .to_list(N) cap to full-
+  population streaming (async for / to_list(length=None)) so math+total never truncate.
+- Additionally repaired (found via codebase-wide bounded-len scan + testing agent, beyond the 149): server.py
+  equipment-master(admin/public)/jobs/suppliers/roster/equipment_status_board ternary-cap lists; operations
+  utilization_overview; employee_records queue/360/batches; cross_entity recon scan; operational_events rollup;
+  trench_project_intelligence facts; hr daily-reports list; asset_spine assets (+AssetSpine.count_assets); trench
+  excavations list (was truncating live at >1081) + digest history.
+- Canonical vocabulary locked: count = returned page length, total = true population (count_documents).
+- Guards: GD-0013 scale contract 10/10; live contract suite test_wave4_live_count_total_contract.py 62/62;
+  TD-0009 5/5. Backend boots clean on preview (db=masci_safety_preview). NO Save / NO Deploy (owner constraint).
+- WAVE 5 STARTED: canonical KPI concept register (memory/truth_program/WAVE5_KPI_REGISTER.md +
+  WAVE5_KPI_CONCEPTS.json, scanner scripts/wave5_kpi_concept_scan.py). Blast-radius ranking top-3:
+  KPI-PERCENT-COMPLETE (27 files/84 sites), KPI-EXPIRING-RATE (29/50), KPI-UTILIZATION (22/45). Reconciliation
+  not yet started (next: percent_complete, highest blast radius). KPI-OWNERSHIP-SCORE already canonical (SO-07/TD-0006).

@@ -200,8 +200,9 @@ def register_field_revision_routes(
             except Exception:
                 job = None
         # Active employees — light projection.
+        emp_query = {"is_active": {"$ne": False}, "deleted_at": {"$in": [None, False]}}
         cur = db.employees.find(
-            {"is_active": {"$ne": False}, "deleted_at": {"$in": [None, False]}},
+            emp_query,
             {"_id": 0, "id": 1, "name": 1, "employee_id": 1,
              "role": 1, "trade": 1, "crew": 1},
         ).sort("name", 1)
@@ -214,6 +215,7 @@ def register_field_revision_routes(
             },
             "team":     roster,
             "count":    len(roster),
+            "total":    await db.employees.count_documents(emp_query),
         }
 
     @api_router.get("/admin/field-submitter-bindings")

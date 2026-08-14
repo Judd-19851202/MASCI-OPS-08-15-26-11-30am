@@ -1,0 +1,1546 @@
+{
+  "generated": "wave5",
+  "concepts": {
+    "percent_complete": {
+      "concept_id": "KPI-PERCENT-COMPLETE",
+      "compute_site_count": 84,
+      "distinct_files": 27,
+      "backend_sites": 64,
+      "frontend_sites": 20,
+      "files": [
+        "backend/pdf_render.py",
+        "backend/routes/asset_spine.py",
+        "backend/routes/daily_reports.py",
+        "backend/routes/daily_summary.py",
+        "backend/routes/employee_lifecycle.py",
+        "backend/routes/enterprise_governance.py",
+        "backend/routes/pm_routes.py",
+        "backend/services/cost_codes/foundation.py",
+        "backend/services/cost_codes/oppc_briefings.py",
+        "backend/services/cost_codes/oppc_confidence_data.py",
+        "backend/services/cost_codes/oppc_execution.py",
+        "backend/services/cost_codes/schedule_engine.py",
+        "backend/services/operational_kpis/aggregator.py",
+        "backend/services/project_earned_value_engine.py",
+        "backend/services/project_schedule_actuals_spine.py",
+        "backend/services/project_schedule_authority.py",
+        "frontend/src/components/HrCompletenessTile.jsx",
+        "frontend/src/components/daily-report-v3/sections.jsx",
+        "frontend/src/components/pm/PmCostCodeAssignmentCard.jsx",
+        "frontend/src/components/pm/PmJobsRead.jsx",
+        "frontend/src/components/pm/schedule/ScheduleActualsWorkspace.jsx",
+        "frontend/src/lib/__tests__/dailyReportSummaryPayload.test.js",
+        "frontend/src/lib/dailyReportSchema.js",
+        "frontend/src/lib/dailyReportSummaryPayload.js",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx",
+        "frontend/src/pages/PmProjectSchedule.jsx",
+        "frontend/src/pages/ViewDailyReport.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/pdf_render.py:1368",
+          "side": "backend",
+          "code": "#   \u2022 Legacy `activities[]` columns: activity, percent_complete,"
+        },
+        {
+          "loc": "backend/pdf_render.py:1372",
+          "side": "backend",
+          "code": "#   \u2022 Unique to legacy 09: `percent_complete` (progress signal)"
+        },
+        {
+          "loc": "backend/pdf_render.py:1386",
+          "side": "backend",
+          "code": "pct = a.get(\"percent_complete\")"
+        },
+        {
+          "loc": "backend/routes/daily_summary.py:186",
+          "side": "backend",
+          "code": "\"percent_complete\": int(_num(row.get(\"percent_complete\")) or 0),"
+        },
+        {
+          "loc": "backend/routes/daily_summary.py:427",
+          "side": "backend",
+          "code": "pct = int(_num(row.get(\"percent_complete\")) or 0)"
+        },
+        {
+          "loc": "backend/routes/daily_summary.py:774",
+          "side": "backend",
+          "code": "pct = int(_num(row.get(\"percent_complete\")) or 0)"
+        },
+        {
+          "loc": "backend/routes/asset_spine.py:427",
+          "side": "backend",
+          "code": "\"pct_complete\": round(100.0 * sum(1 for s in steps if ob.get(s)) / len(steps), 1),"
+        },
+        {
+          "loc": "backend/routes/daily_reports.py:276",
+          "side": "backend",
+          "code": "(`unit_snapshot`, `unit_code`, `percent_complete`,"
+        },
+        {
+          "loc": "backend/routes/daily_reports.py:293",
+          "side": "backend",
+          "code": "percent_complete: Optional[float] = None"
+        },
+        {
+          "loc": "backend/routes/pm_routes.py:303",
+          "side": "backend",
+          "code": "item[\"cost_code_progress_percent\"] = item.get(\"cost_code_progress_percent\") or 0"
+        },
+        {
+          "loc": "backend/routes/employee_lifecycle.py:1377",
+          "side": "backend",
+          "code": "\"completion_percent\": round(pct, 1),"
+        },
+        {
+          "loc": "backend/routes/enterprise_governance.py:387",
+          "side": "backend",
+          "code": "percent_complete: float = 0.0"
+        },
+        {
+          "loc": "backend/routes/enterprise_governance.py:416",
+          "side": "backend",
+          "code": "approved_percent_complete: float = 0.0"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:134",
+          "side": "backend",
+          "code": "\"percent_complete\": [\"percent complete\", \"% complete\", \"progress %\"],"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:412",
+          "side": "backend",
+          "code": "\"percent_complete\": max(0.0, min(100.0, _safe_float(_match_alias(headers, \"percent_complete\")))),"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:909",
+          "side": "backend",
+          "code": "\"percent_complete\": max(0.0, min(100.0, _safe_float(payload.get(\"percent_complete\") if payload.get(\"percent_complete\") is not None else selected.get(\"percent_co"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1053",
+          "side": "backend",
+          "code": "\"percent_complete\": max(0.0, min(100.0, _safe_float(selected.get(\"percent_complete\")))),"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1135",
+          "side": "backend",
+          "code": "\"percent_complete\": activity.get(\"percent_complete\") or 0,"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1683",
+          "side": "backend",
+          "code": "\"percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1703",
+          "side": "backend",
+          "code": "\"percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1782",
+          "side": "backend",
+          "code": "\"approved_percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1800",
+          "side": "backend",
+          "code": "\"approved_percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1816",
+          "side": "backend",
+          "code": "(row.get(\"approved_actual\") or {}).get(\"approved_percent_complete\"),"
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1838",
+          "side": "backend",
+          "code": "\"approved_percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_authority.py:1858",
+          "side": "backend",
+          "code": "\"percent_complete\","
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:570",
+          "side": "backend",
+          "code": "\"approved_percent_complete_average\": round(sum(_to_float((row.get(\"actual_state\") or {}).get(\"approved_percent_complete\"), 0.0) for row in activities) / max(len"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:603",
+          "side": "backend",
+          "code": "\"approved_percent_complete\": 0.0,"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:619",
+          "side": "backend",
+          "code": "percent_complete = max(_to_float((row.get(\"approved_actual\") or {}).get(\"approved_percent_complete\"), 0.0) for row in candidates)"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:627",
+          "side": "backend",
+          "code": "actual_status = \"completed\" if finish_dates or percent_complete >= 100.0 else \"in_progress\""
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:634",
+          "side": "backend",
+          "code": "\"approved_percent_complete\": round(percent_complete, 2),"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:681",
+          "side": "backend",
+          "code": "approved_percent = max(0.0, min(100.0, _to_float(payload.get(\"approved_percent_complete\"), _to_float((candidate.get(\"approved_actual\") or {}).get(\"approved_perc"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:707",
+          "side": "backend",
+          "code": "\"approved_percent_complete\": approved_percent,"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:761",
+          "side": "backend",
+          "code": "approved_percent = _to_float(actual_state.get(\"approved_percent_complete\"), 0.0)"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:797",
+          "side": "backend",
+          "code": "\"approved_percent_complete\": round(approved_percent, 2),"
+        },
+        {
+          "loc": "backend/services/project_schedule_actuals_spine.py:846",
+          "side": "backend",
+          "code": "\"approved_percent_complete\": round(_to_float(actual_state.get(\"approved_percent_complete\"), 0.0), 2),"
+        },
+        {
+          "loc": "backend/services/project_earned_value_engine.py:479",
+          "side": "backend",
+          "code": "bucket[\"approved_percent\"] = max(bucket[\"approved_percent\"], _to_float(approved.get(\"approved_percent_complete\"), 0.0))"
+        },
+        {
+          "loc": "backend/services/project_earned_value_engine.py:809",
+          "side": "backend",
+          "code": "(_ratio(_to_float((activity.get(\"actual_state\") or {}).get(\"approved_percent_complete\"), 0.0), 100.0), _activity_weight(activity))"
+        },
+        {
+          "loc": "backend/services/project_earned_value_engine.py:811",
+          "side": "backend",
+          "code": "if _to_float((activity.get(\"actual_state\") or {}).get(\"approved_percent_complete\"), 0.0) > 0"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:346",
+          "side": "backend",
+          "code": "percent_complete_snapshots: List[Dict[str, Any]] = []"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:358",
+          "side": "backend",
+          "code": "pc = p.get(\"percent_complete\")"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:360",
+          "side": "backend",
+          "code": "percent_complete_snapshots.append({"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:362",
+          "side": "backend",
+          "code": "\"percent_complete\": float(pc),"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:384",
+          "side": "backend",
+          "code": "\"percent_complete_snapshots\": percent_complete_snapshots[:25],"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_confidence_data.py:105",
+          "side": "backend",
+          "code": "progress_pct = _to_float((progress.get(\"summary\") or {}).get(\"overall_percent_complete\"), 0.0)"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:333",
+          "side": "backend",
+          "code": "\"progress_percent_total\": _to_float(progress_row.get(\"progress_percent\"), 0.0),"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:497",
+          "side": "backend",
+          "code": "cumulative_progress_pct=slot[\"progress_percent_total\"],"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:536",
+          "side": "backend",
+          "code": "\"percent_complete\": slot[\"progress_percent_total\"],"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:641",
+          "side": "backend",
+          "code": "\"percent_complete\": round((total_actual_qty / total_planned_qty) * 100.0, 2) if total_planned_qty > 0 else 0.0,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:682",
+          "side": "backend",
+          "code": "\"completion_percent\": completion_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_briefings.py:142",
+          "side": "backend",
+          "code": "\"completion_percent\": monday.get(\"completion_percent\"),"
+        },
+        {
+          "loc": "backend/services/cost_codes/schedule_engine.py:260",
+          "side": "backend",
+          "code": "\"progress_percent\": float(p.get(\"progress_percent\") or 0.0),"
+        },
+        {
+          "loc": "backend/services/cost_codes/schedule_engine.py:327",
+          "side": "backend",
+          "code": "if pred_finish and float(task.get(\"progress_percent\") or 0.0) <= 0 and not task.get(\"actual_start_date\"):"
+        },
+        {
+          "loc": "backend/services/cost_codes/schedule_engine.py:329",
+          "side": "backend",
+          "code": "pct = max(0.0, min(float(task.get(\"progress_percent\") or 0.0), 999.0))"
+        },
+        {
+          "loc": "backend/services/cost_codes/schedule_engine.py:458",
+          "side": "backend",
+          "code": "\"progress_percent\": round(task[\"progress_percent\"], 2),"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:194",
+          "side": "backend",
+          "code": "\"percent_complete\": round(_to_float(src.get(\"percent_complete\"), default=0.0), 4),"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:390",
+          "side": "backend",
+          "code": "progress_percent = float(task.get(\"progress_percent\") or 0.0)"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:393",
+          "side": "backend",
+          "code": "if progress_percent >= 100.0 or schedule_status == \"complete\":"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:397",
+          "side": "backend",
+          "code": "elif progress_percent > 0.0 or actual_start is not None:"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:423",
+          "side": "backend",
+          "code": "\"progress_percent\": round(progress_percent, 2),"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:484",
+          "side": "backend",
+          "code": "\"percent_complete\": round(_to_float(row.get(\"percent_complete\"), default=0.0), 4),"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:516",
+          "side": "backend",
+          "code": "\"percent_complete\": assignment.get(\"percent_complete\") or 0,"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:656",
+          "side": "backend",
+          "code": "\"progress_percent\": progress_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:674",
+          "side": "backend",
+          "code": "\"overall_percent_complete\": overall_percent,"
+        },
+        {
+          "loc": "backend/services/cost_codes/foundation.py:994",
+          "side": "backend",
+          "code": "\"cost_code_progress_percent\": progress.get(\"overall_percent_complete\", 0.0),"
+        },
+        {
+          "loc": "frontend/src/pages/PmProjectSchedule.jsx:117",
+          "side": "frontend",
+          "code": "approved_percent_complete: row?.approved_actual?.approved_percent_complete ?? 0,"
+        },
+        {
+          "loc": "frontend/src/pages/PmProjectSchedule.jsx:140",
+          "side": "frontend",
+          "code": "approved_percent_complete: Number(draft?.approved_percent_complete || 0),"
+        },
+        {
+          "loc": "frontend/src/pages/PmProjectSchedule.jsx:203",
+          "side": "frontend",
+          "code": "percent_complete: Number(draft.percent_complete || 0),"
+        },
+        {
+          "loc": "frontend/src/pages/PmProjectSchedule.jsx:815",
+          "side": "frontend",
+          "code": "<td className=\"px-3 py-3 text-slate-700\">{row.status}<br /><span className=\"text-xs text-slate-500\">{Number(row.percent_complete || 0).toFixed(0)}%</span></td>"
+        },
+        {
+          "loc": "frontend/src/pages/ViewDailyReport.jsx:752",
+          "side": "frontend",
+          "code": "r.percent_complete != null && r.percent_complete !== \"\""
+        },
+        {
+          "loc": "frontend/src/pages/ViewDailyReport.jsx:753",
+          "side": "frontend",
+          "code": "? `${r.percent_complete}%`"
+        },
+        {
+          "loc": "frontend/src/pages/PmMondayReviewWorkspace.jsx:343",
+          "side": "frontend",
+          "code": "{ key: \"readiness\", label: \"Monday Readiness\", value: `${readiness.completion_percent || 0}%` },"
+        },
+        {
+          "loc": "frontend/src/lib/dailyReportSummaryPayload.js:70",
+          "side": "frontend",
+          "code": "percent_complete: Math.max(0, Math.min(100, Math.trunc(toNumber(row.percent_complete)))),"
+        },
+        {
+          "loc": "frontend/src/lib/dailyReportSummaryPayload.js:193",
+          "side": "frontend",
+          "code": "return `${qty ? `${qty} ` : \"\"}${desc}${row.percent_complete ? ` (${row.percent_complete}% complete)` : \"\"}`.trim();"
+        },
+        {
+          "loc": "frontend/src/lib/dailyReportSchema.js:107",
+          "side": "frontend",
+          "code": "// [{activity, percent_complete, station_from, station_to, notes}]"
+        },
+        {
+          "loc": "frontend/src/lib/__tests__/dailyReportSummaryPayload.test.js:44",
+          "side": "frontend",
+          "code": "percent_complete: 65,"
+        },
+        {
+          "loc": "frontend/src/lib/__tests__/dailyReportSummaryPayload.test.js:68",
+          "side": "frontend",
+          "code": "percent_complete: 65,"
+        },
+        {
+          "loc": "frontend/src/components/HrCompletenessTile.jsx:169",
+          "side": "frontend",
+          "code": "percent={snap.completion_percent}"
+        },
+        {
+          "loc": "frontend/src/components/daily-report-v3/sections.jsx:1113",
+          "side": "frontend",
+          "code": "{t(\"Job progress\")}: {Number(projectCostProgress?.overall_percent_complete || 0).toFixed(2)}%"
+        },
+        {
+          "loc": "frontend/src/components/daily-report-v3/sections.jsx:1212",
+          "side": "frontend",
+          "code": "{t(\"Overall\")}: {Number(progressRow.progress_percent || 0).toFixed(2)}% \u00b7 {t(\"Installed to date\")}: {progressRow.installed_quantity} / {progressRow.authorized_q"
+        },
+        {
+          "loc": "frontend/src/components/daily-report-v3/sections.jsx:1381",
+          "side": "frontend",
+          "code": "{...numberInputProps(p.percent_complete)}"
+        },
+        {
+          "loc": "frontend/src/components/daily-report-v3/sections.jsx:1389",
+          "side": "frontend",
+          "code": "next[i] = { ...p, percent_complete: v };"
+        },
+        {
+          "loc": "frontend/src/components/pm/PmJobsRead.jsx:202",
+          "side": "frontend",
+          "code": "{Number(j.cost_code_progress_percent || 0).toFixed(2)}%"
+        },
+        {
+          "loc": "frontend/src/components/pm/PmCostCodeAssignmentCard.jsx:99",
+          "side": "frontend",
+          "code": "Progress {Number(progress?.overall_percent_complete || 0).toFixed(2)}%"
+        },
+        {
+          "loc": "frontend/src/components/pm/schedule/ScheduleActualsWorkspace.jsx:89",
+          "side": "frontend",
+          "code": "<Input type=\"number\" step=\"0.01\" value={draft.approved_percent_complete ?? approved.approved_percent_complete ?? 0} onChange={(event) => onCandidateDraft(candid"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "utilization": {
+      "concept_id": "KPI-UTILIZATION",
+      "compute_site_count": 45,
+      "distinct_files": 22,
+      "backend_sites": 19,
+      "frontend_sites": 26,
+      "files": [
+        "backend/lib/storage_capacity_truth.py",
+        "backend/routes/cluster_capacity.py",
+        "backend/routes/daily_summary.py",
+        "backend/routes/operational_kpis.py",
+        "backend/routes/operations.py",
+        "backend/routes/trench_project_intelligence.py",
+        "backend/routes/trench_safety/reports.py",
+        "backend/services/operational_kpis/aggregator.py",
+        "backend/services/project_forecasting_commitments.py",
+        "frontend/src/app/admin/domainMapV3.js",
+        "frontend/src/components/AdminShell.jsx",
+        "frontend/src/components/ClusterCapacityBanner.jsx",
+        "frontend/src/components/PmOperationalKPIs.jsx",
+        "frontend/src/components/admin/sidebar/domainMap.js",
+        "frontend/src/components/operational_intelligence/ResourceTable.jsx",
+        "frontend/src/pages/AdminGuide.jsx",
+        "frontend/src/pages/DispatchHub.jsx",
+        "frontend/src/pages/HrTimeVerification.jsx",
+        "frontend/src/pages/admin/AdminDatabase.jsx",
+        "frontend/src/pages/admin/AdminDispatch.jsx",
+        "frontend/src/pages/admin/DeployRecovery.jsx",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/routes/daily_summary.py:386",
+          "side": "backend",
+          "code": "+ \"Prioritize project-critical facts over generic description: measurable work progress, station limits, curb footage, concrete placement context, pipe or struc"
+        },
+        {
+          "loc": "backend/routes/cluster_capacity.py:254",
+          "side": "backend",
+          "code": "formula={\"physical_utilization_percent\": \"fsUsedSize / fsTotalSize * 100\", \"severity_thresholds\": {\"WARNING\": 80, \"HIGH\": 90, \"CRITICAL\": 95, \"EMERGENCY\": 98}},"
+        },
+        {
+          "loc": "backend/routes/cluster_capacity.py:262",
+          "side": "backend",
+          "code": "exception_notes=[\"Physical utilization is authoritative. ATLAS_QUOTA_MB is an optional logical operating budget only.\", \"Employee/public surfaces do not render "
+        },
+        {
+          "loc": "backend/routes/operational_kpis.py:424",
+          "side": "backend",
+          "code": "\"business_definition\": \"Run/idle/utilization posture from governed equipment facts for the selected project/window.\","
+        },
+        {
+          "loc": "backend/routes/operations.py:1117",
+          "side": "backend",
+          "code": "@router.get(\"/utilization\", dependencies=[Depends(require_any_portal)])"
+        },
+        {
+          "loc": "backend/routes/trench_project_intelligence.py:21",
+          "side": "backend",
+          "code": "GET /api/trench-intelligence/projects/{project_number}/asset-utilization"
+        },
+        {
+          "loc": "backend/routes/trench_project_intelligence.py:228",
+          "side": "backend",
+          "code": "@r.get(\"/trench-intelligence/projects/{project_number}/asset-utilization\")"
+        },
+        {
+          "loc": "backend/routes/trench_safety/reports.py:18",
+          "side": "backend",
+          "code": "GET /reports/utilization           \u00b7 Report 6"
+        },
+        {
+          "loc": "backend/services/project_forecasting_commitments.py:374",
+          "side": "backend",
+          "code": "required_share = round(required_weekly_total * _to_float(row.get(\"utilization\"), 0.0), 4) if required_weekly_total > 0 else 0.0"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:228",
+          "side": "backend",
+          "code": "utilization = (total_run / denom * 100.0) if denom > 0 else 0.0"
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:235",
+          "side": "backend",
+          "code": "\"utilization\": round("
+        },
+        {
+          "loc": "backend/services/operational_kpis/aggregator.py:248",
+          "side": "backend",
+          "code": "\"utilization_percent\": round(utilization, 1),"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:65",
+          "side": "backend",
+          "code": "def canonical_physical_severity(utilization_percent: Optional[float]) -> str:"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:67",
+          "side": "backend",
+          "code": "if utilization_percent is None:"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:69",
+          "side": "backend",
+          "code": "p = float(utilization_percent)"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:120",
+          "side": "backend",
+          "code": "\"physical_utilization_percent\": pct,"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:170",
+          "side": "backend",
+          "code": "pct = physical.get(\"physical_utilization_percent\")"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:236",
+          "side": "backend",
+          "code": "pct = physical.get(\"physical_utilization_percent\")"
+        },
+        {
+          "loc": "backend/lib/storage_capacity_truth.py:306",
+          "side": "backend",
+          "code": "f\"<p>Physical utilization: <strong>{pct}%</strong></p>\""
+        },
+        {
+          "loc": "frontend/src/pages/DispatchHub.jsx:376",
+          "side": "frontend",
+          "code": "<TabsContent value=\"utilization\"><DispatchUtilizationTab /></TabsContent>"
+        },
+        {
+          "loc": "frontend/src/pages/AdminGuide.jsx:549",
+          "side": "frontend",
+          "code": "<li><strong>Utilization tab</strong> \u2014 every active asset with its current status (Available \u00b7 Assigned \u00b7 In Transit \u00b7 Pending Transfer \u00b7 Safety Hold \u00b7 Maintena"
+        },
+        {
+          "loc": "frontend/src/pages/AdminGuide.jsx:588",
+          "side": "frontend",
+          "code": "<p className=\"mt-2\">Reachable from: Equipment Master list (every row has a &quot;Profile&quot; link), Dispatch Utilization table, and Idle Alerts table.</p>"
+        },
+        {
+          "loc": "frontend/src/pages/HrTimeVerification.jsx:139",
+          "side": "frontend",
+          "code": "page utilization (~70-80% of letter page), readable footer. */}"
+        },
+        {
+          "loc": "frontend/src/pages/admin/DeployRecovery.jsx:227",
+          "side": "frontend",
+          "code": "<li>Open <Link to=\"/admin/dispatch\" className=\"font-bold underline\">Transportation Operations</Link> \u2192 confirm Utilization renders.</li>"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDatabase.jsx:89",
+          "side": "frontend",
+          "code": "{\" \u00b7 \"}{typeof ph.physical_utilization_percent === \"number\" ? `${ph.physical_utilization_percent}%` : \"\u2014\"}"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:2",
+          "side": "frontend",
+          "code": "// utilization. Admin-token gated for now; will accept dispatch_users"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:77",
+          "side": "frontend",
+          "code": "<TabsTrigger value=\"utilization\" data-testid=\"dp-tab-utilization\"><Activity className=\"w-3.5 h-3.5 mr-1\" /> Utilization</TabsTrigger>"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:84",
+          "side": "frontend",
+          "code": "<TabsContent value=\"utilization\"><DispatchUtilizationTab /></TabsContent>"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:105",
+          "side": "frontend",
+          "code": "api.get(\"/operations/utilization\"),"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:178",
+          "side": "frontend",
+          "code": "/* \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 UTILIZATION \u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550\u2550 */"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:187",
+          "side": "frontend",
+          "code": "try { setUtil((await api.get(\"/operations/utilization\")).data); }"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:206",
+          "side": "frontend",
+          "code": "{/* iter226 \u00b7 utilization coaching \u00b7 Tier-2 dispatch+admin."
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:207",
+          "side": "frontend",
+          "code": "Anchor: \"Utilization is a decision tool, not a scoreboard.\" */}"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:208",
+          "side": "frontend",
+          "code": "<HelpTipBlock formKey=\"dispatch.utilization\" showCounter />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminDispatch.jsx:222",
+          "side": "frontend",
+          "code": "<Button onClick={load} size=\"sm\" variant=\"outline\" className=\"h-8\" aria-label=\"Refresh utilization\" title=\"Refresh\"><RefreshCcw className=\"w-3.5 h-3.5\" /></Butt"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:206",
+          "side": "frontend",
+          "code": "<div className=\"border rounded p-3 bg-white\"><div className=\"text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500\">{t(\"Utilization\")}</div><Pct valu"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:347",
+          "side": "frontend",
+          "code": "<div className=\"text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500\">{t(\"Utilization\")}</div>"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:348",
+          "side": "frontend",
+          "code": "<Pct value={data?.utilization_pct} />"
+        },
+        {
+          "loc": "frontend/src/app/admin/domainMapV3.js:113",
+          "side": "frontend",
+          "code": "{ to: \"/admin/dispatch\",         label: \"Dispatch\",              desc: \"Transfers \u00b7 holds \u00b7 equipment utilization.\",                 icon: Truck, keywords: [\"di"
+        },
+        {
+          "loc": "frontend/src/components/PmOperationalKPIs.jsx:128",
+          "side": "frontend",
+          "code": "`Utilization ${data.equipment.utilization_percent}%`,"
+        },
+        {
+          "loc": "frontend/src/components/AdminShell.jsx:47",
+          "side": "frontend",
+          "code": "{ key: \"dispatch\",   to: \"/admin/dispatch\",   icon: Truck,           label: \"Transportation Ops\", desc: \"Transfers \u00b7 holds \u00b7 utilization\" },"
+        },
+        {
+          "loc": "frontend/src/components/ClusterCapacityBanner.jsx:3",
+          "side": "frontend",
+          "code": "// Surfaces Atlas storage utilization directly on every page so an"
+        },
+        {
+          "loc": "frontend/src/components/admin/sidebar/domainMap.js:38",
+          "side": "frontend",
+          "code": "{ to: \"/admin/dispatch\",          label: \"Dispatch\",            desc: \"Transfers \u00b7 holds \u00b7 utilization\",            icon: Truck },"
+        },
+        {
+          "loc": "frontend/src/components/operational_intelligence/ResourceTable.jsx:28",
+          "side": "frontend",
+          "code": "<th className=\"px-4 py-3 text-right\">{t(\"Utilization\")}</th>"
+        },
+        {
+          "loc": "frontend/src/components/operational_intelligence/ResourceTable.jsx:43",
+          "side": "frontend",
+          "code": "<td className=\"px-4 py-3 text-right text-slate-900\">{row.utilization ?? \"\u2014\"}</td>"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "compliance_rate": {
+      "concept_id": "KPI-COMPLIANCE-RATE",
+      "compute_site_count": 3,
+      "distinct_files": 1,
+      "backend_sites": 0,
+      "frontend_sites": 3,
+      "files": [
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:173",
+          "side": "frontend",
+          "code": "<div className=\"border rounded p-3 bg-white\"><div className=\"text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500\">{t(\"Inspection Compliance\")}</div"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:207",
+          "side": "frontend",
+          "code": "<div className=\"border rounded p-3 bg-white\"><div className=\"text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500\">{t(\"Inspection Compliance\")}</div"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:245",
+          "side": "frontend",
+          "code": "<Pct value={data?.compliance_score} />"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "health_score": {
+      "concept_id": "KPI-HEALTH-SCORE",
+      "compute_site_count": 13,
+      "distinct_files": 7,
+      "backend_sites": 2,
+      "frontend_sites": 11,
+      "files": [
+        "backend/lib/canonical_truth.py",
+        "backend/routes/verification.py",
+        "frontend/src/components/OperationsTrustCenter.jsx",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx",
+        "frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx",
+        "frontend/src/pages/admin/AdminRecovery.jsx",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/routes/verification.py:469",
+          "side": "backend",
+          "code": "trust_score = max(0.0, round(accuracy - (mismatch_share * 1.5), 1))"
+        },
+        {
+          "loc": "backend/lib/canonical_truth.py:651",
+          "side": "backend",
+          "code": "owner_module=\"backend/lib/trust_score.py\","
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminRecovery.jsx:570",
+          "side": "frontend",
+          "code": "<div className=\"text-3xl font-bold text-slate-900\">{backupTrust?.trust_score ?? \"\u2014\"}</div>"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:358",
+          "side": "frontend",
+          "code": "caption={metrics.identity_health_score === 0 ? \"starts at 0% until reviewed\" : \"\"} />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:158",
+          "side": "frontend",
+          "code": "<Stat l=\"Current Trust\" v={`${impact.current.trust_score_pct}%`} testid=\"am-impact-current-trust\" />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:159",
+          "side": "frontend",
+          "code": "<Stat l=\"Potential Trust\" v={`${impact.potential.trust_score_pct}%`} testid=\"am-impact-potential-trust\" />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:178",
+          "side": "frontend",
+          "code": "<KV l=\"Trust\" v={`${impact.current.trust_score_pct}%`} />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:186",
+          "side": "frontend",
+          "code": "<KV l=\"Trust\" v={`${impact.potential.trust_score_pct}%`} accent />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:368",
+          "side": "frontend",
+          "code": "<Stat l=\"Trust Score\" v={`${exec.trust_score_pct}%`} />"
+        },
+        {
+          "loc": "frontend/src/pages/admin/AdminAssetMapping.jsx:369",
+          "side": "frontend",
+          "code": "<Stat l=\"Potential Trust\" v={`${exec.potential_trust_score_pct}%`} />"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:175",
+          "side": "frontend",
+          "code": "<div className=\"border rounded p-3 bg-white\"><div className=\"text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500\">{t(\"Operational Health\")}</div><P"
+        },
+        {
+          "loc": "frontend/src/components/OperationsTrustCenter.jsx:761",
+          "side": "frontend",
+          "code": "<ScoreRing score={data.trust_score ?? 0} band={band} />"
+        },
+        {
+          "loc": "frontend/src/components/OperationsTrustCenter.jsx:817",
+          "side": "frontend",
+          "code": "<TruthDisclosure ots={data.ots_truth || {}} scoreBandLabel={data.score_band_label} score={data.trust_score} />"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "on_time_rate": {
+      "concept_id": "KPI-ON-TIME-RATE",
+      "compute_site_count": 1,
+      "distinct_files": 1,
+      "backend_sites": 0,
+      "frontend_sites": 1,
+      "files": [
+        "frontend/src/pages/IncidentReportViewer.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "frontend/src/pages/IncidentReportViewer.jsx:406",
+          "side": "frontend",
+          "code": "timeline:           (s) => <SectionTimeline key={s.code} section={s} />,"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "efficiency_percent": {
+      "concept_id": "KPI-EFFICIENCY-PERCENT",
+      "compute_site_count": 16,
+      "distinct_files": 5,
+      "backend_sites": 15,
+      "frontend_sites": 1,
+      "files": [
+        "backend/services/cost_codes/oppc_confidence.py",
+        "backend/services/cost_codes/oppc_confidence_data.py",
+        "backend/services/cost_codes/oppc_execution.py",
+        "backend/services/cost_codes/oppc_intelligence.py",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/services/cost_codes/oppc_confidence_data.py:116",
+          "side": "backend",
+          "code": "\"production_efficiency_percent\": round((installed_quantity / authorized_quantity) * 100, 2) if authorized_quantity > 0 else progress_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:487",
+          "side": "backend",
+          "code": "labor_efficiency_pct = round((budget_hours_for_actual / slot[\"actual_labor_hours_week\"]) * 100.0, 2) if slot[\"actual_labor_hours_week\"] > 0 else 0.0"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:488",
+          "side": "backend",
+          "code": "production_efficiency_pct = round((actual_rate / slot[\"budget_production_rate\"]) * 100.0, 2) if slot[\"budget_production_rate\"] > 0 else 0.0"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:551",
+          "side": "backend",
+          "code": "\"labor_efficiency_percent\": labor_efficiency_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:552",
+          "side": "backend",
+          "code": "\"production_efficiency_percent\": production_efficiency_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:585",
+          "side": "backend",
+          "code": "\"labor_efficiency_percent\": \"budget_hours_for_actual / actual_field_labor_hours * 100\","
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:586",
+          "side": "backend",
+          "code": "\"production_efficiency_percent\": \"actual_production_rate / budget_production_rate * 100\","
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:661",
+          "side": "backend",
+          "code": "\"labor_efficiency_percent\": round((total_planned_labor / total_actual_labor) * 100.0, 2) if total_actual_labor > 0 else 0.0,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:662",
+          "side": "backend",
+          "code": "\"production_efficiency_percent\": round(((total_actual_qty / max(1, len(daily_reports))) / max(0.0001, (total_planned_qty / max(1, len(daily_reports) or 1)))) * "
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_confidence.py:140",
+          "side": "backend",
+          "code": "production_efficiency = _to_float(production.get(\"production_efficiency_percent\"), 0.0)"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_confidence.py:171",
+          "side": "backend",
+          "code": "\"production_efficiency_percent\": round(production_efficiency, 2),"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:197",
+          "side": "backend",
+          "code": "if _to_float(activity.get(\"actual_labor_hours\")) > 0 and _to_float(activity.get(\"labor_efficiency_percent\"), 100.0) < 90 and primary_cause != \"labor\":"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:301",
+          "side": "backend",
+          "code": "productivity_percent = round(_to_float(activity.get(\"production_efficiency_percent\")) - 100.0, 2)"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:353",
+          "side": "backend",
+          "code": "\"actual_value\": _to_float(activity.get(\"production_efficiency_percent\")),"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:359",
+          "side": "backend",
+          "code": "\"financial_impact\": round(max(0.0, 100.0 - _to_float(activity.get(\"production_efficiency_percent\"))) * 10.0, 2),"
+        },
+        {
+          "loc": "frontend/src/pages/PmMondayReviewWorkspace.jsx:65",
+          "side": "frontend",
+          "code": "<div className=\"rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2\" data-testid={`pm-monday-review-productivity-${activity.code}`}>Prod Eff: {activity.pr"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "variance_percent": {
+      "concept_id": "KPI-VARIANCE-PERCENT",
+      "compute_site_count": 22,
+      "distinct_files": 7,
+      "backend_sites": 19,
+      "frontend_sites": 3,
+      "files": [
+        "backend/routes/payroll_variance.py",
+        "backend/routes/service_truck_reconciliation.py",
+        "backend/services/cost_codes/oppc_execution.py",
+        "backend/services/cost_codes/oppc_intelligence.py",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx",
+        "frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx",
+        "frontend/src/pages/shop/ServiceTruckReconciliationForm.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/routes/payroll_variance.py:235",
+          "side": "backend",
+          "code": "variance_pct = round((diff_hours / masci_hours) * 100.0, 1) if masci_hours > 0 else None"
+        },
+        {
+          "loc": "backend/routes/service_truck_reconciliation.py:206",
+          "side": "backend",
+          "code": "\"variance_pct\": round(pct, 4),"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:489",
+          "side": "backend",
+          "code": "variance_pct = round((weekly_variance_qty / planned_qty) * 100.0, 2) if planned_qty > 0 else 0.0"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:553",
+          "side": "backend",
+          "code": "\"variance_percent\": variance_pct,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_execution.py:663",
+          "side": "backend",
+          "code": "\"variance_percent\": round((payroll_total_diff / payroll_total_field) * 100.0, 2) if payroll_total_field > 0 else 0.0,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:140",
+          "side": "backend",
+          "code": "def _variance_percent(planned: float, actual: float) -> float:"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:237",
+          "side": "backend",
+          "code": "def _classify_severity(*, variance_type: str, activity: Dict[str, Any], variance_percent: float, variance_value: float, requires_exec: bool, requires_recovery: "
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:238",
+          "side": "backend",
+          "code": "abs_pct = abs(variance_percent)"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:298",
+          "side": "backend",
+          "code": "schedule_percent = _variance_percent(_to_float(activity.get(\"planned_days_in_week\")), _to_float(activity.get(\"forecast_remaining_duration\")))"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:299",
+          "side": "backend",
+          "code": "production_percent = _variance_percent(_to_float(activity.get(\"planned_quantity\")), _to_float(activity.get(\"actual_quantity\")))"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:300",
+          "side": "backend",
+          "code": "labor_percent = _variance_percent(_to_float(activity.get(\"planned_labor_hours\")), _to_float(activity.get(\"actual_labor_hours\")))"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:322",
+          "side": "backend",
+          "code": "\"variance_percent\": schedule_percent,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:333",
+          "side": "backend",
+          "code": "\"variance_percent\": production_percent,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:344",
+          "side": "backend",
+          "code": "\"variance_percent\": labor_percent,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:355",
+          "side": "backend",
+          "code": "\"variance_percent\": productivity_percent,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:369",
+          "side": "backend",
+          "code": "\"variance_percent\": 100.0 if critical_path_impact_value else 0.0,"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:383",
+          "side": "backend",
+          "code": "variance_percent=item[\"variance_percent\"],"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:404",
+          "side": "backend",
+          "code": "\"variance_percent\": round(item[\"variance_percent\"], 2),"
+        },
+        {
+          "loc": "backend/services/cost_codes/oppc_intelligence.py:442",
+          "side": "backend",
+          "code": "variances.sort(key=lambda row: (_severity_rank(row.get(\"severity\") or \"information\"), abs(_to_float(row.get(\"variance_percent\"))), abs(_to_float(row.get(\"varian"
+        },
+        {
+          "loc": "frontend/src/pages/PmMondayReviewWorkspace.jsx:473",
+          "side": "frontend",
+          "code": "<div data-testid={`pm-monday-review-variance-percent-${suffix}`}>{variance.variance_percent}%</div>"
+        },
+        {
+          "loc": "frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:146",
+          "side": "frontend",
+          "code": "{row.variance} {row.unit} ({(row.variance_pct * 100).toFixed(1)}%)"
+        },
+        {
+          "loc": "frontend/src/pages/shop/ServiceTruckReconciliationForm.jsx:312",
+          "side": "frontend",
+          "code": "\u0394 {row.variance} {row.unit} ({(row.variance_pct * 100).toFixed(1)}%)"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "ownership_score": {
+      "concept_id": "KPI-OWNERSHIP-SCORE",
+      "compute_site_count": 2,
+      "distinct_files": 1,
+      "backend_sites": 2,
+      "frontend_sites": 0,
+      "files": [
+        "backend/services/r2_lifecycle/health.py"
+      ],
+      "sites": [
+        {
+          "loc": "backend/services/r2_lifecycle/health.py:190",
+          "side": "backend",
+          "code": "\"ownership_score\":  round(ownership_score, 1),"
+        },
+        {
+          "loc": "backend/services/r2_lifecycle/health.py:222",
+          "side": "backend",
+          "code": "\"verified_owner_pct_of_attributable\": round(ownership_score, 1),"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "eligibility_rate": {
+      "concept_id": "KPI-ELIGIBILITY-RATE",
+      "compute_site_count": 2,
+      "distinct_files": 1,
+      "backend_sites": 2,
+      "frontend_sites": 0,
+      "files": [
+        "backend/lib/transport_carrier_intelligence.py"
+      ],
+      "sites": [
+        {
+          "loc": "backend/lib/transport_carrier_intelligence.py:157",
+          "side": "backend",
+          "code": "\"drivers_eligible_pct\": round(drivers_avg[\"pct_eligible\"], 2),"
+        },
+        {
+          "loc": "backend/lib/transport_carrier_intelligence.py:158",
+          "side": "backend",
+          "code": "\"trucks_eligible_pct\": round(trucks_avg[\"pct_eligible\"], 2),"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "avg_days": {
+      "concept_id": "KPI-AVG-DAYS",
+      "compute_site_count": 4,
+      "distinct_files": 2,
+      "backend_sites": 1,
+      "frontend_sites": 3,
+      "files": [
+        "backend/operational_intelligence/products.py",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/operational_intelligence/products.py:230",
+          "side": "backend",
+          "code": "avg_days = round(sum(days_open_vals) / len(days_open_vals)) if days_open_vals else 0"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:274",
+          "side": "frontend",
+          "code": "<StatCard label={t(\"Avg Days Open\")}       value={tt.avg_days_open ?? 0}     testId=\"rb-avg-open\" />"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:275",
+          "side": "frontend",
+          "code": "<StatCard label={t(\"Avg Days to Close\")}   value={tt.avg_days_to_close ?? 0} testId=\"rb-avg-close\" />"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:313",
+          "side": "frontend",
+          "code": "<StatCard label={t(\"Avg Days Open\")}      value={tt.avg_days_open ?? 0}       testId=\"hl-avg-days\" />"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    },
+    "pass_rate": {
+      "concept_id": "KPI-PASS-RATE",
+      "compute_site_count": 0,
+      "distinct_files": 0,
+      "backend_sites": 0,
+      "frontend_sites": 0,
+      "files": [],
+      "sites": [],
+      "status": "PENDING_RECONCILE"
+    },
+    "expiring_rate": {
+      "concept_id": "KPI-EXPIRING-RATE",
+      "compute_site_count": 50,
+      "distinct_files": 29,
+      "backend_sites": 12,
+      "frontend_sites": 38,
+      "files": [
+        "backend/lib/transport_cleanup_companion.py",
+        "backend/lib/transport_command_digest.py",
+        "backend/operational_intelligence/products.py",
+        "backend/routes/field_leadership_portal.py",
+        "backend/routes/operations_center.py",
+        "backend/routes/safety_exports.py",
+        "backend/routes/safety_portal/digest.py",
+        "backend/routes/training_center.py",
+        "backend/routes/transportation_automation.py",
+        "frontend/src/components/DriverCommandProfile.jsx",
+        "frontend/src/components/DriverQualificationReadOnlyView.jsx",
+        "frontend/src/components/SafetyTrenchIntelligenceCard.jsx",
+        "frontend/src/components/hr/HrComplianceAtRiskWidget.jsx",
+        "frontend/src/pages/DocumentExpirations.jsx",
+        "frontend/src/pages/EmployeeLifecycleQualifications.jsx",
+        "frontend/src/pages/EmployeeProfile.jsx",
+        "frontend/src/pages/HrDriverQualificationDashboard.jsx",
+        "frontend/src/pages/HrV2Preview.jsx",
+        "frontend/src/pages/LeadershipHubV2.jsx",
+        "frontend/src/pages/PmCrewCompliance.jsx",
+        "frontend/src/pages/PmHub.jsx",
+        "frontend/src/pages/ProjectHealth.jsx",
+        "frontend/src/pages/SafetyDigest.jsx",
+        "frontend/src/pages/SafetyEmployeeProfiles.jsx",
+        "frontend/src/pages/SafetyHubV2.jsx",
+        "frontend/src/pages/SafetyReports.jsx",
+        "frontend/src/pages/SafetyTrainingRecords.jsx",
+        "frontend/src/pages/transportation/_orientation.jsx",
+        "frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx"
+      ],
+      "sites": [
+        {
+          "loc": "backend/routes/safety_exports.py:177",
+          "side": "backend",
+          "code": "# \u2500\u2500 5. Expired / Expiring Training \u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500\u2500"
+        },
+        {
+          "loc": "backend/routes/safety_exports.py:206",
+          "side": "backend",
+          "code": "return _serve(rows, header, \"Expired / Expiring Training\", \"training_expired\", format,"
+        },
+        {
+          "loc": "backend/routes/training_center.py:349",
+          "side": "backend",
+          "code": "_s(\"Operations Center Tie-In (Phase H, upcoming)\", \"The forthcoming Project / Job Health Dashboard aggregates these tasks + notifications + open POs + expiring "
+        },
+        {
+          "loc": "backend/routes/operations_center.py:10",
+          "side": "backend",
+          "code": "* Document Expirations \u2014 expiring / expired"
+        },
+        {
+          "loc": "backend/routes/operations_center.py:98",
+          "side": "backend",
+          "code": "\"doc_exp_expiring\":           {\"label\": \"Docs expiring soon\",   \"url\": \"/document-expirations?status=Expiring Soon\", \"severity\": \"Warning\"},"
+        },
+        {
+          "loc": "backend/routes/field_leadership_portal.py:633",
+          "side": "backend",
+          "code": "# decisions (\"who is expired/expiring/missing?\")."
+        },
+        {
+          "loc": "backend/routes/transportation_automation.py:36",
+          "side": "backend",
+          "code": "(\"TRANSPORT_DOC_EXPIRING\", \"Driver/Carrier document expiring\", False),"
+        },
+        {
+          "loc": "backend/routes/safety_portal/digest.py:118",
+          "side": "backend",
+          "code": "<div style=\"font-family:Courier,monospace;font-size:10px;letter-spacing:0.15em;color:#92400e\">EXPIRING 30D</div>"
+        },
+        {
+          "loc": "backend/routes/safety_portal/digest.py:119",
+          "side": "backend",
+          "code": "<div style=\"font-size:24px;font-weight:900;color:#b45309\">{k['training_expiring_30d']}</div>"
+        },
+        {
+          "loc": "backend/lib/transport_cleanup_companion.py:168",
+          "side": "backend",
+          "code": "\"\"\"Driver documents expired / expiring soon.\"\"\""
+        },
+        {
+          "loc": "backend/lib/transport_command_digest.py:225",
+          "side": "backend",
+          "code": "\"padding-bottom:4px;margin:18px 0 8px'>Expiring soon (next 7 days)</h3>\","
+        },
+        {
+          "loc": "backend/operational_intelligence/products.py:1272",
+          "side": "backend",
+          "code": "# Expiring / expired across driver_qualifications (canonical cert store)"
+        },
+        {
+          "loc": "frontend/src/pages/SafetyDigest.jsx:103",
+          "side": "frontend",
+          "code": "<KPI testId=\"digest-kpi-training-expiring\" label=\"Expiring 30d\" value={k.training_expiring_30d ?? 0} accent=\"amber\" />"
+        },
+        {
+          "loc": "frontend/src/pages/SafetyHubV2.jsx:293",
+          "side": "frontend",
+          "code": "to=\"/safety-portal/training?focus_filter=expiring_30d\""
+        },
+        {
+          "loc": "frontend/src/pages/PmCrewCompliance.jsx:82",
+          "side": "frontend",
+          "code": "const [filterMode, setFilterMode] = useState(\"all\"); // all | expiring | expired"
+        },
+        {
+          "loc": "frontend/src/pages/ProjectHealth.jsx:11",
+          "side": "frontend",
+          "code": "//             expiring in 14d \u00b7 \u22651 CA overdue"
+        },
+        {
+          "loc": "frontend/src/pages/ProjectHealth.jsx:59",
+          "side": "frontend",
+          "code": "url:  (pn) => `/document-expirations?status=Expiring Soon&project_number=${encodeURIComponent(pn)}` },"
+        },
+        {
+          "loc": "frontend/src/pages/EmployeeLifecycleQualifications.jsx:511",
+          "side": "frontend",
+          "code": "<strong>{summary.expiring_within_count}</strong> \u2264 30D"
+        },
+        {
+          "loc": "frontend/src/pages/EmployeeLifecycleQualifications.jsx:514",
+          "side": "frontend",
+          "code": "<strong>{summary.expired_count}</strong> EXPIRED"
+        },
+        {
+          "loc": "frontend/src/pages/HrV2Preview.jsx:51",
+          "side": "frontend",
+          "code": "to: \"/hr/driver-qualification?expiring=30\","
+        },
+        {
+          "loc": "frontend/src/pages/HrV2Preview.jsx:246",
+          "side": "frontend",
+          "code": "empty={<EmptyState title=\"No driver qualifications expiring.\" severity=\"good\" />}"
+        },
+        {
+          "loc": "frontend/src/pages/HrV2Preview.jsx:347",
+          "side": "frontend",
+          "code": "<RealLink to=\"/hr/driver-qualification?expiring=30\" testid=\"hr-v2-action-expiring\">Expiring Credentials</RealLink>"
+        },
+        {
+          "loc": "frontend/src/pages/LeadershipHubV2.jsx:123",
+          "side": "frontend",
+          "code": "<QC to=\"/field-leadership/portal/driver-qualification\" testid=\"lead-hub-v2-q-training-expired\" title=\"Training \u00b7 Expired\" why=\"Crew training records already exp"
+        },
+        {
+          "loc": "frontend/src/pages/LeadershipHubV2.jsx:142",
+          "side": "frontend",
+          "code": "<QC to=\"/field-leadership/portal/driver-qualification\" testid=\"lead-hub-v2-q-exp-expired\" title=\"Training \u00b7 Expired\" why=\"Training already past expiration and n"
+        },
+        {
+          "loc": "frontend/src/pages/LeadershipHubV2.jsx:143",
+          "side": "frontend",
+          "code": "<QC to=\"/field-leadership/portal/driver-qualification\" testid=\"lead-hub-v2-q-exp-30\" title=\"Training / Driver Expiring \u2264 30 days\" why=\"Training, CDL, or medical"
+        },
+        {
+          "loc": "frontend/src/pages/DocumentExpirations.jsx:7",
+          "side": "frontend",
+          "code": "//   * 4 summary tiles (Current / Expiring Soon / Expired / Archived)"
+        },
+        {
+          "loc": "frontend/src/pages/DocumentExpirations.jsx:144",
+          "side": "frontend",
+          "code": "<SummaryTile label={t(\"Expiring Soon\")} value={summ.expiring_30d ?? 0} icon={CalendarClock} accent=\"amber\" testIdSuffix=\"expiring-soon\" />"
+        },
+        {
+          "loc": "frontend/src/pages/DocumentExpirations.jsx:157",
+          "side": "frontend",
+          "code": "<SelectItem value=\"Expiring Soon\">{t(\"Expiring Soon\")}</SelectItem>"
+        },
+        {
+          "loc": "frontend/src/pages/PmHub.jsx:308",
+          "side": "frontend",
+          "code": "<AlertTriangle className=\"w-3 h-3\" /> Expiring \u226430d"
+        },
+        {
+          "loc": "frontend/src/pages/PmHub.jsx:310",
+          "side": "frontend",
+          "code": "<div className={`text-xl font-semibold mt-0.5 ${crewSummary?.expiring_30d ? \"text-amber-700\" : \"text-slate-900\"}`}>{crewSummary?.expiring_30d ?? \"\u2014\"}</div>"
+        },
+        {
+          "loc": "frontend/src/pages/PmHub.jsx:454",
+          "side": "frontend",
+          "code": "<AlertTriangle className=\"w-3 h-3\" /> Expiring \u226430d"
+        },
+        {
+          "loc": "frontend/src/pages/EmployeeProfile.jsx:8",
+          "side": "frontend",
+          "code": "//   * Next-Action chip driven by expiring/expired counts"
+        },
+        {
+          "loc": "frontend/src/pages/SafetyTrainingRecords.jsx:2",
+          "side": "frontend",
+          "code": "// to db.employees. Expiration tracking with \"expiring within X days\""
+        },
+        {
+          "loc": "frontend/src/pages/SafetyEmployeeProfiles.jsx:130",
+          "side": "frontend",
+          "code": "<KPI icon={AlertTriangle} label={t(\"Expiring 30 days\")} value={profile.training_summary?.expiring_within_30_days ?? 0} color=\"amber\" />"
+        },
+        {
+          "loc": "frontend/src/pages/HrDriverQualificationDashboard.jsx:47",
+          "side": "frontend",
+          "code": "// Lightweight expiring-soon visual cue (no full alert system, just a hint)."
+        },
+        {
+          "loc": "frontend/src/pages/HrDriverQualificationDashboard.jsx:57",
+          "side": "frontend",
+          "code": "return <span className={cls} title={expired ? t(\"Expired\") : soon ? t(\"Expiring soon\") : \"\"}>{date}</span>;"
+        },
+        {
+          "loc": "frontend/src/pages/HrDriverQualificationDashboard.jsx:159",
+          "side": "frontend",
+          "code": "<SummaryCard testid=\"dq-card-cdl-expiring\" icon={Clock} tint=\"border-amber-500 bg-amber-50\" label={t(\"CDL Expiring 30d\")} count={summary.cdl_expiring_30d} />"
+        },
+        {
+          "loc": "frontend/src/pages/HrDriverQualificationDashboard.jsx:160",
+          "side": "frontend",
+          "code": "<SummaryCard testid=\"dq-card-med-expiring\" icon={Clock} tint=\"border-rose-500 bg-rose-50\" label={t(\"Medical Card Expiring 30d\")} count={summary.medical_card_exp"
+        },
+        {
+          "loc": "frontend/src/pages/SafetyReports.jsx:66",
+          "side": "frontend",
+          "code": "label: \"Expired / Expiring Training Report\","
+        },
+        {
+          "loc": "frontend/src/pages/transportation/_orientation.jsx:133",
+          "side": "frontend",
+          "code": "<Tile testid=\"tx-orient-kpi-expiring\" icon={AlertTriangle} label=\"Expiring Soon\" value={data.drivers_expiring_soon} sub=\"Within 30 days\" />"
+        },
+        {
+          "loc": "frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:101",
+          "side": "frontend",
+          "code": "{tile(\"cert-exp-30\",    t(\"Renewals Due 30d\"),     a.expiring_certifications_30d || 0, \"warn\", `${base}/assets?needs_review=yes`)}"
+        },
+        {
+          "loc": "frontend/src/components/DriverCommandProfile.jsx:246",
+          "side": "frontend",
+          "code": "<CountTile testid=\"dcp-train-in-30\" label=\"\u226430 days\" value={exp.expiring_30d} tone={exp.expiring_30d > 0 ? \"rose\" : \"slate\"} />"
+        },
+        {
+          "loc": "frontend/src/components/DriverCommandProfile.jsx:247",
+          "side": "frontend",
+          "code": "<CountTile testid=\"dcp-train-in-60\" label=\"\u226460 days\" value={exp.expiring_60d} tone={exp.expiring_60d > 0 ? \"amber\" : \"slate\"} />"
+        },
+        {
+          "loc": "frontend/src/components/DriverCommandProfile.jsx:248",
+          "side": "frontend",
+          "code": "<CountTile testid=\"dcp-train-in-90\" label=\"\u226490 days\" value={exp.expiring_90d} tone={exp.expiring_90d > 0 ? \"amber\" : \"slate\"} />"
+        },
+        {
+          "loc": "frontend/src/components/SafetyTrenchIntelligenceCard.jsx:377",
+          "side": "frontend",
+          "code": "<MetricCard testid=\"cp-expiring\" label=\"Expiring \u2264 30d\" value={certs.expiring_soon} tone={certs.expiring_soon > 0 ? \"amber\" : \"slate\"} />"
+        },
+        {
+          "loc": "frontend/src/components/DriverQualificationReadOnlyView.jsx:7",
+          "side": "frontend",
+          "code": "// Search + filters + summary cards only. Highlights expiring/expired"
+        },
+        {
+          "loc": "frontend/src/components/DriverQualificationReadOnlyView.jsx:195",
+          "side": "frontend",
+          "code": "<SummaryCard icon={AlertTriangle} label={t(\"CDL expiring \u226430d\")} value={data.summary?.cdl_expiring_30d ?? 0} tint={data.summary?.cdl_expiring_30d ? \"amber\" : \"s"
+        },
+        {
+          "loc": "frontend/src/components/DriverQualificationReadOnlyView.jsx:196",
+          "side": "frontend",
+          "code": "<SummaryCard icon={AlertTriangle} label={t(\"Medical \u226430d\")} value={data.summary?.medical_card_expiring_30d ?? 0} tint={data.summary?.medical_card_expiring_30d ?"
+        },
+        {
+          "loc": "frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:24",
+          "side": "frontend",
+          "code": "// unchanged. Critical = expired \u00b7 Warning = expiring in \u2264 30 \u00b7 Info = 31\u201360."
+        },
+        {
+          "loc": "frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:123",
+          "side": "frontend",
+          "code": "<StatusChip statusKey=\"pending_verification\" compact label={`${t(\"Expiring \u2264 30 days\")}: ${summary.counts.in_30 || 0}`} />"
+        }
+      ],
+      "status": "PENDING_RECONCILE"
+    }
+  },
+  "blast_radius_ranking": [
+    {
+      "concept_id": "KPI-EXPIRING-RATE",
+      "distinct_files": 29,
+      "compute_sites": 50,
+      "backend": 12,
+      "frontend": 38
+    },
+    {
+      "concept_id": "KPI-PERCENT-COMPLETE",
+      "distinct_files": 27,
+      "compute_sites": 84,
+      "backend": 64,
+      "frontend": 20
+    },
+    {
+      "concept_id": "KPI-UTILIZATION",
+      "distinct_files": 22,
+      "compute_sites": 45,
+      "backend": 19,
+      "frontend": 26
+    },
+    {
+      "concept_id": "KPI-VARIANCE-PERCENT",
+      "distinct_files": 7,
+      "compute_sites": 22,
+      "backend": 19,
+      "frontend": 3
+    },
+    {
+      "concept_id": "KPI-HEALTH-SCORE",
+      "distinct_files": 7,
+      "compute_sites": 13,
+      "backend": 2,
+      "frontend": 11
+    },
+    {
+      "concept_id": "KPI-EFFICIENCY-PERCENT",
+      "distinct_files": 5,
+      "compute_sites": 16,
+      "backend": 15,
+      "frontend": 1
+    },
+    {
+      "concept_id": "KPI-AVG-DAYS",
+      "distinct_files": 2,
+      "compute_sites": 4,
+      "backend": 1,
+      "frontend": 3
+    },
+    {
+      "concept_id": "KPI-COMPLIANCE-RATE",
+      "distinct_files": 1,
+      "compute_sites": 3,
+      "backend": 0,
+      "frontend": 3
+    },
+    {
+      "concept_id": "KPI-OWNERSHIP-SCORE",
+      "distinct_files": 1,
+      "compute_sites": 2,
+      "backend": 2,
+      "frontend": 0
+    },
+    {
+      "concept_id": "KPI-ELIGIBILITY-RATE",
+      "distinct_files": 1,
+      "compute_sites": 2,
+      "backend": 2,
+      "frontend": 0
+    },
+    {
+      "concept_id": "KPI-ON-TIME-RATE",
+      "distinct_files": 1,
+      "compute_sites": 1,
+      "backend": 0,
+      "frontend": 1
+    },
+    {
+      "concept_id": "KPI-PASS-RATE",
+      "distinct_files": 0,
+      "compute_sites": 0,
+      "backend": 0,
+      "frontend": 0
+    }
+  ]
+}

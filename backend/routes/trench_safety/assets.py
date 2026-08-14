@@ -85,7 +85,8 @@ def register_asset_routes(
             .sort("asset_id", 1)
             .to_list(2000)
         )
-        return {"items": docs, "count": len(docs)}
+        return {"items": docs, "count": len(docs),
+                "total": await db.trench_safety_assets.count_documents(query)}
 
     # ──────────────────────────────────────────────────────────────────
     # Phase 8A — Suggest next available asset_id for a given asset type.

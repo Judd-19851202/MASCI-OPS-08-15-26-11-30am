@@ -196,7 +196,8 @@ def register_asset_spine_routes(
             limit=limit,
             skip=skip,
         )
-        return {"count": len(items), "items": items}
+        total = await spine.count_assets(active_only=active_only, asset_type=type, search=search)
+        return {"count": len(items), "items": items, "total": total}
 
     @router.get("/assets/{asset_id}")
     async def get_asset(
@@ -387,7 +388,8 @@ def register_asset_spine_routes(
             {"asset_id": asset_id}, {"_id": 0}
         ).sort("created_at", -1).limit(100)
         items = [d async for d in cur]
-        return {"count": len(items), "items": items}
+        return {"count": len(items), "items": items,
+                "total": await db.asset_transfers.count_documents({"asset_id": asset_id})}
 
     # ----- P0.6 · ONBOARDING --------------------------------------------
 

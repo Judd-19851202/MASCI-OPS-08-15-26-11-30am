@@ -16,17 +16,14 @@ from lib.transport_intelligence_core import (
 
 
 async def _fleet_signals(db, carrier_id: str) -> Dict[str, Any]:
-    trucks = await db.transport_trucks.find(
-        {"tenant": TENANT, "carrier_id": carrier_id}).to_list(500)
-    drivers = await db.transport_persons.find(
-        {"tenant": TENANT, "carrier_id": carrier_id}).to_list(500)
-    active_trucks = sum(1 for t in trucks if t.get("status") == "active")
-    active_drivers = sum(1 for d in drivers if d.get("status") == "active")
+    fleet_q = {"tenant": TENANT, "carrier_id": carrier_id}
+    trucks = await db.transport_trucks.find(fleet_q).to_list(500)
+    drivers = await db.transport_persons.find(fleet_q).to_list(500)
     return {
-        "fleet_size": len(trucks),
-        "active_trucks": active_trucks,
-        "active_drivers": active_drivers,
-        "total_drivers": len(drivers),
+        "fleet_size": await db.transport_trucks.count_documents(fleet_q),
+        "active_trucks": await db.transport_trucks.count_documents({**fleet_q, "status": "active"}),
+        "active_drivers": await db.transport_persons.count_documents({**fleet_q, "status": "active"}),
+        "total_drivers": await db.transport_persons.count_documents(fleet_q),
         "drivers": drivers,
         "trucks": trucks,
     }

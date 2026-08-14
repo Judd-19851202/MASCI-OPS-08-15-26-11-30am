@@ -784,7 +784,7 @@ def build_operational_events_router(db, require_admin_dep: Callable) -> APIRoute
                 "last": {"$first": "$$ROOT"},
             }},
         ])
-        latest = await db.operational_events.aggregate(pipe).to_list(5000)
+        latest = await db.operational_events.aggregate(pipe).to_list(length=None)
         buckets: Dict[str, int] = {
             "Equipment On Projects": 0,
             "Equipment At Plants": 0,

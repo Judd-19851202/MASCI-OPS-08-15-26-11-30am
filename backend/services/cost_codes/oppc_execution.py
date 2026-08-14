@@ -263,7 +263,7 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
         "constraints": 1,
         "cost_code_quantities": 1,
     }
-    daily_reports = await db.daily_reports.find(report_query, report_projection).sort("report_date", 1).to_list(500)
+    daily_reports = [d async for d in db.daily_reports.find(report_query, report_projection).sort("report_date", 1)]
     reports_by_day: Dict[str, List[Dict[str, Any]]] = defaultdict(list)
     for report in daily_reports:
         reports_by_day[_clean(report.get("report_date"))].append(report)

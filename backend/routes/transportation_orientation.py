@@ -1602,14 +1602,17 @@ def register_transportation_orientation_routes(
     @router.get("/transportation/invite/{token}/orientation/certificates")
     async def invite_list_certificates(token: str):
         inv = await _invite_or_404(token)
-        # Drivers under carrier.
-        drivers = await db.transport_persons.find(
-            {"tenant": TENANT, "carrier_id": inv["carrier_id"]}).to_list(500)
-        pid_set = {d["id"] for d in drivers}
+        # Drivers under carrier (stream all ids so a large carrier is not truncated).
+        driver_ids = [
+            d["id"] async for d in db.transport_persons.find(
+                {"tenant": TENANT, "carrier_id": inv["carrier_id"]}, {"_id": 0, "id": 1})
+        ]
+        cert_query = {"tenant": TENANT, "transport_person_id": {"$in": driver_ids}}
         certs = await db.transport_orientation_certificates.find(
-            {"tenant": TENANT, "transport_person_id": {"$in": list(pid_set)}}
+            cert_query
         ).sort("completed_at", -1).to_list(500)
-        return {"count": len(certs), "items": [_project(c) for c in certs]}
+        return {"count": len(certs), "items": [_project(c) for c in certs],
+                "total": await db.transport_orientation_certificates.count_documents(cert_query)}
 
     app.include_router(router)
     return router

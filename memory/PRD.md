@@ -1771,3 +1771,11 @@ Canonical authorities confirmed; live production populations reconciled (read-on
 ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES (single canonical authority each, live-reconciled). Recovered-X UX: implemented (EN/ES). Gate 16: OWNER-DEFERRED / NOT PASSED.
 
 - PRE-C10 remains **OPEN / NO-GO**. No Save, Deploy, Training & Qualifications, or C10 actions are authorized.
+---
+## STATUS POINTER (2026-06 fork) — see CHANGELOG.md + memory/truth_program/ for authoritative detail
+- Truth & Trust Program: WAVE 4 (future-scale count/total truncation) **FULLY PROVEN** — QUERY_BATCH 735/735, unresolved 0.
+  48+ endpoints/services hardened (count=page, total=count_documents; aggregations streamed). Live-verified 62/62.
+- WAVE 5 (KPI formula/denominator reconciliation) **STARTED** — canonical concept register + blast-radius ranking
+  built (memory/truth_program/WAVE5_KPI_REGISTER.md). Next: reconcile KPI-PERCENT-COMPLETE (highest blast radius).
+- Constraints still active: NO Save, NO Deploy, production read-only, preview repair-only, Product Quality v4 PAUSED,
+  Gate 16 OWNER-DEFERRED. Checkpoint-1 / TD-0011 / TD-0012 / durable registers preserved.

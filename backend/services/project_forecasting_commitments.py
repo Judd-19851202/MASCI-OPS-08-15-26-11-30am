@@ -446,7 +446,7 @@ def _classify_constraint_status(row: Dict[str, Any]) -> str:
 
 
 async def _load_constraints(db, project_number: str) -> Dict[str, Any]:
-    rows = [_sanitize(row) async for row in db.operational_constraints.find({"project_number": project_number}, {"_id": 0}).sort([("updated_at", -1), ("created_at", -1)]).limit(100)]
+    rows = [_sanitize(row) async for row in db.operational_constraints.find({"project_number": project_number}, {"_id": 0}).sort([("updated_at", -1), ("created_at", -1)])]
     open_rows = [row for row in rows if _classify_constraint_status(row) == "open"]
     if not open_rows:
         return {

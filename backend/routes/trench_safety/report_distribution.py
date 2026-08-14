@@ -312,10 +312,12 @@ def register_distribution_routes(
     @api_router.get(PREFIX + "/presets")
     async def list_presets(actor: dict = Depends(require_safety_or_admin)):
         email = (actor or {}).get("email") or "system"
+        query = {"$or": [{"owner": email}, {"shared": True}]}
         items = await db.trench_safety_report_presets.find(
-            {"$or": [{"owner": email}, {"shared": True}]}, {"_id": 0},
+            query, {"_id": 0},
         ).sort("created_at", -1).to_list(200)
-        return {"items": items, "count": len(items)}
+        total = await db.trench_safety_report_presets.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @api_router.post(PREFIX + "/presets")
     async def create_preset(body: PresetCreate, actor: dict = Depends(require_safety_or_admin)):
@@ -371,7 +373,8 @@ def register_distribution_routes(
         items = await db.trench_safety_report_subscriptions.find(
             {}, {"_id": 0},
         ).sort("created_at", -1).to_list(500)
-        return {"items": items, "count": len(items)}
+        total = await db.trench_safety_report_subscriptions.count_documents({})
+        return {"items": items, "count": len(items), "total": total}
 
     @api_router.post(PREFIX + "/subscriptions")
     async def create_subscription(body: SubscriptionCreate, actor: dict = Depends(require_safety_or_admin)):
@@ -637,7 +640,8 @@ def register_distribution_routes(
         items = await db.trench_safety_leadership_digests.find(
             {}, {"_id": 0, "snapshot": 0},
         ).sort("generated_at", -1).limit(limit).to_list(limit)
-        return {"items": items, "count": len(items)}
+        return {"items": items, "count": len(items),
+                "total": await db.trench_safety_leadership_digests.count_documents({})}
 
     @api_router.get(PREFIX + "/digest/{digest_id}")
     async def digest_detail(digest_id: str, _actor: dict = Depends(require_safety_or_admin)):

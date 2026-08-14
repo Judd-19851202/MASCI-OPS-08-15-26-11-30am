@@ -1119,16 +1119,18 @@ def build_operations_router(
         """Lightweight roll-up using internal records only. Motive-
         powered idle/underutilized values stay as placeholder counts
         until the live integration lands."""
-        # Fast bulk fetch of equipment + active assignments + active holds
-        equipment = await db.equipment_master.find(
+        # Fast bulk fetch of equipment + active assignments + active holds.
+        # Stream full populations so fleet_size and the status rollup never
+        # truncate at a fixed cap as the fleet grows (future-scale correctness).
+        equipment = [e async for e in db.equipment_master.find(
             {}, {"_id": 0, "id": 1, "unit_number": 1, "name": 1, "equipment_type": 1, "make": 1, "model": 1},
-        ).to_list(20000)
-        assignments = await db.asset_assignments.find({"active": True}, {"_id": 0}).to_list(20000)
-        holds = await db.asset_holds.find({"active": True}, {"_id": 0}).to_list(20000)
-        open_xfers = await db.transfer_requests.find(
+        )]
+        assignments = [a async for a in db.asset_assignments.find({"active": True}, {"_id": 0})]
+        holds = [h async for h in db.asset_holds.find({"active": True}, {"_id": 0})]
+        open_xfers = [x async for x in db.transfer_requests.find(
             {"status": {"$in": ["Submitted", "Pending Review", "Approved", "Scheduled", "In Transit"]}},
             {"_id": 0},
-        ).to_list(20000)
+        )]
 
         assn_by_asset = {a["asset_id"]: a for a in assignments}
         safety_set = {h["asset_id"] for h in holds if h["kind"] == "safety"}

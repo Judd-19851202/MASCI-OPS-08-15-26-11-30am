@@ -5153,6 +5153,7 @@ async def list_equipment_master(
         "items": docs,
         "grouped": grouped,
         "count": len(docs),
+        "total": await db.equipment_master.count_documents(q),
     }
 
 
@@ -5201,6 +5202,7 @@ async def list_equipment_master_public(category: Optional[str] = None, search: O
         "items": docs,
         "grouped": grouped,
         "count": len(docs),
+        "total": await db.equipment_master.count_documents(q),
         "contract": "anonymous-safe-equipment-master.v1",
     }
 
@@ -5295,6 +5297,7 @@ async def list_jobs_public_lookup(search: Optional[str] = None):
     return {
         "items": items,
         "count": len(items),
+        "total": await db.jobs_master.count_documents(jq),
         "contract": "anonymous-safe-jobs.v1",
     }
 
@@ -6301,6 +6304,7 @@ async def hr_employee_roster_public(q: Optional[str] = None, limit: int = 5000):
     return {
         "items": out,
         "count": len(out),
+        "total": await db.employees.count_documents(apply_synthetic_hr_exclusion({"$and": clauses})),
         "contract_version": "24.9-public",
         "public": True,
     }
@@ -6734,7 +6738,8 @@ async def list_suppliers(q: Optional[str] = None):
         query["$and"].append({"name": {"$regex": re.escape(q.strip()), "$options": "i"}})
     cursor = db.suppliers.find(query, {"_id": 0}).sort("name", 1)
     docs = await cursor.to_list(200 if (q and q.strip()) else 2000)
-    return {"items": docs, "count": len(docs)}
+    return {"items": docs, "count": len(docs),
+            "total": await db.suppliers.count_documents(query)}
 
 
 @api_router.get("/admin/suppliers/status")
@@ -7120,7 +7125,9 @@ async def project_pnl(
     # with a real one, cost math would silently inflate.
     q = apply_synthetic_dr_exclusion(q)
     cursor = db.daily_reports.find(q, {"_id": 0}).sort("report_date", 1)
-    reports = await cursor.to_list(2000)
+    # Stream the full matching population — the P&L math and report_count
+    # must reflect every daily report, not a fixed-cap page.
+    reports = [r async for r in cursor]
 
     crew_by_name: Dict[str, Dict[str, Any]] = {}
     sub_by_company: Dict[str, Dict[str, Any]] = {}
@@ -13968,7 +13975,7 @@ async def equipment_status_board(_: bool = Depends(require_admin)):
     cutoff_30 = now - timedelta(days=30)
 
     saved_cursor = db.equipment_units.find({}, {"_id": 0})
-    saved_units = await saved_cursor.to_list(2000)
+    saved_units = [u async for u in saved_cursor]
 
     # Pull every inspection (slim projection — skip photos to keep it fast)
     insp_cursor = db.equipment_inspections.find(
@@ -13987,7 +13994,9 @@ async def equipment_status_board(_: bool = Depends(require_admin)):
             "project_number": 1,
         },
     ).sort("created_at", -1)
-    inspections = await insp_cursor.to_list(5000)
+    # Stream the full inspection population so per-unit all-time counts
+    # (inspection_count / fail_count_14d) never truncate at a fixed cap.
+    inspections = [i async for i in insp_cursor]
 
     def _key(t: str, u: str) -> str:
         return f"{(t or '').strip()}||{(u or '').strip()}"
@@ -19479,8 +19488,7 @@ async def admin_v2_routes_list(_: bool = Depends(require_admin)):
     last-send / last-failure summaries derived from the audit collection."""
     tk = _current_tenant_key()
     cursor = db.email_routes.find({"tenant_key": tk}, {"_id": 0}).sort("route_key", 1)
-    routes = await cursor.to_list(100)
-    # Per-route last-audit lookup (cheap — bounded by 19 routes)
+    routes = [r async for r in cursor]
     summaries: Dict[str, Dict[str, Any]] = {}
     for r in routes:
         rk = r["route_key"]
@@ -19852,7 +19860,7 @@ async def admin_v2_route_health(_: bool = Depends(require_admin)):
     verify the whole routing surface before any production change."""
     tk = _current_tenant_key()
     cursor = db.email_routes.find({"tenant_key": tk}, {"_id": 0}).sort("route_key", 1)
-    routes = await cursor.to_list(100)
+    routes = [r async for r in cursor]
     try:
         from email_routing_v2 import write_audit as _v2_audit  # noqa: PLC0415
     except Exception:
@@ -20145,9 +20153,9 @@ async def admin_v2_self_check(_: bool = Depends(require_admin)):
     now = datetime.now(timezone.utc)
     flag_active = routing_v2_enabled()
 
-    routes = await db.email_routes.find(
+    routes = [r async for r in db.email_routes.find(
         {"tenant_key": tk}, {"_id": 0}
-    ).sort("route_key", 1).to_list(100)
+    ).sort("route_key", 1)]
 
     results: List[Dict[str, Any]] = []
     summary = {"green": 0, "amber": 0, "red": 0, "db_source": 0,

@@ -204,15 +204,7 @@ class AssetSpine:
 
     # ----- READ ----------------------------------------------------------
 
-    async def list_assets(
-        self,
-        *,
-        active_only: bool = True,
-        asset_type: Optional[str] = None,
-        search: Optional[str] = None,
-        limit: int = 200,
-        skip: int = 0,
-    ) -> List[Dict[str, Any]]:
+    def _asset_query(self, *, active_only=True, asset_type=None, search=None):
         q: Dict[str, Any] = {}
         if active_only:
             q["$or"] = [
@@ -243,7 +235,22 @@ class AssetSpine:
                         {"vin_serial_number": rx},
                     ]
                 }]
+        return q
 
+    async def count_assets(self, *, active_only=True, asset_type=None, search=None) -> int:
+        return await self.db.equipment_master.count_documents(
+            self._asset_query(active_only=active_only, asset_type=asset_type, search=search))
+
+    async def list_assets(
+        self,
+        *,
+        active_only: bool = True,
+        asset_type: Optional[str] = None,
+        search: Optional[str] = None,
+        limit: int = 200,
+        skip: int = 0,
+    ) -> List[Dict[str, Any]]:
+        q = self._asset_query(active_only=active_only, asset_type=asset_type, search=search)
         cur = self.db.equipment_master.find(q).sort("unit_number", 1).skip(int(skip)).limit(int(limit))
         out: List[Dict[str, Any]] = []
         async for doc in cur:

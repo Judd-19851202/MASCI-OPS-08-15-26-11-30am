@@ -293,7 +293,7 @@ def register_jha_acknowledgement_routes(
         email = (employee_email or "").strip().lower()
         eid = (employee_id or "").strip()
         if not email and not eid:
-            return {"items": [], "count": 0}
+            return {"items": [], "count": 0, "total": 0}
 
         q: Dict[str, Any] = {}
         if eid:
@@ -307,7 +307,8 @@ def register_jha_acknowledgement_routes(
             "acknowledged_at", -1
         )
         rows = await cursor.to_list(500)
-        return {"items": rows, "count": len(rows)}
+        total = await db[JHA_ACK_COLLECTION].count_documents(q)
+        return {"items": rows, "count": len(rows), "total": total}
 
     @api_router.get("/jha-acknowledgements/by-project/{project_number}")
     async def by_project(
@@ -352,8 +353,10 @@ def register_jha_acknowledgement_routes(
         return {
             "project_number": pn,
             "files": files_with_acks,
-            "total_acknowledgements": len(acks),
-            "total_files": len(files),
+            "total_acknowledgements": await db[JHA_ACK_COLLECTION].count_documents({"project_number": pn}),
+            "total_files": await db.job_hazard_files.count_documents({"project_number": pn}),
+            "acknowledgements_window": len(acks),
+            "files_window": len(files),
         }
 
     @api_router.get("/jha-acknowledgements/by-employee/{employee_id}")
@@ -385,6 +388,7 @@ def register_jha_acknowledgement_routes(
             },
             "acknowledgements": acks,
             "count": len(acks),
+            "total": await db[JHA_ACK_COLLECTION].count_documents({"employee_id": eid}),
         }
 
     @api_router.get("/jha-acknowledgements/compliance")

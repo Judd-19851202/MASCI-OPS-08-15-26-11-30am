@@ -297,7 +297,8 @@ def register_track_16_09_routes(app, db, *, require_dispatch_or_admin_dep,
         for d in await cur.to_list(500):
             d.pop("_id", None)
             items.append(d)
-        return {"count": len(items), "items": items}
+        return {"count": len(items), "items": items,
+                "total": await db.transport_dispatch_overrides.count_documents(q)}
 
     @router.post("/admin/transportation/dispatch-overrides/{oid}/revoke")
     async def revoke_override(oid: str, request: Request,

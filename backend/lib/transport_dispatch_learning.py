@@ -220,7 +220,7 @@ async def build_excluded_reason_patterns(
         "state": {"$in": ["not_dispatchable", "suspended", "expired",
                             "needs_correction"]},
     })
-    rows = await cur.to_list(5000)
+    rows = [r async for r in cur]
     for r in rows:
         for reason in (r.get("reasons") or []):
             label = (reason.get("label") or reason.get("code") or "").strip()

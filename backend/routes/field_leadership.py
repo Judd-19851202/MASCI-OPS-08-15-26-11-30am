@@ -430,24 +430,28 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     @router.get("/jobs")
     async def list_jobs(auth: Dict[str, Any] = Depends(_is_authed)):
+        query = {"active": {"$ne": False}}
         cursor = db.jobs_master.find(
-            {"active": {"$ne": False}},
+            query,
             {"_id": 0, "id": 1, "project_number": 1, "project_name": 1,
              "location": 1, "client": 1, "project_manager": 1, "pm_email": 1}
         ).sort("project_number", 1)
         items = await cursor.to_list(500)
-        return {"items": items, "count": len(items)}
+        total = await db.jobs_master.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @router.get("/employees")
     async def list_employees(auth: Dict[str, Any] = Depends(_is_authed)):
         from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion  # noqa: PLC0415
+        query = apply_synthetic_hr_exclusion({"is_active": {"$ne": False}})
         cursor = db.employees.find(
-            apply_synthetic_hr_exclusion({"is_active": {"$ne": False}}),
+            query,
             {"_id": 0, "id": 1, "name": 1, "employee_id": 1, "trade": 1,
              "role": 1, "crew": 1, "email": 1, "phone": 1}
         ).sort("name", 1)
         items = await cursor.to_list(2000)
-        return {"items": items, "count": len(items)}
+        total = await db.employees.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @router.post("/employees")
     async def create_employee_inline(
@@ -1081,19 +1085,23 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
 
     @router.get("/equipment-catalog")
     async def list_equipment_catalog(auth: Dict[str, Any] = Depends(_is_authed)):
+        query = {"active": {"$ne": False}}
         cursor = db.field_leadership_equipment_catalog.find(
-            {"active": {"$ne": False}}, {"_id": 0}
+            query, {"_id": 0}
         ).sort("name", 1)
         items = await cursor.to_list(2000)
-        return {"items": items, "count": len(items)}
+        total = await db.field_leadership_equipment_catalog.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @router.get("/equipment-makes")
     async def list_equipment_makes(auth: Dict[str, Any] = Depends(_is_authed)):
+        query = {"active": {"$ne": False}}
         cursor = db.field_leadership_equipment_makes.find(
-            {"active": {"$ne": False}}, {"_id": 0}
+            query, {"_id": 0}
         ).sort("name", 1)
         items = await cursor.to_list(500)
-        return {"items": items, "count": len(items)}
+        total = await db.field_leadership_equipment_makes.count_documents(query)
+        return {"items": items, "count": len(items), "total": total}
 
     @router.get("/equipment-checkout-lookup")
     async def lookup_equipment_by_serial(
@@ -1474,7 +1482,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         q: Dict[str, Any] = {"kind": "time_off_request", "deleted_at": None}
         if employee:
             q["employee_name"] = {"$regex": employee.strip(), "$options": "i"}
-        cursor = db.field_leadership_records.find(apply_synthetic_flr_exclusion(q), {"_id": 0}).sort("created_at", -1)
+        base_query = apply_synthetic_flr_exclusion(q)
+        cursor = db.field_leadership_records.find(base_query, {"_id": 0}).sort("created_at", -1)
         items = await cursor.to_list(2000)
         # Surface the HR decision status on the row for fast filtering
         def _status_of(r: Dict[str, Any]) -> str:
@@ -1485,7 +1494,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
         # Stamp `status` at the top level for the frontend's convenience
         for r in items:
             r["status"] = _status_of(r)
-        return {"items": items, "count": len(items)}
+        total = await db.field_leadership_records.count_documents(base_query)
+        return {"items": items, "count": len(items), "total": total}
 
     @app.get("/api/field-leadership/time-off/stats")
     async def hr_time_off_stats(auth: Dict[str, Any] = Depends(_is_hr_authed)):
@@ -1637,7 +1647,8 @@ def attach_routes(app, db, require_admin, send_email_async, render_pdf_bytes,
     async def hr_list_public_links(auth: Dict[str, Any] = Depends(_is_hr_authed)):
         cursor = db.time_off_public_links.find({}, {"_id": 0}).sort("created_at", -1).limit(200)
         items = await cursor.to_list(200)
-        return {"items": items, "count": len(items)}
+        total = await db.time_off_public_links.count_documents({})
+        return {"items": items, "count": len(items), "total": total}
 
     # Public endpoints — NO AUTH (just the token in the URL)
     @app.get("/api/public/time-off/{token}")

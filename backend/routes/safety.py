@@ -1460,12 +1460,15 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
         # convergence requirement: a deleted incident must not leave an
         # orphan CAPA referencing a non-existent source record.
         try:
+            capa_query = apply_synthetic_corrective_action_exclusion({"source_kind": "incident", "source_id": canonical_id})
             linked = await db.corrective_actions.find(
-                apply_synthetic_corrective_action_exclusion({"source_kind": "incident", "source_id": canonical_id}),
+                capa_query,
                 {"_id": 0, "id": 1, "title": 1, "status": 1},
             ).to_list(50)
+            linked_total = await db.corrective_actions.count_documents(capa_query)
         except Exception:
             linked = []
+            linked_total = 0
         if linked:
             preview = [
                 {"id": c.get("id"), "title": (c.get("title") or "")[:120],
@@ -1477,11 +1480,11 @@ def register_safety_routes(api_router: APIRouter, db, require_admin, rate_limit_
                 detail={
                     "code": "incident_has_linked_capas",
                     "message": (
-                        f"Cannot delete incident — {len(linked)} corrective "
+                        f"Cannot delete incident — {linked_total} corrective "
                         f"action(s) still reference it. Close or relink the "
                         f"CAPAs before deleting."
                     ),
-                    "linked_capa_count": len(linked),
+                    "linked_capa_count": linked_total,
                     "linked_capas": preview,
                 },
             )

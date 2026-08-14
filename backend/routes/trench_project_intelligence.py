@@ -335,7 +335,7 @@ def build_trench_project_intelligence_router(
             }},
             {"$sort": {"created_at": -1}},
         ]
-        rows = await db[COLL_FACTS].aggregate(pipeline).to_list(5000)
+        rows = await db[COLL_FACTS].aggregate(pipeline).to_list(length=None)
         total_projects = len(rows)
         agg = {
             "excavation_day_count": 0, "trench_inspection_count": 0,

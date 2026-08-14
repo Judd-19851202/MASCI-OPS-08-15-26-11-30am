@@ -310,7 +310,9 @@ async def normalize_cross_entity_exception_state(db) -> Dict[str, Any]:
 
 
 async def scan_cross_entity_exception_reconciliation(db) -> Dict[str, Any]:
-    rows = await db[CROSS_ENTITY_EXCEPTION_COLLECTION].find({"active": True}, {"_id": 0}).to_list(30000)
+    # Stream the full active population so the reconciliation total and all
+    # breakdowns never truncate at a fixed cap (future-scale correctness).
+    rows = [r async for r in db[CROSS_ENTITY_EXCEPTION_COLLECTION].find({"active": True}, {"_id": 0})]
     context = await _load_lookup_context(db)
     source_maps = {
         coll: await _load_map(db, coll, {"_id": 0}, key="id")
