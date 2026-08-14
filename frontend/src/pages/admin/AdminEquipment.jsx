@@ -13,9 +13,12 @@ export default function AdminEquipment() {
       section="equipment"
       intro={
         <p className="text-sm text-slate-600 leading-relaxed">
-          Fleet status board (in-service / out-of-service), the unit master, parts catalog, and
-          suppliers / vendors directory. Failed Pre-Op inspections auto-tag a unit out-of-service
-          and route it to your Shop Portal.
+          Two distinct governed populations live here: the <strong>Equipment Status</strong> board counts
+          <strong> inspection / status units</strong> (what has an inspection identity), while the
+          <strong> Equipment Master</strong> is the canonical <strong>all-assets</strong> fleet. They are
+          intentionally different denominators. Also: the unit master, parts catalog, and suppliers /
+          vendors directory. Failed Pre-Op inspections auto-tag a unit out-of-service and route it to your
+          Shop Portal.
         </p>
       }
     >

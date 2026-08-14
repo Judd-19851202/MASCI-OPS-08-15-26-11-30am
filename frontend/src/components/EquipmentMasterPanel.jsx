@@ -416,8 +416,8 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
           {total}
         </span>
         )}
-        <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
-          units in fleet
+        <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500" data-testid="equipment-master-total-label">
+          assets · Equipment Master (all assets)
         </span>
         {lastUpdated && (
           <span className="text-xs text-slate-500 flex items-center gap-1.5">

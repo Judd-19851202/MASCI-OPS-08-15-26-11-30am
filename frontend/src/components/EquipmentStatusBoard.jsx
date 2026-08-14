@@ -156,8 +156,11 @@ export default function EquipmentStatusBoard() {
               Equipment Status Board
               {open ? <ChevronDown className="w-5 h-5 text-slate-400" /> : <ChevronRight className="w-5 h-5 text-slate-400" />}
             </h2>
-            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5">
-              {summary.total_units} unit{summary.total_units === 1 ? "" : "s"} tracked
+            <p className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500 mt-0.5" data-testid="equipment-status-board-count-label">
+              {summary.total_units} inspection unit{summary.total_units === 1 ? "" : "s"} tracked
+            </p>
+            <p className="text-[10px] text-slate-400 mt-0.5" data-testid="equipment-status-board-scope-note">
+              Inspection / status units — distinct from the Equipment Master (all assets).
             </p>
           </div>
         </div>

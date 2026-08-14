@@ -148,3 +148,19 @@ truth-surface guard remain the sibling enforcers — no competing framework adde
 **Result:** Source repairs required = **YES** (1 frontend fix + 1 new guard). Live contradictions discovered = **1**
 (deployed Equipment Master panel false-empty) — root-caused and repaired in preview. New fingerprint
 `dcf-31b64c8d...`. Save NO · Deploy NO.
+
+## HUMAN-LABEL CLOSURE (final pre-reSave)
+- Equipment labels REPAIRED: `EquipmentStatusBoard.jsx` now reads "N inspection units tracked" + scope-note
+  "Inspection / status units — distinct from the Equipment Master (all assets)"; `EquipmentMasterPanel.jsx`
+  total label now "assets · Equipment Master (all assets)"; `AdminEquipment.jsx` intro states the two are
+  distinct governed populations (604 all-assets vs 509 inspection units). UI contract test added:
+  `components/__tests__/equipmentPopulationLabels.contract.test.js` (static; CONTRACT PASS). No calculation
+  semantics changed.
+- Transport labels VERIFIED PASS (no change): the 136 tile is already labeled "MASCI fleet (transport-capable)"
+  in `pages/transportation/_lists.jsx`; the 149 truck+trailer master is not shown adjacently → no conflation.
+- Vendor subtyping: NOT activated. Current governed business model recorded as UNIFIED 167-record supplier/
+  vendor/subcontractor master; subtype activation is a future product decision, not Truth & Trust closure.
+- GD-0033 dynamic-population contracts preserved; live snapshots remain observations only (no hard-coding).
+- Final candidate deployable fingerprint = `dcf-2ecd62ba6931cf66ab0f7dc17c4f62e819a157a0a9ca61509292eef346f9d4cb`
+  (deterministic ×2; reflects the 3 label edits — not preserved artificially). Regression PASS, strict verifier
+  ok=True (pop_gate + surface_gate PASS). Production writes 0 · Save NO · Deploy NO.
