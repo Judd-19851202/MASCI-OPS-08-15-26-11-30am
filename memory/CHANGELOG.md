@@ -1346,3 +1346,19 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
   WAVE5_KPI_CONCEPTS.json, scanner scripts/wave5_kpi_concept_scan.py). Blast-radius ranking top-3:
   KPI-PERCENT-COMPLETE (27 files/84 sites), KPI-EXPIRING-RATE (29/50), KPI-UTILIZATION (22/45). Reconciliation
   not yet started (next: percent_complete, highest blast radius). KPI-OWNERSHIP-SCORE already canonical (SO-07/TD-0006).
+
+## 2026-06 (fork) — TRUTH ENGINE CHECKPOINT 2 (READY FOR OWNER SAVE; NO Save/Deploy)
+- Permanent truncation sentinel GD-0014 ACTIVE/PASSING (contract-aware A/B/C/D; fixtures prove old-pattern FAIL +
+  repaired-pattern PASS; 0 unexplained served-code offenders; justified machine-readable exceptions). Caught + fixed
+  2 more offenders: server.py list_projects_in_dailies (streamed) and a false-positive in transportation_automation
+  (fixed via innermost-function attribution).
+- Filter-drift audit GD-0015 PASSING — every Wave-4 total uses its items filter.
+- Aggregation invariant (GD-0013 extended, 15/15) — sum(mutually-exclusive categories)=canonical total, no cap.
+- Regression: deterministic guard suite 101 passed / 13 skipped; Wave-4 live contract suite 62 passed. TD-0011 PASS,
+  TD-0012 PASS. Only expected pre-save build-guard fingerprint-mismatch tests fail (by design).
+- Canonical deployable fingerprint (candidate, deterministic x3): dcf-5b4dbc6f61f173b9436611128093069463fdf2a9a3a49a6c08921efabd7a490f
+  (Checkpoint-1 authorized dcf-a94173320ac3b70ed55b4cebd45d5ad842b001a86ffb146e9d2af88095330517 — MISMATCH expected pre-save).
+- Preview frontend dev server fail-closes (release-identity guard) in pre-save state; no UI changed this checkpoint;
+  resolves on owner Save (attestation regenerates). AUTHORIZED_RELEASE.json untouched.
+- Files changed since deployed Checkpoint-1 (39c9b820): 34 (30 source + 4 tests) + new guard tests GD-0014/GD-0015.
+- Wave 5 KPI reconciliation: repair PAUSED for Checkpoint 2; discovery register/scanner preserved.

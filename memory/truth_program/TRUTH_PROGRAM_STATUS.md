@@ -201,3 +201,36 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - Guards green: GD-0013 10/10, TD-0009 5/5, live suite 62/62. Backend boots clean (preview). NO Save/Deploy.
 - FOLLOW-UP (recommended permanent guard, Wave 11): a route-table walker test that fails any GET returning
   {count, items} without `total`. Durable seed scanner: scripts/wave4_comprehensive_len_tie.py.
+
+## ===== TRUTH ENGINE CHECKPOINT 2 — READY FOR OWNER SAVE (this session) =====
+- WAVE 4 = FULLY PROVEN. Population sites 1,042/1,042 · QUERY_BATCH 735/735 · Unresolved 0 · Unrepaired D 0.
+- PERMANENT TRUNCATION SENTINEL = ACTIVE / PASSING — backend/tests/test_gd0014_truncation_sentinel.py.
+  Contract-aware (A population/paginated, B exact-bounded, C page-only, D internal). Innermost-function attribution
+  (route-register closures no longer collide). Fixtures prove it FAILS the old `to_list(200)+count:=len(docs)` pattern
+  and PASSES count_documents / to_list(len(ids)) / request-page / streamed forms. Served-code scan: 0 unexplained
+  offenders. Justified machine-readable EXCEPTIONS: operations_actions/api ($count total), trench reports open_repairs
+  (count_documents), governance match_count (per-name cardinality), control_plane capture_count (recent-10 bundle),
+  oppc report_count (single-week window, streamed).
+- FILTER-DRIFT AUDIT = PASSING — backend/tests/test_gd0015_filter_drift_audit.py. Every Wave-4 population `total`
+  (count_documents) uses the SAME business filter as its items find(); narrowed metrics ({**base}, status:active) are
+  explicitly excluded as legitimately-different scopes.
+- AGGREGATION INVARIANT = PASSING — GD-0013 extended: sum(mutually-exclusive by_status) == canonical total and
+  total == full streamed population at 0 / 7 / 2000 / 2001 / 9000 (reports_summary) + public_overview 0..7000.
+- TD-0011 / SO-08b = PASS (test_td0011_occ_probe_reason_attribution.py) — auth passthrough unchanged, timeout
+  differentiation intact, genuine downstream MISMATCH preserved, false "Check admin auth" eliminated. Not forced VERIFIED.
+- TD-0012 = PASS — /api/employees exposes true total (count_documents) with page count; covered by live suite.
+- REGRESSION TALLIES (backend guard suite, deterministic): GD-0004 + GD-0013(15) + GD-0014(6) + GD-0015(1) +
+  TD-0005/6/9/10/11 = 50 passed; release/OCC/identity contracts = 53 passed / 13 skipped; Wave-4 live contract
+  suite = 62 passed. GD-0013 scale + reports_summary invariant 15/15.
+- KNOWN EXPECTED PRE-SAVE STATE: 4 tests in test_release_identity_build_guard.py fail ONLY because the frontend
+  prebuild (stamp-build-version.js) FAIL-CLOSES against the stale Checkpoint-1 attestation (authorized dcf-a941…)
+  since Wave-4 source now computes a different fingerprint. This is the release-identity guard behaving correctly
+  for an unsaved candidate. Consequence: preview frontend dev server fail-closes (FATAL) in this pre-save state.
+  No human UI changed this checkpoint (all repairs backend), so no responsive smoke required. On owner Save the
+  attestation regenerates to the Checkpoint-2 source and the frontend builds/serves cleanly. AUTHORIZED_RELEASE.json
+  was NOT tampered with.
+- CANONICAL DEPLOYABLE FINGERPRINT (candidate, deterministic ×3 via computeDeployableFingerprint strict):
+  dcf-5b4dbc6f61f173b9436611128093069463fdf2a9a3a49a6c08921efabd7a490f
+  (Checkpoint-1 authorized = dcf-a94173320ac3b70ed55b4cebd45d5ad842b001a86ffb146e9d2af88095330517 — MISMATCH expected pre-save.)
+- Backend boots healthy on preview (db=masci_safety_preview, isolation OK). Production writes = 0. Save: NO. Deploy: NO.
+- WAVE 5 = DISCOVERY STARTED / REPAIR PAUSED for Checkpoint 2 (register + scanner preserved).

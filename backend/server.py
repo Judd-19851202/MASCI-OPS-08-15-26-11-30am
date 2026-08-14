@@ -7060,9 +7060,8 @@ async def list_projects_in_dailies(actor=Depends(require_admin)):
             "last_report_date": {"$max": "$report_date"},
         }},
         {"$sort": {"last_report_date": -1}},
-        {"$limit": 500},
     ]
-    docs = await db.daily_reports.aggregate(pipeline).to_list(500)
+    docs = await db.daily_reports.aggregate(pipeline).to_list(length=None)
     return {
         "items": [
             {

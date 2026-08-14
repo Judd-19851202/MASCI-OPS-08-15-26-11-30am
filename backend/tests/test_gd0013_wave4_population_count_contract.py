@@ -22,6 +22,7 @@ from fastapi import APIRouter
 
 from backend.routes.trench_safety.assets import register_asset_routes
 from backend.routes.trench_safety.public import register_public_routes
+from backend.routes.trench_safety.excavations import register_excavation_routes
 
 OLD_ASSETS_BOUND = 2000
 OLD_PUBLIC_BOUND = 5000
@@ -74,6 +75,13 @@ class _DB:
         self.trench_safety_assets = _Coll(docs)
 
 
+class _ExcDB:
+    """Fake DB for reports_summary streaming-aggregation invariant."""
+    def __init__(self, statuses):
+        docs = [{"id": f"e{i}", "status": s} for i, s in enumerate(statuses)]
+        self.trench_excavations = _Coll(docs)
+
+
 def _passthru(*a, **k):
     return None
 
@@ -121,3 +129,24 @@ def test_pattern_b_streaming_aggregation_true_total(n):
     assert out["total_active_assets"] == n, "streamed total must not truncate at any cap"
     assert out["counts_by_status"]["Available"] == n, "streamed breakdown covers full population"
     assert out["counts_by_type"]["Trench Box"] == n
+
+
+def _reports_summary_handler(db):
+    router = APIRouter()
+    register_excavation_routes(router, db, require_safety_or_admin=_passthru)
+    return next(r.endpoint for r in router.routes
+                if getattr(r, "path", "").endswith("/reports/summary"))
+
+
+@pytest.mark.parametrize("n", [0, 7, 2000, 2001, 9000])
+def test_reports_summary_categories_sum_to_total(n):
+    """AGGREGATION INVARIANT: sum(mutually-exclusive by_status counts) == canonical total,
+    and total == full streamed population at any scale (no fixed-cap truncation)."""
+    # rotate through mutually-exclusive statuses
+    cycle = ["Submitted", "Approved", "Closed", "In Review"]
+    statuses = [cycle[i % len(cycle)] for i in range(n)]
+    handler = _reports_summary_handler(_ExcDB(statuses))
+    out = _run(handler(_actor=None))
+    assert out["total"] == n, "streamed total must equal full population at every scale"
+    assert sum(out["by_status"].values()) == out["total"], \
+        "mutually-exclusive category counts must reconcile exactly to the canonical total"

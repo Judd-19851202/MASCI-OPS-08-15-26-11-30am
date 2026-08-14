@@ -33,5 +33,6 @@ Durable artifacts:
 
 ## STATUS
 - Register + ranking: DONE (this session).
-- Reconciliation: NOT STARTED (next: KPI-PERCENT-COMPLETE — highest blast radius, backend-heavy 64 sites).
+- Reconciliation: PAUSED FOR TRUTH ENGINE CHECKPOINT 2 (owner directive). Resume after Checkpoint 2 is
+  deployed + live-verified. Next target on resume: KPI-PERCENT-COMPLETE (highest blast radius, backend-heavy 64 sites).
 - Note: KPI-OWNERSHIP-SCORE already canonicalized in Wave 2 (SO-07/TD-0006 attributable denominator, GD-0007).
