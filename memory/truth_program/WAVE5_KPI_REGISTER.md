@@ -125,3 +125,31 @@ DISPOSITION: RECONCILED (truthful-as-is; single shared root; no divergence; no u
 - on_time_rate: 1 (0/1) · eligibility_rate: 2 (2/0) · avg_days: 4 (1/3) · pass_rate: 0 (absent)
 Next focus: health_score (largest fe blast radius) -> efficiency_percent -> variance_percent -> on_time_rate ->
 eligibility_rate -> avg_days.
+
+### KPI-COMPLIANCE-RATE — ZERO-DENOMINATOR RULE IMPLEMENTED (owner business rule)
+Shared owner: lib/kpi_percent_complete.compliance_rate(compliant, eligible) -> (value, state).
+  eligible None/non-numeric -> (None, UNKNOWN) · eligible<=0 -> (None, NOT_APPLICABLE) · eligible>0 -> (pct, OK; 0 compliant -> 0%).
+Numeric typing preserved (value is number|None, never "N/A" string). Wired at trench reports (compliance_score,
+inspection_compliance_pct now emit value + *_state using TRUE len(active), removing the max(len,1) mask). Frontend shared
+<Pct value state/> renders: NOT_APPLICABLE->"N/A", UNKNOWN/missing->"UNKNOWN", else value%. Guard GD-0021 (0-eligible->N/A;
+10/0->0%; 10/10->100%; missing denom->UNKNOWN not N/A; numeric typing; NA!=UNKNOWN!=0). NOTE: availability/backlog/utilization
+still use _safe_pct (int, empty->0) — different concepts, out of compliance-rule scope, left governed as-is.
+
+### KPI-ON-TIME-RATE — EXCLUDED (1/1, non-KPI)
+IncidentReportViewer.jsx:406 is a `SectionTimeline` render callback (scanner substring false-match), NOT an on-time-rate
+KPI. No rate computed anywhere. DISPOSITION: NON-KPI / EXCLUDED WITH REASON. Pending 0.
+
+### KPI-ELIGIBILITY-RATE — RECONCILED (2/2)
+transport_carrier_intelligence.py:157/158 (drivers_eligible_pct, trucks_eligible_pct) both read pct_eligible from the SAME
+carrier average aggregation (single owner), round 2dp. No divergent duplicate. DISPOSITION: CANONICAL_KPI. Pending 0.
+
+### KPI-AVG-DAYS — RECONCILED (4/4)
+Duration mean (NOT a rate/percentage). Backend operational_intelligence/products.py:230 (avg_days = mean days_open, empty->0
+governed). Frontend TrenchSafetyReports:274/275/313 render backend tt.avg_days_open/avg_days_to_close (`?? 0` = 0 days when
+no items, defensible for a duration). Single computation per surface; no divergence. DISPOSITION: DIRECT_FACT (mean). Pending 0.
+
+### STILL OPEN (next focused run — large, weighted/sign-sensitive):
+- health_score: 13 sites (2 be / 11 fe) — weighted scores; MUST encode critical-override + unknown/stale != healthy.
+- efficiency_percent: 16 sites (15 be / 1 fe) — distinct concepts (output/plan, productive/paid hrs, actual/target rate).
+- variance_percent: 22 sites (19 be / 3 fe) — sign-convention danger; govern actual-baseline vs baseline-actual + favorable direction.
+- pass_rate: 0 sites (absent). Then reconcile remainder of 547 register beyond the 12 discovered concepts.

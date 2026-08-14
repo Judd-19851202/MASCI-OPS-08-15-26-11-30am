@@ -532,3 +532,37 @@ Unexpected regressions 0 · Unexplained contradictions 0.
 STATUS: CHECKPOINT 3 = LIVE_VERIFIED (FROZEN). Product Quality v4 PAUSED. Gate 16 OWNER-DEFERRED/NOT PASSED.
 NEXT: resume Wave 5 by blast radius — compliance_rate -> health_score -> efficiency_percent -> variance_percent ->
 on_time_rate -> eligibility_rate -> avg_days -> remaining. Do not redo PC/Expiring/Utilization/Wave4/prior checkpoints.
+
+## ===== WAVE 5 CONTINUATION (post Checkpoint-3) — compliance N/A rule + small concepts =====
+Preview-only. Production writes 0 · Save NO · Deploy NO. Checkpoint 3 remains FROZEN/LIVE_VERIFIED.
+
+- COMPLIANCE-RATE zero-denominator rule (owner) IMPLEMENTED at shared owner:
+  lib/kpi_percent_complete.compliance_rate() -> (value,state): eligible<=0 -> (None,NOT_APPLICABLE);
+  None/non-numeric -> (None,UNKNOWN); eligible>0 -> (pct,OK; 0 compliant -> 0%). Numeric typing preserved.
+  Wired: trench reports compliance_score + inspection_compliance_pct now emit value + *_state using TRUE len(active)
+  (removed the max(len,1) mask). Frontend shared <Pct value state/> renders N/A (NOT_APPLICABLE) / UNKNOWN (missing) / value%.
+  Guard GD-0021 (7/7): 0-eligible->N/A, 10/0->0%, 10/10->100%, missing->UNKNOWN not N/A, numeric typing, NA!=UNKNOWN!=0.
+  Verified: GD-0021 pass, backend boots 200, frontend compiles 200. NOTE: authenticated e2e render of the new state field
+  is blocked by the trench-reports endpoint's own auth scope (403 for admin+safety portal tokens) — a SEPARATE pre-existing
+  access-scope matter, not this change; defer live e2e render to a testing-agent pass.
+- SMALL CONCEPTS dispositioned: on_time_rate 1/1 EXCLUDED (scanner false-match, SectionTimeline callback, non-KPI);
+  eligibility_rate 2/2 RECONCILED (transport_carrier_intelligence pct_eligible, single owner); avg_days 4/4 RECONCILED
+  (DIRECT_FACT mean; products.py:230 + trench StatCards; governed empty->0 for a duration).
+
+EXACT COUNTERS:
+- Truth surfaces reconciled: 35 / 547 (13 baseline + 22 Wave-5 register rows TS-0018..TS-0039)
+- Truth surfaces unmapped (not yet enumerated/reconciled): 512
+- KPI concepts discovered: 12 · KPI concepts fully reconciled: 7 (ownership_score, percent_complete, expiring_rate,
+  utilization, compliance_rate, eligibility_rate, avg_days) + on_time_rate EXCLUDED(non-KPI)
+- Compliance-Rate: FINAL (with N/A rule) · Health-Score: 0/13 · Efficiency-Percent: 0/16 · Variance-Percent: 0/22 ·
+  On-Time-Rate: 1/1(excluded) · Eligibility-Rate: 2/2 · Avg-Days: 4/4
+- Formula/denominator defects proven (Wave 5 total): 3 (HrCompletenessTile re-derivation; asset-onboarding reachability;
+  compliance zero-denom N/A-mask) + governance-scope defects 6 (separate class)
+- Shared-root repairs: 6 (checklist_percent, quantity_progress_percent, utilization_percent, kpi_expiry,
+  governance_effective_permissions, compliance_rate)
+- Executable KPI guards: 8 (GD-0014..GD-0021)
+- Unexplained contradictions: 0 · Production writes: 0 · Save: NO · Deploy: NO
+
+NEXT (large, own focused run): health_score (13, weighted + critical-override + unknown!=healthy) ->
+efficiency_percent (16, distinct output/hours/rate concepts) -> variance_percent (22, sign-convention governance) ->
+then reconcile the remaining ~512 of the 547 truth-surface register. WAVE 5 NOT COMPLETE (needs 547/547).

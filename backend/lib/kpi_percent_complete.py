@@ -113,6 +113,31 @@ def schedule_rollup_percent(values: Sequence, *, agg: str, ndigits: int = 2) -> 
     return round(max(nums), ndigits)
 
 
+COMPLIANCE_STATE_OK = "OK"
+COMPLIANCE_STATE_NA = "NOT_APPLICABLE"
+COMPLIANCE_STATE_UNKNOWN = "UNKNOWN"
+
+
+def compliance_rate(compliant, eligible, *, ndigits: int = 0):
+    """KPI-COMPLIANCE-RATE — governed zero-denominator semantics. Returns (value, state):
+      * eligible None / non-numeric (population cannot be determined) -> (None, 'UNKNOWN').
+      * eligible <= 0 (no applicable population)                       -> (None, 'NOT_APPLICABLE').
+      * eligible  > 0  -> (round(100*compliant/eligible), 'OK'); a legitimate zero compliant
+        count yields 0% (NOT N/A). Numeric typing preserved: value is a number or None
+        (never the string 'N/A')."""
+    if eligible is None:
+        return None, COMPLIANCE_STATE_UNKNOWN
+    try:
+        e = int(eligible)
+    except (TypeError, ValueError):
+        return None, COMPLIANCE_STATE_UNKNOWN
+    if e <= 0:
+        return None, COMPLIANCE_STATE_NA
+    val = round(100.0 * (max(0, int(compliant)) / e), ndigits)
+    return (int(val) if ndigits == 0 else val), COMPLIANCE_STATE_OK
+
+
+
 def quantity_progress_percent(
     numerator_qty, denominator_qty, *, ndigits: int = 2, empty: float = 0.0, clamp_max: Optional[float] = None,
 ) -> float:

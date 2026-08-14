@@ -38,7 +38,14 @@ const STATUSES = [
 ];
 const CONDITIONS = ["Excellent", "Good", "Fair", "Poor", "Out Of Service"];
 
-function Pct({ value }) {
+function Pct({ value, state }) {
+  if (state === "UNKNOWN" || state === "UNAVAILABLE")
+    return <span data-testid="pct-unknown" className="font-mono font-black text-2xl text-slate-400">UNKNOWN</span>;
+  if (state === "NOT_APPLICABLE")
+    return <span data-testid="pct-na" className="font-mono font-black text-2xl text-slate-400">N/A</span>;
+  if (value === null || value === undefined)
+    // null/undefined without a governed NOT_APPLICABLE state = missing/broken data, not "nothing applicable".
+    return <span data-testid="pct-unknown" className="font-mono font-black text-2xl text-slate-400">UNKNOWN</span>;
   const v = Number.isFinite(value) ? value : 0;
   const color = v >= 90 ? "text-emerald-700" : v >= 75 ? "text-blue-700" : v >= 60 ? "text-amber-700" : "text-red-700";
   return <span className={"font-mono font-black text-2xl " + color}>{v}<span className="text-base opacity-60">%</span></span>;
@@ -170,7 +177,7 @@ function ReportExecutive({ data }) {
       </div>
       <div className="grid grid-cols-1 sm:grid-cols-4 gap-2">
         <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Asset Availability")}</div><Pct value={ra.asset_availability_pct} /></div>
-        <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Inspection Compliance")}</div><Pct value={ra.inspection_compliance_pct} /></div>
+        <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Inspection Compliance")}</div><Pct value={ra.inspection_compliance_pct} state={ra.inspection_compliance_state} /></div>
         <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Repair Backlog")}</div><Pct value={ra.repair_backlog_pct} /></div>
         <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Operational Health")}</div><Pct value={data?.health_score} /><div className="text-xs font-bold text-slate-700">{t(data?.health_rating || "—")}</div></div>
       </div>
@@ -204,7 +211,7 @@ function ReportRoadPlate({ data }) {
       </div>
       <div className="grid grid-cols-2 gap-2">
         <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Utilization")}</div><Pct value={ra.utilization_pct} /></div>
-        <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Inspection Compliance")}</div><Pct value={ra.inspection_compliance_pct} /></div>
+        <div className="border rounded p-3 bg-white"><div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Inspection Compliance")}</div><Pct value={ra.inspection_compliance_pct} state={ra.inspection_compliance_state} /></div>
       </div>
       <MiniTable
         headers={[t("Capacity Bucket"), t("Count")]}
@@ -242,7 +249,7 @@ function ReportInspectionCompliance({ data }) {
       </div>
       <div className="border rounded p-3 bg-white">
         <div className="text-[10px] uppercase font-mono tracking-[0.18em] text-slate-500">{t("Compliance Score")}</div>
-        <Pct value={data?.compliance_score} />
+        <Pct value={data?.compliance_score} state={data?.compliance_score_state} />
       </div>
       <MiniTable
         headers={[t("Type"), t("Total"), t("Overdue"), t("Compliance %")]}

@@ -39,6 +39,7 @@ from fastapi.responses import StreamingResponse
 
 from ._helpers import now_iso
 from ._models import ASSET_TYPES, OPERATIONAL_STATUSES
+from lib.kpi_percent_complete import compliance_rate
 
 logger = logging.getLogger(__name__)
 
@@ -142,7 +143,7 @@ async def report_executive(db, f: Filters) -> Dict[str, Any]:
     # Inspection compliance
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     overdue = sum(1 for d in active if not d.get("last_inspection_at") or d["last_inspection_at"] < cutoff)
-    inspection_compliance_pct = _safe_pct(len(active) - overdue, len(active))
+    inspection_compliance_pct, inspection_compliance_state = compliance_rate(len(active) - overdue, len(active))
 
     # Repair backlog
     open_repairs = await db.trench_safety_repairs.count_documents(
@@ -186,6 +187,7 @@ async def report_executive(db, f: Filters) -> Dict[str, Any]:
         "ratios": {
             "asset_availability_pct": availability_pct,
             "inspection_compliance_pct": inspection_compliance_pct,
+            "inspection_compliance_state": inspection_compliance_state,
             "repair_backlog_pct": repair_backlog_pct,
         },
         "health_score": health_score,
@@ -216,7 +218,7 @@ async def report_road_plate(db, f: Filters) -> Dict[str, Any]:
 
     cutoff = (datetime.now(timezone.utc) - timedelta(days=30)).isoformat()
     overdue = sum(1 for d in active if not d.get("last_inspection_at") or d["last_inspection_at"] < cutoff)
-    inspection_compliance_pct = _safe_pct(len(active) - overdue, len(active))
+    inspection_compliance_pct, inspection_compliance_state = compliance_rate(len(active) - overdue, len(active))
 
     missing_capacity = sum(1 for d in active if not d.get("rated_capacity_lb"))
     missing_serial = sum(1 for d in active if d.get("missing_serial_number"))
@@ -275,6 +277,7 @@ async def report_road_plate(db, f: Filters) -> Dict[str, Any]:
         "ratios": {
             "utilization_pct": utilization_pct,
             "inspection_compliance_pct": inspection_compliance_pct,
+            "inspection_compliance_state": inspection_compliance_state,
         },
         "capacity_inventory": dict(capacity_buckets),
         "trend_30d": {
@@ -340,7 +343,7 @@ async def report_inspection_compliance(db, f: Filters) -> Dict[str, Any]:
         key=lambda x: -x["overdue"],
     )[:8]
 
-    compliance_score = _safe_pct(completed, max(len(active), 1))
+    compliance_score, compliance_score_state = compliance_rate(completed, len(active))
 
     # Trend — count of inspections submitted in last 7 / 30 / 90 days
     now = datetime.now(timezone.utc)
@@ -359,6 +362,7 @@ async def report_inspection_compliance(db, f: Filters) -> Dict[str, Any]:
             "missing": missing,
         },
         "compliance_score": compliance_score,
+        "compliance_score_state": compliance_score_state,
         "by_asset_type": by_type,
         "top_risk_areas": top_risk,
         "trend": trend,
