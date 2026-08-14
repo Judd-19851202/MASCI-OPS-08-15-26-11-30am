@@ -488,3 +488,47 @@ this checkpoint (per owner). No production account/data mutation.
 
 STATUS: MASCI OPS — TRUTH ENGINE CHECKPOINT 3 — READY FOR OWNER SAVE. STOP for owner Save. Do not resume additional
 Wave-5 KPI concepts before Checkpoint 3 is live-verified.
+
+## ===== TRUTH ENGINE CHECKPOINT 3 — LIVE_VERIFIED (production https://mascidocs.com) =====
+FROZEN. Read-only production verification. Production writes 0 · Source changes 0 · Save NO · Deploy NO.
+
+RELEASE IDENTITY (canonical provenance block = authority):
+- release_provenance = VERIFIED · authorized_saved_sha = be12f9a65234b94662a7bce183be3a2ae55087eb (EXACT)
+- authorized & build deployable_fingerprint = dcf-5fb407c38a6d4a54ed2f1dda59c31328a5e22311753bef1cddb44f7b6fb1299f (EXACT, match)
+- fingerprint_contract_digest = c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533 (EXACT)
+- provenance.runtime_matches_intended_release = True · frontend_backend_release_match = True · release_identity_mismatch = False
+- app_env = production · db_name = masci_safety · frontend root HTTP 200
+- NOTE: top-level version.commit = 8aa764c69e73 / intended "UNSAVED_FINAL_CANDIDATE:UNPROVEN" is the build-CONTAINER
+  git diagnostic layer (NOT the saved SHA); the canonical deployable-provenance block is the authority and is VERIFIED
+  (same accepted pattern as Checkpoint 2 — do not treat container hash as the saved SHA).
+
+GOVERNANCE-SCOPE LIVE PROOF (authenticated production Super Admin SPA/portal session) — 6/6 PASS:
+- document_expirations: 200; Super Admin visible population = canonical population = 1 (by_status {Current:1}); BLACKOUT RESOLVED.
+  (Production masci_safety genuinely holds 1 doc-exp record now — preview's 423 was a different DB; not hardcoded.)
+- employee_records vocabulary: 200 with allowed_lanes_for_actor populated.
+- employee_lifecycle HR path: /api/hr/employee-completeness 200 + /api/hr/driver-qualification/dashboard 200.
+- asset_documents / asset-admin path: /api/asset-spine/dashboard/renewals 200 (bucket/counters/items).
+- transportation_dispatch_gate: /api/admin/transportation/dispatch-overrides 200 (count/items/total).
+NEGATIVE / FALSE-ALLOW ABSENCE (decisive): HR endpoint with dispatch-only token = 403; dispatch-gate with safety-only
+token = 401; no-auth = 401. => false-deny repaired WITHOUT introducing false-allow (wrong-portal super-admin tokens denied).
+
+KPI LIVE PROOF:
+- PC-CHECKLIST: employee-completeness total_active=240, complete=239, completion_percent=99.6 (=round(100*239/240,1)); all
+  per-field percents 99.6 (backend canonical, no frontend re-derivation).
+- PC-COST-QUANTITY: pm/jobs cost_code_progress_percent served numeric/canonical (0 across live jobs = production truth);
+  overrun>100 preserved by calc (proven in preview iteration_26 project 24-06 -> 10.0%).
+- PC-STORED: empty cost project returns progress=null (UNKNOWN != 0) — truthful.
+- EXPIRING-RATE: /api/hr/driver-qualification/dashboard 200, canonical buckets (cdl_expiring_30d/medical_card_expiring_30d),
+  86 driver rows; document-expirations status governed (Current).
+- UTILIZATION: /api/operations/utilization 200, fleet_size=604, status buckets sum=604 (fleet-status concept, kept distinct).
+
+GUARDS DEPLOYED: GD-0019, GD-0020 tracked at HEAD be12f9a6; canonical helpers governance_effective_permissions() +
+governance_is_global_scope() present. No served path reads stale permissions/is_super_admin/authority_level (GD-0019 static scan).
+
+EXACT COUNTERS (unchanged by deploy): Truth surfaces 32/547 · KPI concepts discovered 12 · fully reconciled 4 ·
+Percent-Complete 84/84 · Expiring-Rate 50/50 · Utilization 45/45 · Governance scope 11/11 audited · 6/6 defects repaired ·
+Unexpected regressions 0 · Unexplained contradictions 0.
+
+STATUS: CHECKPOINT 3 = LIVE_VERIFIED (FROZEN). Product Quality v4 PAUSED. Gate 16 OWNER-DEFERRED/NOT PASSED.
+NEXT: resume Wave 5 by blast radius — compliance_rate -> health_score -> efficiency_percent -> variance_percent ->
+on_time_rate -> eligibility_rate -> avg_days -> remaining. Do not redo PC/Expiring/Utilization/Wave4/prior checkpoints.

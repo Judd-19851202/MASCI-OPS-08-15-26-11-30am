@@ -104,3 +104,24 @@ Owner truth: "utilization" is NOT one concept. Four DISTINCT governed KPIs (kept
 
 CLOSURE: KPI-UTILIZATION = RECONCILED. 45/45 final disposition · Pending 0 · concepts correctly SEPARATED (not forced
 into one formula) · same-concept/same-scope duplicate formulas 0 (equipment-run unified) · unknown-as-0 defects 0.
+
+## ===== WAVE 5 RESUMED (post Checkpoint-3 LIVE_VERIFIED) =====
+### KPI-COMPLIANCE-RATE — RECONCILED (3/3 final disposition, Pending 0)
+All 3 sites in frontend/src/pages/trench_safety/TrenchSafetyReports.jsx (:173/:207/:245) render backend fields
+(compliance_score, inspection_compliance_pct, by_asset_type[].compliance_pct) via the SHARED <Pct> component.
+- Single backend authority: routes/trench_safety/reports.py `_safe_pct(numer, denom)` (denom<=0 -> 0; else round(100*n/d)).
+  Used consistently for compliance_score(:343), inspection_compliance_pct(:145/:219), asset_availability_pct,
+  repair_backlog_pct(:151), per-yard/per-type compliance_pct(:324/:338) — ONE shared root, no divergent duplicate formula.
+- Frontend: shared <Pct value=.../> renders the backend value (Number.isFinite(value) ? value : 0). Since backend
+  `_safe_pct` ALWAYS returns a governed int (never null), the finite-check fallback never fires -> NO unknown-as-0 lie.
+- Same concept + same scope agree everywhere (one calculator + one renderer).
+- OWNER BUSINESS-RULE FLAG (not a code defect): empty eligible population (0 active assets/inspections) currently
+  renders 0% (red band). If the governed rule should be "N/A when nothing to inspect" rather than "0% compliant",
+  that is an owner decision; `_safe_pct` + `Pct` would then return/render None -> "—". No unilateral change made.
+DISPOSITION: RECONCILED (truthful-as-is; single shared root; no divergence; no unknown lie). Business-rule flag logged.
+
+### REMAINING WAVE-5 CONCEPTS (by blast radius, preserved for continuation)
+- health_score: 13 sites (2 be / 11 fe)  · efficiency_percent: 16 (15/1) · variance_percent: 22 (19/3)
+- on_time_rate: 1 (0/1) · eligibility_rate: 2 (2/0) · avg_days: 4 (1/3) · pass_rate: 0 (absent)
+Next focus: health_score (largest fe blast radius) -> efficiency_percent -> variance_percent -> on_time_rate ->
+eligibility_rate -> avg_days.
