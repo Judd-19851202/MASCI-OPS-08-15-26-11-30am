@@ -912,3 +912,15 @@ Owner-authorized source repair in preview. Production READ-ONLY, writes 0. No se
 - New deterministic candidate fingerprint (repaired, unsaved): dcf-9430db68b6b46afe4892d1e88b36226df2654fd5cfb5e5bb0a5c0417fc1a674c (x2).
 - Frontend fail-closes (EXPECTED): repaired source != last authorized dcf-5c4ddc95 -> awaits owner RE-SAVE. Attestation NOT tampered.
 DECISION: STOP for owner RE-SAVE. Save NO · Deploy NO · production writes 0.
+
+## ===== FINAL ACCEPTANCE REPAIR — ALL SOURCE QUESTIONS CLOSED — READY FOR OWNER RE-SAVE =====
+- TD-0015(A) RESOLVED = INTENTIONAL_AUTH_CONTRACT (proven vs running backend): X-Admin-Token + X-Directory-Token -> 200
+  (766 units); X-Admin-Token alone -> 401; no-auth -> 401. SPA sends both (authHeaders.js: admin is directory-compatible).
+  Earlier raw/agent 401 lacked X-Directory-Token. NO auth source repair. Guard GD-0032. Ordinary/unauth denial preserved.
+- Browser-proof denominator reconciled = 85 unique rows (BP-0007/0028/0029/0039 expiring are MEMBERS of the 85; the
+  earlier "+4" were never separate). No double count, no mislabel (BP-0057 relabeled in place). Browser observations
+  execute POST-reSave (frontend fail-closes pre-reSave: attestation binds prior dcf-5c4ddc95; repaired source diverged).
+- Final repaired candidate fingerprint (deterministic x2): dcf-80253472a2127fb54560731abe2e5a38480ba006e422fafc745c1318de9cc146.
+- Regression 217 passed / 0 unexpected. Strict verifier PASS; population gate PASS; truth-surface gate PASS. Backend healthy.
+- Truth surfaces 397/397, OPEN 0. Changed files since Checkpoint 3 = 48. Save NO / Deploy NO / production writes 0.
+- Guards now GD-0013..GD-0032. No source-level OWNER-REVIEW item remains pending. READY FOR OWNER RE-SAVE.
