@@ -1,0 +1,85 @@
+{
+  "generated": "wave4",
+  "denominators_durable": {
+    "frontend_slice": 595,
+    "backend_to_list": 317,
+    "backend_limit": 130,
+    "total": 1042
+  },
+  "scanned": {
+    "backend_to_list": 466,
+    "backend_limit": 299,
+    "frontend_slice": 594
+  },
+  "backend_to_list_buckets": {
+    "QUERY_BATCH": 454,
+    "SAFE_UNBOUNDED": 9,
+    "RISK_COUNT": 3
+  },
+  "backend_limit_buckets": {
+    "QUERY_BATCH": 298,
+    "RISK_COUNT": 1
+  },
+  "frontend_slice_buckets": {
+    "DISPLAY_SLICE": 574,
+    "RISK_COUNT": 20
+  },
+  "risk_count_sites": {
+    "backend_to_list": [
+      "/app/backend/routes/job_photos.py:1015:        ).to_list(length=len(ids))",
+      "/app/backend/routes/job_photos.py:1058:        ).to_list(length=len(ids))",
+      "/app/backend/routes/job_photos.py:1106:        metas = await db.job_photos.find({\"id\": {\"$in\": ids}}, {\"_id\": 0}).to_list(length=len(ids))"
+    ],
+    "backend_limit": [
+      "/app/backend/routes/wp17a_kpi_governance.py:42:    {\"identifier\": \"WP17A-KPI-019-roster\", \"path\": \"/api/hr/employee-roster?limit=5\", \"auth\": True},"
+    ],
+    "frontend_slice": [
+      "/app/frontend/src/pages/ExecutiveIntelligence.jsx:326:                    {data.fleet.repeat_vehicles.slice(0, 5).map((r) => <li key={r.id}>{r.id} \u00b7 {r.count}</li>)}",
+      "/app/frontend/src/pages/NewMeeting.jsx:437:    return need.slice(0, 3).join(\" \u00b7 \") + (need.length > 3 ? ` +${need.length - 3}` : \"\");",
+      "/app/frontend/src/pages/admin/AdminAnalytics.jsx:149:        <KpiCard label=\"Top route count\" value={(routes[0]?.count || 0).toLocaleString()} hint={routes[0]?.route?.slice(0, 28) || \"\u2014\"} />",
+      "/app/frontend/src/pages/admin/AdminDiagnostics.jsx:92:    evidence: { total, failed_total: failed, dedup_total: b.dedup_total, items_sample: (b.items || []).slice(0, 3) } };",
+      "/app/frontend/src/pages/HrEmployees.jsx:1539:                        {summary.open_tasks.slice(0, 20).map((t) => (",
+      "/app/frontend/src/pages/HrEmployees.jsx:1555:                        {summary.document_expirations.slice(0, 20).map((d) => (",
+      "/app/frontend/src/pages/HrEmployees.jsx:1571:                        {summary.equipment_issuances.slice(0, 20).map((e) => (",
+      "/app/frontend/src/pages/HrEmployees.jsx:1584:                        {summary.open_pos.slice(0, 20).map((p) => (",
+      "/app/frontend/src/pages/SafetyCaseWorkspace.jsx:82:  const detailClip = detail.length > 220 ? `${detail.slice(0, 217).trim()}\u2026` : detail;",
+      "/app/frontend/src/lib/dailyReportSummaryPayload.js:226:    parts.push(`Field verification: submitted photos support the reported operation, including ${(integrated.length ? integrated : ranked.slice(0",
+      "/app/frontend/src/lib/dailyReportSummaryPayload.js:240:  if (issueBits.length > 0) parts.push(`Issues and attention: ${issueBits.slice(0, 3).join(\"; \")}.`);",
+      "/app/frontend/src/lib/dailyReportSummaryPayload.js:246:  if (pmAttention.length > 0) parts.push(`PM attention: ${pmAttention.slice(0, 2).join(\"; \")}.`);",
+      "/app/frontend/src/lib/resiliency/PriorUsageBanner.jsx:36:  return s.length > 12 ? `${s.slice(0, 10)}\u2026` : s;",
+      "/app/frontend/src/lib/resiliency/resiliencyQueue.js:295:  if (typeof detail === \"string\" && detail.length > 0) return detail.slice(0, 240);",
+      "/app/frontend/src/lib/resiliency/resiliencyQueue.js:300:  if (typeof e.message === \"string\" && e.message.length > 0) return e.message.slice(0, 240);",
+      "/app/frontend/src/components/admin/DraftHealthTile.jsx:322:              const short = (d.deviceId || \"\u2014\").slice(0, 12) + (d.deviceId && d.deviceId.length > 12 ? \"\u2026\" : \"\");",
+      "/app/frontend/src/components/JhaPlansPosterCard.jsx:47:  const showJobs = uploadedJobs.length > 0 ? uploadedJobs : JOB_LIBRARY.slice(0, 12);",
+      "/app/frontend/src/components/daily-report/DailySummaryAssist.jsx:156:        sig.push(`${prefix}${idx}:${entry.length}:${entry.slice(0, 40)}`);",
+      "/app/frontend/src/components/pm/command/PmProjectFirstHome.jsx:644:                      {row.summary || row.incident_id?.slice(0, 8) || \"\u2014\"}",
+      "/app/frontend/src/components/QueueStatusPill.jsx:115:      if (typeof msg === \"string\" && msg.length > 0) return msg.slice(0, 240);"
+    ]
+  },
+  "risk_count_totals": {
+    "backend_to_list": 3,
+    "backend_limit": 1,
+    "frontend_slice": 20,
+    "total_review_needed": 24
+  },
+  "manual_review": {
+    "reviewed": 24,
+    "confirmed_defects": 0,
+    "findings": {
+      "backend_job_photos_to_list_len_ids": "SAFE \u2014 length=len(ids) reads the EXACT requested id set (full population for the query, not a truncation) [3 sites]",
+      "backend_wp17a_limit5_probe": "SAFE \u2014 /api/hr/employee-roster?limit=5 is a KPI health-probe path definition, not a displayed total [1 site]",
+      "frontend_string_truncations": "SAFE \u2014 ellipsis/text truncation (SafetyCaseWorkspace, PriorUsageBanner, resiliencyQueue x2, DraftHealthTile, DailySummaryAssist, PmProjectFirstHome, QueueStatusPill, dailyReportSummaryPayload x3)",
+      "frontend_topN_display_with_overflow": "SAFE \u2014 top-N render with data present / +N more (ExecutiveIntelligence, NewMeeting, JhaPlansPosterCard)",
+      "frontend_single_item_or_sample": "SAFE \u2014 routes[0].count single top item; AdminDiagnostics items_sample with server-provided totals",
+      "frontend_hr_employee_summary_slice20": "SAFE_DISPLAY \u2014 per-employee summary sub-lists sliced to 20 for render (bounded detail panels, not population KPIs); no count-truth impact [HrEmployees x4]"
+    },
+    "conclusion": "Of all population-shaping sites, 24 co-located truncation+count/length patterns were flagged and manually cleared. 0 new population-truncation-of-count defects. The only genuine count-truncation (fleet units) was already repaired as TD-0009/SO-11. Bulk sites are QUERY_BATCH (paginated endpoints expose their own totals), DISPLAY_SLICE (render top-N with full data), SAFE_UNBOUNDED, or string truncation."
+  },
+  "classified_summary": {
+    "total_sites_denominator": 1042,
+    "auto_safe": "QUERY_BATCH+DISPLAY_SLICE+SAFE_UNBOUNDED",
+    "risk_flagged": 24,
+    "risk_confirmed_defects": 0,
+    "genuine_defects_all_waves": 1
+  }
+}

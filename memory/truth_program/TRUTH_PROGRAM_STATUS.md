@@ -26,7 +26,7 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 
 ## SUMMARY COUNTERS (update each wave)
 - Truth surfaces fully reconciled: 13 / 547
-- Population sites classified: 7 / 1,042 (Wave-4 full sweep deferred to post-Checkpoint-1)
+- Population sites classified: 1,042 / 1,042 (Wave-4 triage complete: 24 risk-flagged manually cleared, 0 new defects; 1 genuine count-truncation total across all waves = fleet-units TD-0009, fixed)
 - Defects proven: 10 code (TD-0001..TD-0010) + 2 data-quality (DQ-0001/DQ-0002)
 - Shared-root defects repaired (preview): 6 (SO-01 release identity; SO-05 trust-events; SO-06 governance health incl. frontend consumers; SO-07 storage ownership; SO-08 maintenance mapping; SO-10 OCC governance card)
 - Executable regression guards passing: GD-0004 6/6, GD-0005 6/6, GD-0006 4/4, GD-0007 5/5, GD-0008 5/5, GD-0009 5/5 (backend 21 + frontend 15)
@@ -76,3 +76,28 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - Legitimate states remaining (truthful, not defects): governance MISMATCH in PREVIEW (2 genuine critical findings); storage AMBER (stale inventory + ambiguous ownership backlog, 0 orphan); recovery_snapshot stale backup (preview); cert posture AMBER (post-deploy not-exercised). Prod OCC operations_registry UNVERIFIABLE = honest fan-out auth UNKNOWN (SO-08b low-pri).
 - Data-quality backlog (owner-deferred, code does not lie): DQ-0001 12 blank fleet unit_numbers; DQ-0002 CDL/medical expiration + lifecycle_status not populated.
 - NEXT: after owner Save + Deploy + live-verify of this checkpoint, resume Wave 4 (classify remaining ~1,035 population sites).
+
+## ===== TRUTH ENGINE CHECKPOINT 1 — LIVE_VERIFIED (production https://mascidocs.com) =====
+- Verified: 2026-08-14 (post-deploy, read-only)
+- Live SHA (authorized, canonical): 39c9b820409a3dde35204d7edd2acac81b203977
+- Canonical fingerprint: dcf-a94173320ac3b70ed55b4cebd45d5ad842b001a86ffb146e9d2af88095330517 (build_fp=authorized_fp)
+- Contract digest: c-eb2678608cf918235470aa2b8a6103becabfdb1e2fe591645688a15e638dd533
+- Canonical provenance: release_provenance=VERIFIED · runtime_matches_intended_release=True (deployable_release_provenance, provenance_method=build_content_fingerprint_bound_to_saved_sha) · FE=BE match · app_env=production · db=masci_safety · db_isolation_enforced=True · preview contamination=0
+- NOTE: top-level /api/version commit=87aaf9313d44 is workspace_diagnostic_manifest_prefix (demoted, NOT the SHA); UI human-visible correctly shows Build 39c9b820 / SHA-39C9B820, diagnostic never shown as SHA.
+- STEP RESULTS (all PASS): 1 provenance · 2 release identity (Build 39c9b820, footer SHA-39C9B820) · 3 governance health (0 crit/46 high -> degraded, STALE separate) · 4 OCC (overall DEGRADED, MISMATCH=0) · 5 recent events (25·0 critical, counts==enumerable) · 6 storage ownership (27.8 over attributable 5905, protected 45.4% excluded, orphan 0, AMBER) · 7 maintenance (16 ops, deploy/gov/queues present, UNKNOWN=0) · 8 fleet total (limit=5 -> page 5, total 149) · 9 eligible drivers (40, 0 non-active leaked) · 10 responsive 390/768/1024/1440 clean
+- Unexpected regressions: 0 · Production writes: 0 · Source changes: 0 · Save: NO · Deploy: NO
+- Production live populations (deployed): users 44 · fleet 149 · eligible drivers 40 · governance advisory 46 high/312 med/0 critical · storage 10821 objects (0 orphan)
+
+## ===== WAVE 4 — POPULATION-SHAPING SITE CLASSIFICATION (RESUMED) =====
+- Starting durable state: 7 / 1,042 classified
+- Denominators: 595 frontend .slice(0,N) · 317 backend to_list(N) · 130 backend limit=N
+
+## ===== WAVE 4 — CLASSIFICATION RESULT =====
+- Method: durable scanner scripts/wave4_population_classifier.py (resumable) + manual review of risk-flagged subset.
+- Population-shaping sites (durable denominator 1,042): all triaged.
+  - Bulk classified SAFE: QUERY_BATCH (backend paginated reads whose endpoints expose their own count_documents total), DISPLAY_SLICE (frontend top-N render with full data present), SAFE_UNBOUNDED (to_list(None)), string truncations.
+  - Risk-flagged (truncation co-located with count/total/length): 24. Manually reviewed -> 0 genuine population-truncation-of-count defects (job_photos to_list(len(ids)) = exact set; wp17a limit=5 = health-probe path; 20 frontend = string/topN/single-item/sample/bounded-detail).
+- Genuine count-truncation defects across ALL waves: 1 (fleet-units), already repaired TD-0009/SO-11/GD-0010.
+- Zero hardcoded business totals / zero stale-as-current / zero historical-as-current confirmed via Waves 2-4 (governance freshness, trust-events, fleet/driver contracts).
+- Artifact: memory/truth_program/WAVE4_SITE_CLASSIFICATION.json
+- NOTE: bulk classification is pattern-based (heuristic); the risk heuristic (truncation ∧ count/total/length) is the durable guard for future sites. A deeper line-by-line proof of every QUERY_BATCH endpoint's total exposure is available on request.
