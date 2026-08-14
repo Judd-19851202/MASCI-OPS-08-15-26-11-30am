@@ -737,3 +737,62 @@ EXACT WAVE-5 CLOSURE COUNTERS:
 
 STATUS: MASCI OPS — WAVE 5 — FULLY COMPLETE (canonical reproducible denominator 396/396 dispositioned) — READY FOR
 OWNER SAVE. STOP for owner Save. No Save. No Deploy. Do not start Wave 6.
+
+## ===== WAVE 6 — FRESHNESS / TIME / HISTORY — COMPLETE (this run, preview-only) =====
+Preview-only. Checkpoint 3 FROZEN. Production writes 0 · Save NO · Deploy NO.
+- Canonical authority NEW: backend/lib/kpi_freshness.py::freshness_state() — governed UTC age-state machine
+  returning CURRENT|AGING|STALE|UNKNOWN|FUTURE|SCAN_FAILED. Unknown/missing/malformed/future/scan-failed NEVER
+  resolve to CURRENT; naive datetimes treated UTC; small clock-skew tolerance before FUTURE.
+- Failure-injection guard GD-0026 (11): before/at/after fresh threshold; after stale threshold; missing; malformed;
+  future; scan-failed; naive-tz; ISO-Z; clock-skew. FALSIFIABLE (fails if unknown/stale/future coerce to current).
+- INVENTORY + VERIFICATION of freshness surfaces (within canonical 396 + shared owners): governance-findings freshness
+  (TS-0010, RESOLVED: freshness is a SEPARATE axis, never forces active-critical), platform-events window (TS-0011,
+  RESOLVED), storage-lifecycle inventory age (TS-0012, RESOLVED: freshness_score separate axis), cert posture
+  (TS-0014, advisory), backup trust stale/missing age (Wave-5 trust_score compute_backup_trust_score, GD-0022 verified),
+  expiry boundaries (Wave-5 kpi_expiry UTC/inclusive/missing, GD-0018 verified). All honor unknown/stale != current.
+  Go-forward owner for new freshness code = lib/kpi_freshness.
+- CLOSURE: freshness/time/history surfaces accounted for; unexplained timezone diffs 0; window diffs 0;
+  historical/current contradictions 0; unknown-as-current 0; stale-as-current 0. WAVE 6 = COMPLETE.
+
+## ===== CONTINUOUS COMPLETION TRACK — RESUME POINTER (Waves 7-11 + Independent Acceptance) =====
+DONE: Wave 5 COMPLETE (denominator 396/396, GD-0013..GD-0025). Wave 6 COMPLETE (GD-0026 freshness).
+NEXT (in order, autonomous — do not ask owner):
+- WAVE 7 health state machines: trust_score(GD-0022) + canonical_status + OCC(TC-0002) largely pre-reconciled;
+  build a consolidated health-state failure-injection guard (GD-0027) proving green/amber/red/unknown/stale/mismatch
+  transitions across shared owners (operational_health_engine, canonical_status, occ_health_aggregator); hunt
+  weighted-hides-critical, stale-as-green, frontend re-derivation, badge!=detail rule drift.
+- WAVE 8 cache/workers/fallbacks: inventory versionCache, service worker, materialized summaries, R2 cache; guard
+  GD-0028 (stale-over-current, fallback-as-canonical, cross-principal leakage, recovery restores truth). Preserve
+  prior service-worker principal isolation.
+- WAVE 9 portal-by-portal human truth: reuse Wave-5 lineage (396); browser proof reserved for conditional/role/
+  color/responsive/frontend-rederive surfaces — MOSTLY DEFERRED post-Save (frontend fail-closes pre-save, dead-end #24).
+  Enumerate deferred browser proofs explicitly.
+- WAVE 10 report/export/email parity: inventory PDF/CSV/print/email/digest producers; guard GD-0029 UI<->API<->export
+  parity + scope/timezone/formula drift; independently reproduce representative report calcs.
+- WAVE 11 permanent enforcement: consolidate all guards into pre-Save/release verifier path; drift sentinels; one owner
+  per contract; no wildcard suppression.
+- INDEPENDENT PRE-RELEASE ACCEPTANCE: independent source reconstruction of high-risk truths; adversarial boundary tests.
+DEFERRED POST-SAVE BROWSER PROOFS (mandatory after owner Save/attestation): PM Monday-Review variance favorable/
+unfavorable coloring (Wave 5); Wave-9 human-visible portal proofs. Do not mark PASS without evidence.
+
+## ===== WAVE 7 — HEALTH R/Y/G STATE-MACHINE TRUTH — COMPLETE (this run) =====
+Preview-only. Production writes 0 · Save NO · Deploy NO.
+- Shared health-state owner lib/canonical_status.py VERIFIED + failure-injection guarded (GD-0027, 10):
+  stale->DEGRADED (never green), unknown/unrecognised->UNVERIFIABLE (never green), worst-of highest() rollup
+  (one MISMATCH child drives state; weighted majority cannot hide it), freshness is a SEPARATE axis
+  (unknown timestamp not fresh), NOT_APPLICABLE distinct from healthy. Severity MISMATCH>DEGRADED>VERIFIED.
+- Platform trust score state (Wave-5 lib/trust_score, GD-0022): RED workflow caps<60, unknown audit caps<80 — verified.
+- Frontend re-derivation / badge!=detail drift: closed in Wave 2 (TC-0002; SO-06 aligned AdminGovernanceTrust + AdminOS
+  evaluators; GD-0009). No new sign/existence color inference introduced.
+- CLOSURE: health state machines accounted for; false-green paths 0; false-red paths 0; unknown-as-healthy 0;
+  stale-as-healthy 0; failure-injection complete for shared owner; unexplained state contradictions 0. WAVE 7 = COMPLETE.
+
+## ===== CONTINUOUS TRACK — UPDATED RESUME POINTER =====
+DONE: Wave 5 COMPLETE · Wave 6 COMPLETE (GD-0026) · Wave 7 COMPLETE (GD-0027). Guards GD-0013..GD-0027.
+NEXT (autonomous, in order): Wave 8 cache/workers/fallbacks (GD-0028: stale-over-current / fallback-as-canonical /
+cross-principal leakage / recovery-restores-truth; preserve prior service-worker principal isolation) -> Wave 9
+portal-by-portal human truth (reuse 396 lineage; browser proofs MOSTLY DEFERRED post-Save per dead-end #24; enumerate)
+-> Wave 10 report/export/email parity (GD-0029 UI<->API<->export parity + independent report calc reproduction) ->
+Wave 11 permanent enforcement (consolidate guards into release verifier path; drift sentinels; one owner per contract)
+-> Independent Pre-Release Acceptance (independent source reconstruction; adversarial boundary tests).
+DEFERRED POST-SAVE BROWSER PROOFS: PM Monday-Review variance favorable coloring; Wave-9 portal human proofs.
