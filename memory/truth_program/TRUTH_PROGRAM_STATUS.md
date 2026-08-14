@@ -924,3 +924,16 @@ DECISION: STOP for owner RE-SAVE. Save NO · Deploy NO · production writes 0.
 - Regression 217 passed / 0 unexpected. Strict verifier PASS; population gate PASS; truth-surface gate PASS. Backend healthy.
 - Truth surfaces 397/397, OPEN 0. Changed files since Checkpoint 3 = 48. Save NO / Deploy NO / production writes 0.
 - Guards now GD-0013..GD-0032. No source-level OWNER-REVIEW item remains pending. READY FOR OWNER RE-SAVE.
+
+## ===== EVIDENCE AUTHORITY CORRECTION — PREVIEW != PRODUCTION POPULATION (owner, 2026-06) =====
+- Established two-class model (EVIDENCE_AUTHORITY_MODEL.md): Class A logic/behavior = PREVIEW authority;
+  Class B current business populations = PRODUCTION read-only authority. Preview counts never certify production.
+- HARD BOUNDARY PROVEN: preview Mongo creds are `not authorized on masci_safety` (production) — scoped only to
+  masci_safety_preview (correct isolation). Live master-data CENSUS CANNOT be produced from preview; requires
+  production-scoped read creds or the post-Deploy live-verification phase. No fabrication.
+- Reclassified preview-derived population claims to Class-A behavior evidence only: Independent Acceptance employee
+  (454/441/442) + carrier eligibility (267/336=79.46%); equipment 766/951 = NON-AUTHORITATIVE PREVIEW DATA.
+  Live 766-vs-951 reconciliation deferred to production access (SAME vs GOVERNED_DISTINCT determined on live truth).
+- Preview fixtures governed as PREVIEW_TEST_DATA — NON-AUTHORITATIVE FOR BUSINESS POPULATION.
+- SOURCE CHANGES REQUIRED: NO (evidence-interpretation correction, not a code defect). Fingerprint unchanged
+  (dcf-80253472...). Formula/scale/boundary guards remain valid. Save NO / Deploy NO / production writes 0.
