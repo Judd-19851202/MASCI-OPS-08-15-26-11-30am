@@ -584,3 +584,26 @@ STATE (unchanged counters): Truth surfaces 35/547 · unmapped 512 · KPI discove
 · Compliance-Rate FINAL(+e2e) · Health 0/13 · Efficiency 0/16 · Variance 0/22 · Eligibility 2/2 · Avg-Days 4/4
 · defects proven 3 · shared-root repairs 6 · executable guards 8 (GD-0014..GD-0021) · contradictions 0 · prod writes 0 · Save NO · Deploy NO.
 REMAINING (need dedicated capacity): health_score(13), efficiency_percent(16), variance_percent(22), then the ~512-surface register to 547/547.
+
+## ===== WAVE 5 — COMPLIANCE CONTRACT NOW GOVERNED EVERYWHERE =====
+- Removed the last _safe_pct(...,max(len,1)) compliance masks in report_inspection_compliance:
+  * by_asset_type[t] now emits compliance_pct + compliance_state via compliance_rate(len(subset)-s_overdue, len(subset)).
+  * top_risk_areas[] now emits compliance_pct + compliance_state via compliance_rate(v.total-v.overdue, v.total).
+  Empty subset/yard -> value=None, state=NOT_APPLICABLE (no manufactured denominator). Import OK; GD-0021 7/7 covers the
+  exact contract these breakdowns now use (0-eligible->N/A; 10/0->0%; missing->UNKNOWN). Headline compliance_score +
+  inspection_compliance_state already live-proven. COMPLIANCE_RATE = FINAL (headline + per-type + per-yard breakdowns).
+  NOTE: frontend by_asset_type/top_risk render should read the new *_state to show N/A vs 0% (follow-up if those tables
+  render pct directly; the shared <Pct value state/> already handles it when state is passed).
+
+## ===== WAVE 5 RESUME POINTER (durable — next run starts HERE, do not re-ask owner) =====
+DONE: percent_complete(84/84), expiring_rate(50/50), utilization(45/45), compliance_rate(FINAL, headline+breakdowns+e2e),
+eligibility_rate(2/2), avg_days(4/4), on_time_rate(1/1 EXCLUDED). Guards GD-0014..GD-0021 (8).
+NEXT (in order), reconcile onto canonical calculators with failure-injection guards, preview-only:
+1. health_score (13 sites: 2 be / 11 fe) — inventory concepts first; central critical-override only where business requires;
+   UNKNOWN/STALE != healthy. Scanner sites in WAVE5_KPI_CONCEPTS.json concepts.health_score.sites.
+2. efficiency_percent (16: 15 be / 1 fe) — split output/plan, actual/target rate, productive/paid hrs, earned/consumed.
+3. variance_percent (22: 19 be / 3 fe) — explicit sign convention + favorable/unfavorable per concept (cost/schedule/qty/prod/forecast).
+4. Then the ~512-surface register to 547/547 via automated grouping by shared calculator/endpoint/authority; browser proof
+   reserved for safety/compliance/financial/executive/auth-sensitive/freshness-sensitive surfaces.
+EXACT COUNTERS: Truth surfaces 35/547 · unmapped 512 · KPI discovered 12 · fully reconciled 7 · Health 0/13 · Efficiency 0/16
+· Variance 0/22 · defects proven 3 · shared-root repairs 6 · executable guards 8 · contradictions 0 · prod writes 0 · Save NO · Deploy NO.

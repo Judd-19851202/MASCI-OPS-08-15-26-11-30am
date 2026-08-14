@@ -321,10 +321,12 @@ async def report_inspection_compliance(db, f: Filters) -> Dict[str, Any]:
     for t in ASSET_TYPES:
         subset = [d for d in active if d.get("asset_type") == t]
         s_overdue = sum(1 for d in subset if not d.get("last_inspection_at") or d["last_inspection_at"] < cutoff_overdue)
+        _cpct, _cstate = compliance_rate(len(subset) - s_overdue, len(subset))
         by_type[t] = {
             "total": len(subset),
             "overdue": s_overdue,
-            "compliance_pct": _safe_pct(len(subset) - s_overdue, max(len(subset), 1)),
+            "compliance_pct": _cpct,
+            "compliance_state": _cstate,
         }
 
     # Breakdown by yard / location
@@ -338,7 +340,9 @@ async def report_inspection_compliance(db, f: Filters) -> Dict[str, Any]:
 
     # Top risk areas — yards with >= 1 overdue, sorted by count
     top_risk = sorted(
-        [{"yard": k, **v, "compliance_pct": _safe_pct(v["total"] - v["overdue"], max(v["total"], 1))}
+        [{"yard": k, **v,
+          "compliance_pct": compliance_rate(v["total"] - v["overdue"], v["total"])[0],
+          "compliance_state": compliance_rate(v["total"] - v["overdue"], v["total"])[1]}
          for k, v in by_yard.items() if v["overdue"] > 0],
         key=lambda x: -x["overdue"],
     )[:8]
