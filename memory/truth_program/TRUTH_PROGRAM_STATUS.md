@@ -14,7 +14,7 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 ## WAVE STATE
 - WAVE 1 Denominator discovery: DONE (counts above)
 - WAVE 2 Shared truth engines + unresolved live items: DONE (all 4 items resolved; SO-06 blast radius closed across all consumers)
-- WAVE 3 Enterprise master population truth: IN_PROGRESS (employees 239/equipment 604/jobs/suppliers reconciled prior; users 44 + vehicles 149 + drivers 43 reconciled LIVE this session. Remaining: exhaustive per-entity edge audits + Wave-4 classify all 1,042 sites)
+- WAVE 3 Enterprise master population truth: DONE (employees 239/equipment 604/parts 357/jobs/suppliers prior; users 44 + vehicles 149[96t+53tr] + drivers reconciled LIVE. TD-0009 fleet count contract + TD-0010 driver lifecycle repaired. Cross-portal labels differentiated. Data-quality DQ-0001/DQ-0002 logged owner-deferred. Wave-4 full 1042-site sweep DEFERRED to post-Checkpoint-1-deploy per owner.)
 - WAVE 4 Classify all 1,042 population sites: NOT_STARTED (0/1042)
 - WAVE 5 KPI formula canonicalization: NOT_STARTED
 - WAVE 6 Freshness/time/history: NOT_STARTED
@@ -26,8 +26,8 @@ Final Product Quality v4 certification: PAUSED until this program completes + re
 
 ## SUMMARY COUNTERS (update each wave)
 - Truth surfaces fully reconciled: 13 / 547
-- Population sites classified: 7 / 1,042
-- Defects proven: 8 (TD-0001..TD-0008)
+- Population sites classified: 7 / 1,042 (Wave-4 full sweep deferred to post-Checkpoint-1)
+- Defects proven: 10 code (TD-0001..TD-0010) + 2 data-quality (DQ-0001/DQ-0002)
 - Shared-root defects repaired (preview): 6 (SO-01 release identity; SO-05 trust-events; SO-06 governance health incl. frontend consumers; SO-07 storage ownership; SO-08 maintenance mapping; SO-10 OCC governance card)
 - Executable regression guards passing: GD-0004 6/6, GD-0005 6/6, GD-0006 4/4, GD-0007 5/5, GD-0008 5/5, GD-0009 5/5 (backend 21 + frontend 15)
 - Unexplained Wave-2 contradictions remaining: 0
@@ -62,3 +62,17 @@ Return to owner for Save only at a coherent checkpoint: all touched shared owner
 
 ## CREDENTIALS FOR VERIFICATION
 See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Preview creds cert.hr/cert.shop @example.com.
+
+## ===== TRUTH ENGINE CHECKPOINT 1 — READY FOR OWNER SAVE =====
+- Date: 2026-06 (fork session)
+- Candidate deterministic fingerprint (source content, x2 identical): dcf-a94173320ac3b70ed55b4cebd45d5ad842b001a86ffb146e9d2af88095330517
+- Deployed baseline (production, unchanged): SHA 3dc83374... / dcf-180236ab...
+- Wave 2 unknowns: 0 | Wave 3 master concepts: reconciled | Cross-portal unexplained population contradictions: 0
+- Executable guards pending: 0 (GD-0004..GD-0011 all PASS: backend 29 + frontend 12)
+- Production writes: 0 | Save: NO | Deploy: NO | Product Quality v4: PAUSED | Gate 16: OWNER-DEFERRED
+- App source files changed vs deployed baseline (13): backend governance.py, occ_health_aggregator.py, occ_trust_events.py, services/r2_lifecycle/health.py, fleet_ops.py, transportation.py; frontend versionCache.js, ForgedOpsAttribution.jsx, AdminDiagnostics.jsx, AdminPlatformConfiguration.jsx, AdminGovernanceTrust.jsx, AdminOS.jsx, AdminMaintenance.jsx
+- New guard tests (8): backend test_gd0004/test_td0003/test_td0005/test_td0006/test_td0009/test_td0010; frontend AdminMaintenance.td0007/GovernanceSeverityContract.so06
+- Shared owners changed: SO-01, SO-05, SO-06, SO-07, SO-08, SO-10, SO-11, SO-12
+- Legitimate states remaining (truthful, not defects): governance MISMATCH in PREVIEW (2 genuine critical findings); storage AMBER (stale inventory + ambiguous ownership backlog, 0 orphan); recovery_snapshot stale backup (preview); cert posture AMBER (post-deploy not-exercised). Prod OCC operations_registry UNVERIFIABLE = honest fan-out auth UNKNOWN (SO-08b low-pri).
+- Data-quality backlog (owner-deferred, code does not lie): DQ-0001 12 blank fleet unit_numbers; DQ-0002 CDL/medical expiration + lifecycle_status not populated.
+- NEXT: after owner Save + Deploy + live-verify of this checkpoint, resume Wave 4 (classify remaining ~1,035 population sites).

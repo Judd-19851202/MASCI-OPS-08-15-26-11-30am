@@ -495,7 +495,14 @@ def build_router(
                 "display_label": u.get("display_label") or u.get("make_model") or "",
                 "company": u.get("company") or "",
             })
-        return {"count": len(units), "units": units}
+        # TRUTH PROGRAM · TD-0009 · population-count contract.
+        # `count` is the returned PAGE length (backward-compatible — existing
+        # consumers only read `units`). `total` is the TRUE canonical fleet-unit
+        # population for the current filter via count_documents, so a population
+        # KPI never silently caps as the fleet grows past the page limit.
+        # Server-side `q` continues to search the complete canonical population.
+        total = await db.equipment_master.count_documents(query)
+        return {"count": len(units), "total": total, "page_size": len(units), "units": units}
 
     # ─── Submission · DVIR / weekly lead / weekly emergency ──────
     @router.post("/api/fleet/inspections")

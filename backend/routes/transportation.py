@@ -667,6 +667,19 @@ def register_transportation_routes(
             "deleted_at": None,
             "cdl_holder": True,
         }
+        # TRUTH PROGRAM · TD-0010 · eligible-driver lifecycle contract.
+        # An "eligible CDL driver" must be an actively-employable person. The
+        # prior filter omitted lifecycle status, so terminated/off-roll/retired/
+        # pending employees leaked into the eligible list (live prod: 2 Resigned
+        # + 1 Inactive among 43). Exclude every non-active canonical status;
+        # None / missing lifecycle_status resolves to active (legacy fallback)
+        # and is intentionally retained.
+        from lib.employee_status import BUCKET_STATUSES  # noqa: PLC0415
+        _ineligible = (
+            BUCKET_STATUSES["off_roll"] + BUCKET_STATUSES["terminated"]
+            + BUCKET_STATUSES["retired"] + BUCKET_STATUSES["pending"]
+        )
+        query["lifecycle_status"] = {"$nin": _ineligible}
         if q:
             query["$or"] = [
                 {"name": safe_regex(q)},
