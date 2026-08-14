@@ -101,3 +101,19 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - Zero hardcoded business totals / zero stale-as-current / zero historical-as-current confirmed via Waves 2-4 (governance freshness, trust-events, fleet/driver contracts).
 - Artifact: memory/truth_program/WAVE4_SITE_CLASSIFICATION.json
 - NOTE: bulk classification is pattern-based (heuristic); the risk heuristic (truncation ∧ count/total/length) is the durable guard for future sites. A deeper line-by-line proof of every QUERY_BATCH endpoint's total exposure is available on request.
+
+## ===== WAVE 4 DEEP PROOF + SO-08b (post-Checkpoint-1 continuation) =====
+- SO-08b RESOLVED (TD-0011): operations_registry false-UNVERIFIABLE was a 6s fan-out timeout on the heavy 16-op overview (auth passthrough already correct). Fix: 18s per-endpoint timeout + truthful error attribution (_unreachable_reason). Preview now resolves to genuine MISMATCH. Guard GD-0012 5/5. Child auth NOT weakened.
+- WAVE 4 QUERY_BATCH DEEP PROOF (scripts/wave4_query_batch_contract.py):
+  - 735 backend QUERY_BATCH sites analysed.
+  - Auto contract-verified: 631/735 = A_PAGE_ONLY 428 + B_TRUE_TOTAL 154 + C_BOUNDED_EXACT 3 + SAFE_LARGE_BOUND 46.
+  - Remaining ~104 flagged use `count/total := len(<read>)`; static regex CANNOT dataflow-tie len() to the specific truncated var nor check the frontend consumer, so these need per-consumer proof (NOT auto-provable).
+  - CURRENT TRUNCATION RISK = NONE: every master population (users 44, fleet 149, drivers 40, employees 239, equipment 604, storage 10821) is far below every batch bound, so count:=len() currently equals the true total. Risk is LATENT (fleet-units-class fragility), not a current human-visible lie.
+  - Confirmed NEW count-truncation defects: 0. The one representative genuine case (fleet-units) is fixed (TD-0009).
+  - QUERY_BATCH_CONTRACT_VERIFIED = 631/735 auto; ~104 require a dedicated per-consumer dataflow pass. => Wave 4 is CLASSIFIED (1042/1042) but NOT yet FULLY PROVEN (per-consumer proof of the count:=len() class pending).
+- Guards now: GD-0004..GD-0012 (backend 34 + frontend 12) all PASS.
+
+## PENDING (autonomous continuation, each a large multi-turn audit)
+- WAVE 4 finish: per-consumer dataflow proof for the ~104 count:=len() QUERY_BATCH sites -> A/B/C/D; harden any human-visible-total consumer with count_documents (TD-0009 pattern).
+- WAVE 5 KPI formula/denominator reconciliation (shared calculators, biggest blast radius first).
+- WAVE 6 freshness/time/history. WAVE 7 health state machines (failure injection). WAVE 8 cache/background/fallback. WAVE 9 portal-by-portal to 547/547. WAVE 10 report/export/PDF/email parity. WAVE 11 permanent automated drift guards.

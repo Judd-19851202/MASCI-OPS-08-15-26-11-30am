@@ -46,7 +46,27 @@ _BACKEND_INTERNAL_BASE = os.environ.get(
 _PROBE_TIMEOUT_S = 6.0
 _PROBE_TIMEOUTS_S = {
     "/api/admin/production-certification": 20.0,
+    # SO-08b: the operations-control overview fans out over 16 operation
+    # status snapshots (some hit external providers), so 6s frequently times
+    # out and renders a false UNVERIFIABLE. A generous bound lets genuine truth
+    # be established; a real hang still degrades to an honest (correctly
+    # attributed) UNKNOWN rather than a fake green.
+    "/api/admin/operations-control/overview": 18.0,
 }
+
+
+def _unreachable_reason(err) -> str:
+    """SO-08b: attribute an UNVERIFIABLE probe to its ACTUAL cause instead of
+    assuming an auth failure. Misattributing a timeout as 'check admin auth'
+    is itself a truth defect."""
+    e = str(err or "").lower()
+    if "timeout" in e or "timedout" in e:
+        return "Source probe timed out; truth not established this cycle (retry / open drilldown)."
+    if "401" in e or "403" in e or "unauthorized" in e or "forbidden" in e:
+        return "Source endpoint rejected admin authorization."
+    if "connect" in e or "refused" in e or "resolve" in e:
+        return "Source endpoint was unreachable (connection)."
+    return "Source endpoint did not return a usable response."
 
 
 # ── Section + Card metadata ──────────────────────────────────────
@@ -136,7 +156,7 @@ def _eval_version(body, err, checked_at):
 def _eval_operations_overview(body, err, checked_at):
     if err or not body:
         return _mk("UNVERIFIABLE", "OCC operations registry unreachable.",
-                   {"error": str(err or "no response")}, "Check admin auth.", checked_at)
+                   {"error": str(err or "no response")}, _unreachable_reason(err), checked_at)
     ops = body.get("operations", []) or []
     critical = sum(1 for o in ops if (o.get("status_snapshot") or {}).get("status") == "critical")
     warning = sum(1 for o in ops if (o.get("status_snapshot") or {}).get("status") == "warning")
