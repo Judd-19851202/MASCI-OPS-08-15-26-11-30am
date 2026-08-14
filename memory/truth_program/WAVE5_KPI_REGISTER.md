@@ -153,3 +153,80 @@ no items, defensible for a duration). Single computation per surface; no diverge
 - efficiency_percent: 16 sites (15 be / 1 fe) — distinct concepts (output/plan, productive/paid hrs, actual/target rate).
 - variance_percent: 22 sites (19 be / 3 fe) — sign-convention danger; govern actual-baseline vs baseline-actual + favorable direction.
 - pass_rate: 0 sites (absent). Then reconcile remainder of 547 register beyond the 12 discovered concepts.
+
+## ===== WAVE 5 — HEALTH / EFFICIENCY / VARIANCE RECONCILED (this run, preview-only) =====
+Checkpoint 3 FROZEN/LIVE_VERIFIED (unchanged). Production writes 0 · Save NO · Deploy NO.
+
+### KPI-HEALTH-SCORE — RECONCILED (13/13 final disposition, Pending 0)
+Canonical owner (pre-existing, verified correct): `backend/lib/trust_score.py`.
+- `compute_score()` — platform trust score. GOVERNED HARD RULES (no fake green): start 100; RED workflow HARD-CAPS
+  at 59; UNKNOWN audit HARD-CAPS at 79; named penalties for silent-failure / master-data red|amber / missing route;
+  all-green + zero failures -> 100; no-activity states an explicit reason (not a false "trusted"). UNKNOWN/STALE can
+  NEVER silently render as HEALTHY.
+- `compute_backup_trust_score()` — backup trust; missing/stale/aging archive + failed/stale restore drill + usage
+  bands all reduce score (stale != healthy).
+- DISPOSITIONS of 13 sites (register TS-0040..TS-0045):
+  * CANONICAL (2): OperationsTrustCenter/canonical_truth trust_score+band (compute_score); AdminRecovery backupTrust
+    (compute_backup_trust_score). `?? 0` on ScoreRing NEVER fires (backend always numeric) -> no unknown-as-0 lie.
+  * GOVERNED_DISTINCT_VARIANT (4, legitimately different concepts, kept separate): verification q10 operator trust
+    (dispatch accuracy - mismatch*1.5, floor 0); AdminProjectIdentityGovernance identity_health_score (0-until-reviewed,
+    caption discloses basis); AdminAssetMapping trust_score_pct current/potential (attribution impact projection);
+    TrenchSafetyReports readiness score+band (TruthDisclosure shows basis). Each has explicit unknown/basis disclosure.
+- Guard GD-0022 (`test_gd0022_health_score_contract.py`, 12 cases): all-green->100; RED caps<60; unknown audit caps<80;
+  silent-failure/master-data/missing-route penalized; no-activity is not a green lie; backup missing/stale/failed-drill
+  all lose green. FALSIFIABLE (fails if a cap/penalty is removed).
+
+### KPI-EFFICIENCY-PERCENT — RECONCILED (16/16 final disposition, Pending 0)
+NEW canonical owner: `backend/lib/kpi_efficiency.py::efficiency_percent(n, d, mode)`. Efficiency is NOT one concept:
+RATE_EFFICIENCY (actual_rate/target_rate), RESOURCE_EFFICIENCY (earned_budget/consumed_actual), OUTPUT_RATIO
+(actual/planned qty) — distinct numerators, NOT merged; one governed divide/zero handler. 100 NOT clamped (>100 =
+beat budget, legitimate). Zero-denominator modes explicit: mode="zero" (numeric PM-workspace surface -> 0.0),
+mode="unknown" (renders "—"/UNKNOWN -> None; never fabricate 0% efficiency).
+- MIGRATED to canonical (oppc_execution): activity labor_efficiency (:488 earned/actual), production_efficiency
+  (:489 rate/rate), payroll rollup labor_efficiency (:663). All route through efficiency_percent(mode="zero").
+- GOVERNED_DISTINCT (documented): oppc_confidence_data:116 cumulative installed/authorized (quantity-progress style,
+  progress_pct fallback) — distinct from weekly rate; oppc rollup production_efficiency (:664 qty/qty crew ratio) kept
+  as documented distinct scope; oppc_confidence.py + oppc_intelligence.py consume the field (consumers, not new owners);
+  PmMondayReviewWorkspace.jsx:65 renders backend canonical numeric.
+- Guard GD-0023 (`test_gd0023_efficiency_contract.py`, 8 cases): ratio, >100 not clamped, zero-mode 0.0, unknown-mode
+  None, non-numeric -> None, rounding, and a source-check that oppc_execution routes through the canonical owner.
+
+### KPI-VARIANCE-PERCENT — RECONCILED (22/22 final disposition, Pending 0)
+NEW canonical owner: `backend/lib/kpi_variance.py::variance_percent(actual, baseline, mode)` + `variance_favorable(concept, pct)`.
+- SINGLE SIGN CONVENTION (provable): variance = (actual-baseline)/baseline*100 -> POSITIVE = actual EXCEEDS baseline.
+- ZERO/UNKNOWN BASELINE explicit modes: "honest_unknown" (financial/payroll -> None when baseline<=0, a genuine UNKNOWN);
+  "unplanned_is_full" (planning/production -> 0 if actual<=0 else 100 for unplanned work). No silent zero-mask.
+- FAVORABLE/UNFAVORABLE is PER-CONCEPT (`variance_favorable`): cost/labor/payroll/schedule/duration OVER baseline =
+  UNFAVORABLE; production/quantity/productivity/earned_value OVER baseline = FAVORABLE; unknown concept -> "unknown"
+  (NEVER a generic positive=green assumption). UI color MUST derive from this, not from raw sign.
+- MIGRATED / single-owner: oppc_intelligence `_variance_percent` now DELEGATES to canonical (covers schedule /
+  production / labor / productivity / critical_path variance — 6+ sites); oppc_execution activity quantity variance
+  (:490 -> unplanned_is_full) — TD-0013 divergence fixed (was 0.0 for unplanned, now 100.0 truthful, matching the
+  intelligence engine); oppc_execution payroll rollup variance (:665 -> canonical numeric); payroll_variance.py:235
+  -> canonical honest_unknown (None on zero-denom, matching prior honest behavior).
+- GOVERNED_DISTINCT: service_truck_reconciliation.py:206 fuel/lube quantity variance uses a FRACTION convention (FE
+  multiplies ×100) — distinct concept/unit, single owner, not percent-scaled at source. FE renders (detail/form).
+- Guard GD-0024 (`test_gd0024_variance_contract.py`, 8 cases): sign, honest_unknown None, unplanned_is_full 0/100,
+  non-numeric None, per-concept favorable/unfavorable/neutral/unknown, >100 not clamped, and oppc_intelligence
+  delegation. FALSIFIABLE (fails on generic positive=good, silent zero-mask, or wrong sign).
+
+### DEFECT TD-0013 (proven + repaired)
+Same-concept divergence: activity weekly quantity variance (oppc_execution:490) returned 0.0 for zero-planned+work-done
+while the OPPC variance-intelligence engine returned 100.0 for the identical concept — a same-concept/same-scope
+mismatch. ROOT REPAIR: both now route through `lib.kpi_variance.variance_percent(mode="unplanned_is_full")`; the
+truthful 100.0 (unplanned work = 100% over plan) is now consistent. Guarded by GD-0024.
+
+### WAVE-5 SURFACE GROUPING ENGINE (Part 6 automation)
+Durable scanner `scripts/wave5_surface_register_scan.py` -> `WAVE5_SURFACE_GROUPING.json`. Groups every KPI/count/
+status truth-surface line by governed canonical concept. RESULT (this run): KPI-FORMULA surface class = 345 surfaces;
+343 map to a reconciled canonical owner (percent_complete, expiring_rate, utilization, variance, efficiency,
+health/trust, compliance, eligibility, avg_days, ownership) + 2 on_time_rate EXCLUDED-with-reason = 345/345
+dispositioned at the formula layer. count/total surfaces are governed by Wave-4 population truth (GD-0013/14/15,
+735/735 PROVEN); status/band surfaces by Wave-2 status vocabulary (TC-0002). NOTE: this line-level universe is a
+DIFFERENT methodology than the Wave-1 human-visible 547 count; it is the KPI-formula-lineage evidence, not a
+fabricated 547 enumeration.
+
+### KPI CONCEPTS — ALL 12 DISPOSITIONED
+percent_complete✓ expiring_rate✓ utilization✓ compliance_rate✓ health_score✓ efficiency_percent✓ variance_percent✓
+ownership_score✓ eligibility_rate✓ avg_days✓ (10 RECONCILED to canonical owners) · on_time_rate EXCLUDED (non-KPI) ·
+pass_rate ABSENT (0 sites). Every discovered KPI concept now has a final disposition.

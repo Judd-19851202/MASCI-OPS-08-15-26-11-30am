@@ -34,6 +34,8 @@ from typing import Any, Callable, Dict, List, Optional, Tuple
 from fastapi import APIRouter, Body, Depends, HTTPException
 from pydantic import BaseModel, Field
 
+from lib.kpi_variance import variance_percent as _canon_variance
+
 logger = logging.getLogger(__name__)
 
 # Variance threshold: anything ≥ this many minutes off across the week
@@ -232,7 +234,7 @@ async def build_variance_rows(
         exact_hours = float(er["total_hours"])
         diff_hours = round(exact_hours - masci_hours, 2)
         diff_minutes = round(diff_hours * 60.0, 1)
-        variance_pct = round((diff_hours / masci_hours) * 100.0, 1) if masci_hours > 0 else None
+        variance_pct = _canon_variance(exact_hours, masci_hours, mode="honest_unknown", ndigits=1)
         flag = _flag(diff_minutes, threshold)
         rows.append({
             "row_index": len(rows),

@@ -6,6 +6,8 @@ from typing import Any, Dict, List, Optional
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
 from lib.kpi_percent_complete import quantity_progress_percent
+from lib.kpi_efficiency import efficiency_percent as _canon_efficiency
+from lib.kpi_variance import variance_percent as _canon_variance
 from services.cost_codes.foundation import (
     build_planning_lifecycle_snapshot,
     build_planning_readiness,
@@ -485,9 +487,9 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
         labor_productivity = round(actual_qty / slot["actual_labor_hours_week"], 4) if slot["actual_labor_hours_week"] > 0 else 0.0
         equipment_productivity = round(actual_qty / slot["actual_equipment_hours_week"], 4) if slot["actual_equipment_hours_week"] > 0 else 0.0
         budget_hours_for_actual = round(slot["budget_hours_per_installed_quantity"] * actual_qty, 4)
-        labor_efficiency_pct = round((budget_hours_for_actual / slot["actual_labor_hours_week"]) * 100.0, 2) if slot["actual_labor_hours_week"] > 0 else 0.0
-        production_efficiency_pct = round((actual_rate / slot["budget_production_rate"]) * 100.0, 2) if slot["budget_production_rate"] > 0 else 0.0
-        variance_pct = round((weekly_variance_qty / planned_qty) * 100.0, 2) if planned_qty > 0 else 0.0
+        labor_efficiency_pct = _canon_efficiency(budget_hours_for_actual, slot["actual_labor_hours_week"], mode="zero")
+        production_efficiency_pct = _canon_efficiency(actual_rate, slot["budget_production_rate"], mode="zero")
+        variance_pct = _canon_variance(actual_qty, planned_qty, mode="unplanned_is_full")
         hours_per_installed_qty_actual = round(slot["actual_labor_hours_week"] / actual_qty, 4) if actual_qty > 0 else 0.0
         forecast_labor_remaining = round(slot["remaining_authorized_quantity"] * (hours_per_installed_qty_actual or slot["budget_hours_per_installed_quantity"]), 4)
         status = _activity_status(
@@ -660,9 +662,9 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
             "budget_hours_per_installed_quantity": round((total_planned_labor / total_actual_qty), 4) if total_actual_qty > 0 else 0.0,
             "actual_hours_per_installed_quantity": round((total_actual_labor / total_actual_qty), 4) if total_actual_qty > 0 else 0.0,
             "crew_productivity_percent": round((total_actual_qty / total_planned_qty) * 100.0, 2) if total_planned_qty > 0 else 0.0,
-            "labor_efficiency_percent": round((total_planned_labor / total_actual_labor) * 100.0, 2) if total_actual_labor > 0 else 0.0,
+            "labor_efficiency_percent": _canon_efficiency(total_planned_labor, total_actual_labor, mode="zero"),
             "production_efficiency_percent": round(((total_actual_qty / max(1, len(daily_reports))) / max(0.0001, (total_planned_qty / max(1, len(daily_reports) or 1)))) * 100.0, 2) if daily_reports else 0.0,
-            "variance_percent": round((payroll_total_diff / payroll_total_field) * 100.0, 2) if payroll_total_field > 0 else 0.0,
+            "variance_percent": _canon_variance(payroll_total_field + payroll_total_diff, payroll_total_field, mode="unplanned_is_full"),
             "forecast_labor_remaining": round(total_remaining_qty * ((total_actual_labor / total_actual_qty) if total_actual_qty > 0 else (total_planned_labor / max(total_planned_qty, 1))), 4) if total_remaining_qty > 0 else 0.0,
             "complete": payroll_complete,
             "missing_payroll": not bool(payroll_batch),

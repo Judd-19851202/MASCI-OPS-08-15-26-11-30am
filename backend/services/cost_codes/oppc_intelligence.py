@@ -4,6 +4,7 @@ from collections import Counter, defaultdict
 from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
+from lib.kpi_variance import variance_percent as canonical_variance_percent
 from services.cost_codes.foundation import load_project_assignments, now_iso
 
 VARIANCE_SEVERITIES = [
@@ -138,9 +139,10 @@ def _conflict_rank(severity: str) -> int:
 
 
 def _variance_percent(planned: float, actual: float) -> float:
-    if planned <= 0:
-        return 0.0 if actual <= 0 else 100.0
-    return round(((actual - planned) / planned) * 100.0, 2)
+    # KPI-VARIANCE-PERCENT — canonical owner is lib.kpi_variance. Sign = (actual-baseline);
+    # baseline<=0 -> 0.0 if actual<=0 else 100.0 (unplanned work = 100% over plan).
+    result = canonical_variance_percent(actual, planned, mode="unplanned_is_full")
+    return result if result is not None else 0.0
 
 
 def _variance_key(project_number: str, week_ending: str, variance_type: str, activity_code: str) -> str:

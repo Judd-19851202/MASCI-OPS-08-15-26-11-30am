@@ -1,0 +1,210 @@
+{
+  "generated": "wave5_surface_grouping",
+  "total_surfaces_enumerated": 4401,
+  "frontend_surfaces": 1315,
+  "backend_surfaces": 3086,
+  "counters": {
+    "auto_reconciled": 343,
+    "prior_wave_governed": 4056,
+    "open_needs_proof": 2
+  },
+  "groups": {
+    "status_band": {
+      "concept": "status_band",
+      "surface_count": 2648,
+      "canonical_owner": "status vocabulary (OCC/trust \u2014 Wave 2 TC-0002)",
+      "disposition": "PRIOR_WAVE_GOVERNED",
+      "sample_locs": [
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:55",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:427",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:470",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:479",
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:551",
+        "frontend/src/pages/V2Compare.jsx:165",
+        "frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx:72",
+        "frontend/src/pages/PmProjectSchedule.jsx:615"
+      ]
+    },
+    "count_total": {
+      "concept": "count_total",
+      "surface_count": 1408,
+      "canonical_owner": "Wave-4 population truth (count/total contract, GD-0013/14/15)",
+      "disposition": "PRIOR_WAVE_GOVERNED",
+      "sample_locs": [
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:459",
+        "frontend/src/pages/PmHub.jsx:336",
+        "frontend/src/pages/PmHub.jsx:372",
+        "frontend/src/pages/PmHub.jsx:491",
+        "frontend/src/pages/PmProjectSchedule.jsx:608",
+        "frontend/src/pages/PmProjectSchedule.jsx:724",
+        "frontend/src/pages/PmProjectSchedule.jsx:725",
+        "frontend/src/pages/PmProjectSchedule.jsx:736"
+      ]
+    },
+    "expiring_rate": {
+      "concept": "expiring_rate",
+      "surface_count": 134,
+      "canonical_owner": "lib.kpi_expiry",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/PmHub.jsx:306",
+        "frontend/src/pages/PmHub.jsx:452",
+        "frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx:290",
+        "frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx:291",
+        "frontend/src/pages/HrEmployeeThread.jsx:102",
+        "frontend/src/pages/HrEmployeeThread.jsx:121",
+        "frontend/src/pages/PmCrewCompliance.jsx:183",
+        "frontend/src/pages/PmCrewCompliance.jsx:184"
+      ]
+    },
+    "utilization": {
+      "concept": "utilization",
+      "surface_count": 48,
+      "canonical_owner": "lib.kpi_percent_complete.utilization_percent / storage_capacity_truth (distinct owners)",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/DispatchHub.jsx:365",
+        "frontend/src/pages/admin/AdminDispatch.jsx:77",
+        "frontend/src/pages/admin/AdminDispatch.jsx:205",
+        "frontend/src/pages/admin/AdminDatabase.jsx:89",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:213",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:345",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:355",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:359"
+      ]
+    },
+    "health_score": {
+      "concept": "health_score",
+      "surface_count": 46,
+      "canonical_owner": "lib.trust_score.compute_score/compute_backup_trust_score (+distinct variants)",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:158",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:159",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:178",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:186",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:239",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:240",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:368",
+        "frontend/src/pages/admin/AdminAssetMapping.jsx:369"
+      ]
+    },
+    "percent_complete": {
+      "concept": "percent_complete",
+      "surface_count": 44,
+      "canonical_owner": "lib.kpi_percent_complete.checklist_percent/schedule_rollup_percent/quantity_progress_percent",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:343",
+        "frontend/src/pages/PmProjectSchedule.jsx:140",
+        "frontend/src/pages/PmProjectSchedule.jsx:203",
+        "frontend/src/pages/PmProjectSchedule.jsx:815",
+        "frontend/src/pages/ViewDailyReport.jsx:753",
+        "frontend/src/lib/dailyReportSummaryPayload.js:70",
+        "frontend/src/lib/dailyReportSummaryPayload.js:193",
+        "frontend/src/components/HrCompletenessTile.jsx:172"
+      ]
+    },
+    "compliance_rate": {
+      "concept": "compliance_rate",
+      "surface_count": 16,
+      "canonical_owner": "lib.kpi_percent_complete.compliance_rate",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:180",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:214",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:252",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:256",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:261",
+        "backend/routes/transportation_experience.py:158",
+        "backend/routes/trench_safety/pulse.py:78",
+        "backend/routes/trench_safety/reports.py:189"
+      ]
+    },
+    "variance_percent": {
+      "concept": "variance_percent",
+      "surface_count": 15,
+      "canonical_owner": "lib.kpi_variance.variance_percent",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:473",
+        "frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:146",
+        "frontend/src/pages/shop/ServiceTruckReconciliationForm.jsx:312",
+        "backend/services/cost_codes/oppc_execution.py:556",
+        "backend/services/cost_codes/oppc_execution.py:667",
+        "backend/services/cost_codes/oppc_intelligence.py:324",
+        "backend/services/cost_codes/oppc_intelligence.py:335",
+        "backend/services/cost_codes/oppc_intelligence.py:346"
+      ]
+    },
+    "avg_days": {
+      "concept": "avg_days",
+      "surface_count": 14,
+      "canonical_owner": "operational_intelligence.products (DIRECT_FACT mean)",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/ExecutiveCaseReport.jsx:405",
+        "frontend/src/pages/ExecutiveIntelligence.jsx:394",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:281",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:282",
+        "frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:320",
+        "backend/routes/trench_safety/reports.py:434",
+        "backend/routes/trench_safety/reports.py:435",
+        "backend/routes/trench_safety/reports.py:497"
+      ]
+    },
+    "efficiency_percent": {
+      "concept": "efficiency_percent",
+      "surface_count": 13,
+      "canonical_owner": "lib.kpi_efficiency.efficiency_percent",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/PmMondayReviewWorkspace.jsx:65",
+        "backend/services/cost_codes/oppc_execution.py:554",
+        "backend/services/cost_codes/oppc_execution.py:555",
+        "backend/services/cost_codes/oppc_execution.py:588",
+        "backend/services/cost_codes/oppc_execution.py:589",
+        "backend/services/cost_codes/oppc_execution.py:665",
+        "backend/services/cost_codes/oppc_execution.py:666",
+        "backend/services/cost_codes/oppc_confidence.py:171"
+      ]
+    },
+    "eligibility_rate": {
+      "concept": "eligibility_rate",
+      "surface_count": 10,
+      "canonical_owner": "lib.transport_carrier_intelligence pct_eligible",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "frontend/src/pages/transportation/_intelligence.jsx:219",
+        "backend/lib/transport_operations_intelligence.py:113",
+        "backend/lib/transport_operations_intelligence.py:116",
+        "backend/lib/transport_carrier_intelligence.py:51",
+        "backend/lib/transport_carrier_intelligence.py:118",
+        "backend/lib/transport_carrier_intelligence.py:157",
+        "backend/lib/transport_carrier_intelligence.py:158",
+        "backend/routes/operations_transportation_integration.py:289"
+      ]
+    },
+    "ownership_score": {
+      "concept": "ownership_score",
+      "surface_count": 3,
+      "canonical_owner": "r2 lifecycle ownership (SO-07)",
+      "disposition": "AUTO_RECONCILED",
+      "sample_locs": [
+        "backend/services/r2_lifecycle/health.py:40",
+        "backend/services/r2_lifecycle/health.py:190",
+        "backend/services/r2_lifecycle/health.py:222"
+      ]
+    },
+    "on_time_rate": {
+      "concept": "on_time_rate",
+      "surface_count": 2,
+      "canonical_owner": null,
+      "disposition": "OPEN_NEEDS_PROOF",
+      "sample_locs": [
+        "frontend/src/pages/IncidentReportViewer.jsx:406",
+        "frontend/src/lib/platformTime.js:53"
+      ]
+    }
+  }
+}

@@ -1779,3 +1779,15 @@ ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES
   built (memory/truth_program/WAVE5_KPI_REGISTER.md). Next: reconcile KPI-PERCENT-COMPLETE (highest blast radius).
 - Constraints still active: NO Save, NO Deploy, production read-only, preview repair-only, Product Quality v4 PAUSED,
   Gate 16 OWNER-DEFERRED. Checkpoint-1 / TD-0011 / TD-0012 / durable registers preserved.
+
+## 2026-06 — WAVE 5 (Truth & Trust): Health/Efficiency/Variance reconciled; all 12 KPI concepts dispositioned (preview-only)
+
+- Governing state: Checkpoint 3 FROZEN/LIVE_VERIFIED. Preview-only. Production writes 0 · Save NO · Deploy NO · PQv4 PAUSED · Gate 16 OWNER-DEFERRED.
+- Reconciled the three remaining named KPI families with canonical owners + falsifiable failure-injection guards:
+  - HEALTH-SCORE 13/13 — canonical `lib/trust_score.py` (verified: RED→cap 59, unknown-audit→cap 79, stale/missing backup penalized; UNKNOWN/STALE never healthy). Guard GD-0022. 2 canonical + 4 governed-distinct variants.
+  - EFFICIENCY-PERCENT 16/16 — NEW `lib/kpi_efficiency.py` (rate/resource/output kept distinct; 100 not clamped; explicit zero/unknown modes). oppc_execution migrated. Guard GD-0023.
+  - VARIANCE-PERCENT 22/22 — NEW `lib/kpi_variance.py` (single sign convention; explicit zero/unknown modes; PER-CONCEPT favorable/unfavorable — no generic positive=green). oppc_intelligence delegates; oppc_execution + payroll_variance migrated. Guard GD-0024. Fixed TD-0013 (same-concept variance divergence 0.0 vs 100.0).
+- All 12 discovered KPI concepts now dispositioned: 10 reconciled to canonical owners + on_time_rate EXCLUDED + pass_rate ABSENT.
+- Built durable Part-6 automation: `scripts/wave5_surface_register_scan.py` + `scripts/wave5_surface_enumeration.py` → per-surface register `TRUTH_SURFACE_ENUMERATION.csv` (783 human-visible surfaces; 367 dispositioned to proven governed classes, 416 OPEN needing per-surface lineage proof — none fabricated).
+- Verification: 132 guard tests + 39 Wave-5 live-contract tests = 171 passed, 0 regressions. Release verifier --strict ok=true, population gate clean. Fingerprint deterministic ×2 (dcf-a47647eb…). Backend healthy. Frontend fail-closes = EXPECTED pre-save attestation behavior (dead-end #24), not touched.
+- WAVE 5 NOT COMPLETE: KPI-formula layer done; per-surface tie-out of the remaining 416 human-visible surfaces to governed classes is the next multi-run task. No disposition fabricated to inflate closure (anti-fabrication doctrine).

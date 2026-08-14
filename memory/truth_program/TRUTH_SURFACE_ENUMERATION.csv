@@ -1,0 +1,784 @@
+loc,route,label,class,concept,owner,disposition
+frontend/src/components/AdminKpiStrip.jsx:263,AdminKpiStrip,admin-kpi-strip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/AdminPMPanel.jsx:759,AdminPMPanel,pm-set-password-generate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/AdminSignatureMigrationPanel.jsx:110,AdminSignatureMigrationPanel,sig-mig-r2-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/AssetHistoryTimeline.jsx:96,AssetHistoryTimeline,asset-history-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/AttendeeBulkAddDialog.jsx:189,AttendeeBulkAddDialog,attendee-bulk-add-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/AutoEmailRoutingPanel.jsx:56,AutoEmailRoutingPanel,auto-email-status-badge,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/BackendStatusBanner.jsx:124,BackendStatusBanner,backend-status-banner,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/CloudArchivesPanel.jsx:213,CloudArchivesPanel,cloud-archives-hourly-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/CloudArchivesPanel.jsx:251,CloudArchivesPanel,cloud-archives-authoritative-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/ComplianceExportPanel.jsx:183,ComplianceExportPanel,compliance-export-panel,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/components/DateAuditPanel.jsx:128,DateAuditPanel,"<Stat label=""Scanned"" value={data.totals?.scanned || 0} tone",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/DateAuditPanel.jsx:129,DateAuditPanel,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DateAuditPanel.jsx:134,DateAuditPanel,"<Stat label=""Review"" value={data.totals?.review || 0} tone=""",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/DateAuditPanel.jsx:135,DateAuditPanel,"<Stat label=""OK"" value={data.totals?.ok || 0} tone=""emerald""",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/DispatchLiveSnapshot.jsx:107,DispatchLiveSnapshot,dispatch-feed-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/DispatchMapHero.jsx:94,DispatchMapHero,dispatch-map-feed-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/DriverCommandProfile.jsx:110,DriverCommandProfile,"<KV label=""Employee #"" value={identity.employee_id} mono tes",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:111,DriverCommandProfile,"<KV label=""Trade"" value={identity.trade} testid=""dcp-id-trad",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:112,DriverCommandProfile,"<KV label=""Role"" value={identity.role} testid=""dcp-id-role"" ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:113,DriverCommandProfile,"<KV label=""Crew"" value={identity.crew} testid=""dcp-id-crew"" ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:114,DriverCommandProfile,"<KV label=""Supervisor"" value={identity.supervisor_name} test",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:115,DriverCommandProfile,"<KV label=""Email"" value={identity.email} testid=""dcp-id-emai",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:116,DriverCommandProfile,"<KV label=""Phone"" value={identity.phone} testid=""dcp-id-phon",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:117,DriverCommandProfile,"<KV label=""Hire Date"" value={identity.hire_date ? formatPlat",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:157,DriverCommandProfile,"<KV label=""Current Vehicle"" value={operations.current_vehicl",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:158,DriverCommandProfile,"<KV label=""Last Vehicle"" value={operations.last_vehicle} mon",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:159,DriverCommandProfile,<KV,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:189,DriverCommandProfile,dcp-safe-hos-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/DriverCommandProfile.jsx:244,DriverCommandProfile,dcp-train-bands,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/DriverCommandProfile.jsx:273,DriverCommandProfile,"<KV label=""Most Used"" value={equipment_usage.most_used} mono",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:274,DriverCommandProfile,"<KV label=""Last Operated"" value={equipment_usage.last_operat",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:310,DriverCommandProfile,dcp-motive-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/DriverCommandProfile.jsx:314,DriverCommandProfile,"<KV label=""Driver ID"" value={motive.driver_id} mono testid=""",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:315,DriverCommandProfile,"<KV label=""Last Sync"" value={motive.last_sync ? formatPlatfo",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:316,DriverCommandProfile,"<KV label=""Last GPS Activity"" value={motive.located_at ? for",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/DriverCommandProfile.jsx:334,DriverCommandProfile,dcp-map-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/EmailRoutingV2Panel.jsx:232,EmailRoutingV2Panel,v2-route-health-run,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/EmailRoutingV2Panel.jsx:243,EmailRoutingV2Panel,v2-routes-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EmailRoutingV2Panel.jsx:252,EmailRoutingV2Panel,v2-route-health-summary,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/EmailRoutingV2Panel.jsx:259,EmailRoutingV2Panel,v2-route-health-green,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/EmailRoutingV2Panel.jsx:265,EmailRoutingV2Panel,v2-route-health-amber,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/EmailRoutingV2Panel.jsx:271,EmailRoutingV2Panel,v2-route-health-red,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/EquipmentLines.jsx:378,EquipmentLines,equipment-grand-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EquipmentLines.jsx:388,EquipmentLines,equipment-grand-total-amount,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EquipmentMasterPanel.jsx:402,EquipmentMasterPanel,equipment-master-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EquipmentReturnLines.jsx:393,EquipmentReturnLines,equipment-return-total-value,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EquipmentReturnLines.jsx:400,EquipmentReturnLines,equipment-return-total-damage,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/EquipmentStatusBoard.jsx:105,EquipmentStatusBoard,equipment-status-board,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/EquipmentStatusBoard.jsx:148,EquipmentStatusBoard,status-board-toggle,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/EquipmentStatusBoard.jsx:208,EquipmentStatusBoard,status-empty-filter,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/EquipmentStatusBoard.jsx:212,EquipmentStatusBoard,status-board-list,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/EquipmentTrendsPanel.jsx:79,EquipmentTrendsPanel,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:89,HrCompletenessTile,hr-completeness-tile-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:103,HrCompletenessTile,hr-completeness-tile-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:125,HrCompletenessTile,hr-completeness-tile,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:135,HrCompletenessTile,hr-completeness-title,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:141,HrCompletenessTile,hr-completeness-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/HrCompletenessTile.jsx:147,HrCompletenessTile,hr-completeness-generated-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:182,HrCompletenessTile,hr-completeness-view-missing,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:210,HrCompletenessTile,hr-completeness-export-csv,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:217,HrCompletenessTile,hr-completeness-include-inactive-label,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:224,HrCompletenessTile,hr-completeness-include-inactive,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:231,HrCompletenessTile,hr-completeness-lifecycle-link,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:277,HrCompletenessTile,hr-completeness-drawer-backdrop,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:284,HrCompletenessTile,hr-completeness-drawer,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:298,HrCompletenessTile,hr-completeness-drawer-close,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:312,HrCompletenessTile,hr-completeness-drawer-empty,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrCompletenessTile.jsx:316,HrCompletenessTile,hr-completeness-drawer-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/HrKpiStrip.jsx:159,HrKpiStrip,hr-kpi-strip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/IntegrationHealthCard.jsx:61,IntegrationHealthCard,integration-health-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/IntegrationHealthCard.jsx:72,IntegrationHealthCard,integration-health-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/IntegrationHealthCard.jsx:115,IntegrationHealthCard,integration-health-admin-link,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/MentionTextarea.jsx:120,MentionTextarea,mention-autocomplete,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/NotificationBell.jsx:451,NotificationBell,notification-mute-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/OperationsTrustCenter.jsx:207,OperationsTrustCenter,otc-score-ring,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/OperationsTrustCenter.jsx:228,OperationsTrustCenter,otc-score-value,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/OperationsTrustCenter.jsx:761,OperationsTrustCenter,<ScoreRing score={data.trust_score ?? 0} band={band} />,KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/components/OperationsTrustCenter.jsx:836,OperationsTrustCenter,otc-score-inputs,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PersistenceHealthBanner.jsx:79,PersistenceHealthBanner,persistence-health-ok,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PersistenceHealthBanner.jsx:99,PersistenceHealthBanner,persistence-health-warn,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PlatformTrustDashboard.jsx:591,PlatformTrustDashboard,trust-spine-platform-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/PlatformTrustDashboard.jsx:635,PlatformTrustDashboard,trust-spine-stat-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/PmOperationalKPIs.jsx:65,PmOperationalKPIs,pm-operational-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:68,PmOperationalKPIs,pm-operational-kpis-title,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:93,PmOperationalKPIs,pm-operational-kpis-loading,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/PmOperationalKPIs.jsx:94,PmOperationalKPIs,pm-operational-kpis-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:97,PmOperationalKPIs,pm-operational-kpis-range,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:307,PmOperationalKPIs,pm-kpi-latest-summary,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:343,PmOperationalKPIs,pm-kpi-scheduling-readiness,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/PmOperationalKPIs.jsx:387,PmOperationalKPIs,pm-kpi-safety-sources,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/QueueStatusPill.jsx:385,QueueStatusPill,queue-status-drawer-backdrop,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/QueueStatusPill.jsx:390,QueueStatusPill,queue-status-drawer,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:137,RoutingStatusPanel,routing-status-panel,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:153,RoutingStatusPanel,routing-status-mode,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:165,RoutingStatusPanel,routing-status-refresh,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:175,RoutingStatusPanel,routing-status-self-check,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:183,RoutingStatusPanel,routing-status-band-reason,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/RoutingStatusPanel.jsx:405,RoutingStatusPanel,pm-cov-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/SafetyOperationalKpisCard.jsx:79,SafetyOperationalKpisCard,safety-operational-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:83,SafetyOperationalKpisCard,safety-kpis-title,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:106,SafetyOperationalKpisCard,safety-kpis-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:108,SafetyOperationalKpisCard,safety-kpis-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:114,SafetyOperationalKpisCard,safety-kpis-retry,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:124,SafetyOperationalKpisCard,safety-kpis-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SafetyOperationalKpisCard.jsx:131,SafetyOperationalKpisCard,safety-kpis-band-value,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SafetyOperationalKpisCard.jsx:148,SafetyOperationalKpisCard,safety-kpi-escalation-gap,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:191,SafetyOperationalKpisCard,safety-kpis-empty,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:197,SafetyOperationalKpisCard,safety-kpis-project-ranking,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:278,SafetyOperationalKpisCard,safety-kpis-source-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SafetyOperationalKpisCard.jsx:324,SafetyOperationalKpisCard,safety-kpis-drilldown-backdrop,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:331,SafetyOperationalKpisCard,safety-kpis-drilldown,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:348,SafetyOperationalKpisCard,safety-kpis-drilldown-close,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:356,SafetyOperationalKpisCard,safety-kpis-drilldown-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyOperationalKpisCard.jsx:362,SafetyOperationalKpisCard,safety-kpis-drilldown-retry,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:190,SafetyTrenchIntelligenceCard,safety-trench-drilldown-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:273,SafetyTrenchIntelligenceCard,safety-trench-cleanup-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:291,SafetyTrenchIntelligenceCard,cleanup-count-missing,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:295,SafetyTrenchIntelligenceCard,cleanup-count-ambiguous,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:299,SafetyTrenchIntelligenceCard,cleanup-count-asset-only,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/SafetyTrenchIntelligenceCard.jsx:479,SafetyTrenchIntelligenceCard,safety-trench-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:150,SessionStatusOverlay,session-status-overlay,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:163,SessionStatusOverlay,session-status-title,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:167,SessionStatusOverlay,session-status-body,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:176,SessionStatusOverlay,session-status-close,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:186,SessionStatusOverlay,session-status-secondary,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SessionStatusOverlay.jsx:196,SessionStatusOverlay,session-status-primary,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/SystemHealthBadge.jsx:260,SystemHealthBadge,system-health-badge,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SystemHealthBadge.jsx:266,SystemHealthBadge,system-health-toggle,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SystemHealthBadge.jsx:275,SystemHealthBadge,system-health-dropdown,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/SystemHealthBadge.jsx:288,SystemHealthBadge,system-health-recheck,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/WhereUsedPanel.jsx:86,WhereUsedPanel,where-used-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/LocationIntelligencePanel.jsx:81,LocationIntelligencePanel,"<Stat label=""Active jobs""           value={stats.total}     ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/LocationIntelligencePanel.jsx:82,LocationIntelligencePanel,"<Stat label=""Verified geofence""     value={stats.linked}    ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/LocationIntelligencePanel.jsx:83,LocationIntelligencePanel,"<Stat label=""Pending review""        value={stats.pending}   ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/LocationIntelligencePanel.jsx:84,LocationIntelligencePanel,"<Stat label=""No proposal""           value={stats.orphan}    ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/MaintainxP0Tab.jsx:206,MaintainxP0Tab,mx-p0-key-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/OperationalSignalsPanel.jsx:203,OperationalSignalsPanel,"<Stat label=""n"" value={ct.count} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/OperationalSignalsPanel.jsx:204,OperationalSignalsPanel,"<Stat label=""avg"" value={ct.count ? formatMs(ct.avg_ms) : ""—",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/OperationalSignalsPanel.jsx:205,OperationalSignalsPanel,"<Stat label=""p90"" value={ct.count ? formatMs(ct.p90_ms) : ""—",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/R2LifecyclePanel.jsx:171,R2LifecyclePanel,r2-lifecycle-health-card,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/R2LifecyclePanel.jsx:175,R2LifecyclePanel,r2-lifecycle-health-score,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/R2LifecyclePanel.jsx:179,R2LifecyclePanel,r2-lifecycle-health-band,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/R2LifecyclePanel.jsx:287,R2LifecyclePanel,r2-lifecycle-retention-generated-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/R2LifecyclePanel.jsx:310,R2LifecyclePanel,r2-lifecycle-retention-archive-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/R2LifecyclePanel.jsx:311,R2LifecyclePanel,r2-lifecycle-retention-keep-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/R2LifecyclePanel.jsx:312,R2LifecyclePanel,r2-lifecycle-retention-delete-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:92,OperationalHealthDashboardShell,operational-health-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:99,OperationalHealthDashboardShell,operational-health-dashboard-root,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:100,OperationalHealthDashboardShell,operational-health-hero,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:105,OperationalHealthDashboardShell,operational-health-framework-label,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:109,OperationalHealthDashboardShell,operational-health-title,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:112,OperationalHealthDashboardShell,operational-health-authority-statement,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:116,OperationalHealthDashboardShell,operational-health-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:125,OperationalHealthDashboardShell,operational-health-module-catalog,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:147,OperationalHealthDashboardShell,operational-health-meta-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:153,OperationalHealthDashboardShell,operational-health-state-split,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:154,OperationalHealthDashboardShell,operational-health-certification-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:156,OperationalHealthDashboardShell,operational-health-certification-state,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:158,OperationalHealthDashboardShell,operational-health-certification-certified-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:159,OperationalHealthDashboardShell,operational-health-certification-commit,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:160,OperationalHealthDashboardShell,operational-health-certification-evidence,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:161,OperationalHealthDashboardShell,operational-health-certification-reasoning,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:164,OperationalHealthDashboardShell,operational-health-live-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:168,OperationalHealthDashboardShell,operational-health-determination,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:171,OperationalHealthDashboardShell,operational-health-evaluated-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:172,OperationalHealthDashboardShell,operational-health-primary-reason,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:177,OperationalHealthDashboardShell,operational-health-driver-inventory,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:178,OperationalHealthDashboardShell,operational-health-red-drivers,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:184,OperationalHealthDashboardShell,operational-health-amber-watchlist,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:200,OperationalHealthDashboardShell,operational-health-quick-links,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:217,OperationalHealthDashboardShell,operational-health-error-banner,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:222,OperationalHealthDashboardShell,operational-health-filter-panel,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:230,OperationalHealthDashboardShell,operational-health-search,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:232,OperationalHealthDashboardShell,operational-health-status-filters,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:249,OperationalHealthDashboardShell,operational-health-loading-banner,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:254,OperationalHealthDashboardShell,operational-health-status-engine,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:256,OperationalHealthDashboardShell,operational-health-status-engine-policy,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:273,OperationalHealthDashboardShell,operational-health-golden-path,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:276,OperationalHealthDashboardShell,operational-health-golden-path-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:303,OperationalHealthDashboardShell,operational-health-exemptions,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:308,OperationalHealthDashboardShell,operational-health-exemptions-summary,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:312,OperationalHealthDashboardShell,operational-health-exemptions-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:335,OperationalHealthDashboardShell,operational-health-history-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:336,OperationalHealthDashboardShell,operational-health-trends,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:353,OperationalHealthDashboardShell,operational-health-cert-history,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/admin/operational-health/OperationalHealthDashboardShell.jsx:366,OperationalHealthDashboardShell,operational-health-sections,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/daily-report/EquipmentDetectedToday.jsx:147,EquipmentDetectedToday,equipment-detected-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/DailyReportV3ExcavationSection.jsx:236,DailyReportV3ExcavationSection,exc-utility-damage-warning,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/daily-report-v3/DailyReportV3ExcavationSection.jsx:243,DailyReportV3ExcavationSection,exc-utilities-notes,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/daily-report-v3/SectionProjectConditions.jsx:224,SectionProjectConditions,dr-v3-location-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/daily-report-v3/sections.jsx:632,sections,dr-v3-crew-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:642,sections,dr-v3-crew-total-hours,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:663,sections,dr-v3-crew-total-by-code,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:828,sections,dr-v3-eq-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:838,sections,dr-v3-eq-total-run,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:845,sections,dr-v3-eq-total-idle,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:854,sections,dr-v3-eq-util,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/daily-report-v3/sections.jsx:867,sections,dr-v3-eq-issues-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:1032,sections,dr-v3-sub-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:1249,sections,dr-v3-work-block-preview-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:1801,sections,dr-v3-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/daily-report-v3/sections.jsx:1837,sections,dr-v3-attachments-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/dispatch/AssignmentDrawer.jsx:576,AssignmentDrawer,revise-load-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/dispatch/DispatchDecisionChip.jsx:169,DispatchDecisionChip,dispatch-decision-watch-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/dispatch/DispatchEquipmentMaintenanceIndicator.jsx:45,DispatchEquipmentMaintenanceIndicator,dispatch-mx-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/dispatch/PmHaulActivityTile.jsx:153,PmHaulActivityTile,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/dispatch/command/HaulBoard.jsx:105,HaulBoard,haul-integration-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/dispatch/command/ShopFeedBoard.jsx:102,ShopFeedBoard,shop-summary-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/dispatch/command/ShopFeedBoard.jsx:230,ShopFeedBoard,shop-integration-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:100,HrComplianceAtRiskWidget,hr-compliance-at-risk-widget,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:121,HrComplianceAtRiskWidget,hr-compliance-at-risk-summary,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:126,HrComplianceAtRiskWidget,hr-compliance-at-risk-rows,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/components/hr/HrComplianceAtRiskWidget.jsx:156,HrComplianceAtRiskWidget,hr-compliance-at-risk-open-all,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/components/operations-map/AssetCardSheet.jsx:142,AssetCardSheet,ops-map-asset-sheet-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/operations-map/MapFilterRail.jsx:71,MapFilterRail,ops-map-status-legend,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/operations_transportation_integration.jsx:327,operations_transportation_integration,ops-tx-health-widget-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/operations_transportation_integration.jsx:337,operations_transportation_integration,ops-tx-health-widget-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/operations_transportation_integration.jsx:351,operations_transportation_integration,ops-tx-health-widget,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/operations_transportation_integration.jsx:362,operations_transportation_integration,ops-tx-health-widget-link,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/operations_transportation_integration.jsx:429,operations_transportation_integration,ops-tx-closeout-complete,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/pm/PmJobsRead.jsx:77,PmJobsRead,pm-jobs-read-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/pm/schedule/ScheduleActualsWorkspace.jsx:29,ScheduleActualsWorkspace,pm-project-schedule-actuals-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/pm/schedule/ScheduleDailyWorkPlanPanel.jsx:36,ScheduleDailyWorkPlanPanel,pm-project-schedule-daily-plan-status-select,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/pm/schedule/ScheduleDailyWorkPlanPanel.jsx:44,ScheduleDailyWorkPlanPanel,pm-project-schedule-daily-plan-item-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/project_controls/ForecastingCommitmentsWorkspace.jsx:192,ForecastingCommitmentsWorkspace,forecast-commitment-status-input,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx:187,PortfolioIntelligenceWorkspace,portfolio-attention-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx:433,PortfolioIntelligenceWorkspace,portfolio-intelligence-hero-project-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx:437,PortfolioIntelligenceWorkspace,portfolio-intelligence-hero-generated-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx:455,PortfolioIntelligenceWorkspace,portfolio-cache-status-banner,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/project_controls/PortfolioIntelligenceWorkspace.jsx:626,PortfolioIntelligenceWorkspace,portfolio-project-filter-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/components/submission/SubmissionConfirmation.jsx:148,SubmissionConfirmation,submission-confirmation-processing-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/components/trench/TrenchSafetyOnProjectPanel.jsx:78,TrenchSafetyOnProjectPanel,trench-on-project-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/design-system/PortalShell.jsx:244,PortalShell,ds-portal-shell-utility-rail-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/design-system/PortalShell.jsx:252,PortalShell,ds-portal-shell-utility-controls,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AdminSchedulerRuns.jsx:185,AdminSchedulerRuns,scheduler-runs-stat-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/AssetTransfers.jsx:484,AssetTransfers,"<KV k=""Transfer #"" v={doc.doc_id || doc.id} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:491,AssetTransfers,"<KV k=""Equipment"" v={`${doc.equipment_unit_id || doc.equipme",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:492,AssetTransfers,"<KV k=""From"" v={`${doc.from_project_number || ""—""}${doc.from",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:493,AssetTransfers,"<KV k=""To"" v={`${doc.to_project_number}${doc.to_location_lab",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:494,AssetTransfers,"<KV k=""Requested by"" v={doc.requested_by} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:495,AssetTransfers,"{doc.reason && <KV k=""Reason"" v={doc.reason} />}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:496,AssetTransfers,"{doc.rejection_reason && <KV k=""Rejection reason"" v={doc.rej",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:497,AssetTransfers,"<KV k=""Created"" v={String(doc.created_at).slice(0, 16).repla",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:498,AssetTransfers,"{doc.approved_at && <KV k=""Approved"" v={String(doc.approved_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:499,AssetTransfers,"{doc.in_transit_at && <KV k=""In transit"" v={String(doc.in_tr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:500,AssetTransfers,"{doc.received_at && <KV k=""Received"" v={String(doc.received_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/AssetTransfers.jsx:501,AssetTransfers,"{doc.closed_at && <KV k=""Closed"" v={String(doc.closed_at).sl",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ConstraintDetail.jsx:160,ConstraintDetail,constraint-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/Constraints.jsx:135,Constraints,filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/DailyReportsDashboard.jsx:206,DailyReportsDashboard,daily-report-count-label,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/DesignSystemDemo.jsx:150,DesignSystemDemo,ds-demo-status-grid,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/DispatchCommandCenter.jsx:238,DispatchCommandCenter,overview-asset-health-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/DispatchHub.jsx:365,DispatchHub,dh-tab-utilization,KPI_CONCEPT,utilization,kpi_percent_complete.utilization_percent/storage_capacity_truth,RECONCILED_KPI
+frontend/src/pages/DispatchHub.jsx:410,DispatchHub,ds-utility-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/DocumentExpirations.jsx:151,DocumentExpirations,docexp-status-filter,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/EmployeeLifecycleQualifications.jsx:181,EmployeeLifecycleQualifications,qual-form-completed,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/EmployeeProfile.jsx:242,EmployeeProfile,employee-profile-days-tenure,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/EmployeeProfile.jsx:374,EmployeeProfile,employee-profile-category-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ExecutiveCaseReport.jsx:307,ExecutiveCaseReport,exec-report-capa-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ExecutiveCaseReport.jsx:351,ExecutiveCaseReport,exec-report-attention-score,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveCaseReport.jsx:415,ExecutiveCaseReport,exec-report-readiness-pct,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveIntelligence.jsx:187,ExecutiveIntelligence,exec-intel-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveIntelligence.jsx:371,ExecutiveIntelligence,portfolio-attention-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ExecutiveOperationalIntelligence.jsx:248,ExecutiveOperationalIntelligence,exec-intel-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveOperationalIntelligence.jsx:423,ExecutiveOperationalIntelligence,exec-briefing-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/ExecutiveOperationalIntelligence.jsx:426,ExecutiveOperationalIntelligence,exec-briefing-generate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveOperationalIntelligence.jsx:434,ExecutiveOperationalIntelligence,exec-briefing-generated,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ExecutiveOverview.jsx:131,ExecutiveOverview,executive-overview-kpi-grid,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/FieldLeadershipRecords.jsx:195,FieldLeadershipRecords,leadership-records-count-grid,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/FieldLeadershipRecords.jsx:199,FieldLeadershipRecords,leadership-count-all,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/FleetVisibility.jsx:538,FleetVisibility,fleet-visibility-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HistoricalRecordsQueue.jsx:130,HistoricalRecordsQueue,queue-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrDriverQualificationDashboard.jsx:216,HrDriverQualificationDashboard,dq-filter-expiring-cdl,KPI_CONCEPT,expiring_rate,lib.kpi_expiry,RECONCILED_KPI
+frontend/src/pages/HrDriverQualificationDashboard.jsx:225,HrDriverQualificationDashboard,dq-filter-expiring-medical,KPI_CONCEPT,expiring_rate,lib.kpi_expiry,RECONCILED_KPI
+frontend/src/pages/HrDriverQualificationDashboard.jsx:313,HrDriverQualificationDashboard,dq-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrEmployeeAccountabilityTimeline.jsx:212,HrEmployeeAccountabilityTimeline,hr-accountability-page,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrEmployeeRequestsQueue.jsx:464,HrEmployeeRequestsQueue,hr-requests-edit-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:300,HrEmployees,hremp-kpi-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/HrEmployees.jsx:352,HrEmployees,hremp-status-filter,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:471,HrEmployees,hremp-result-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrEmployees.jsx:645,HrEmployees,hremp-print-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrEmployees.jsx:822,HrEmployees,hremp-add-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1137,HrEmployees,hremp-tab-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1248,HrEmployees,hremp-rehire-eligibility-display,KPI_CONCEPT,eligibility_rate,transport_carrier_intelligence,RECONCILED_KPI
+frontend/src/pages/HrEmployees.jsx:1267,HrEmployees,hremp-rehire-eligibility-reason-display,KPI_CONCEPT,eligibility_rate,transport_carrier_intelligence,RECONCILED_KPI
+frontend/src/pages/HrEmployees.jsx:1330,HrEmployees,hremp-driver-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1414,HrEmployees,hremp-status-new,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1449,HrEmployees,hremp-rehire-eligibility,KPI_CONCEPT,eligibility_rate,transport_carrier_intelligence,RECONCILED_KPI
+frontend/src/pages/HrEmployees.jsx:1495,HrEmployees,hremp-status-reason,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1607,HrEmployees,hremp-status-footer,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1615,HrEmployees,hremp-status-save,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1660,HrEmployees,hremp-reactivate-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrEmployees.jsx:1840,HrEmployees,hremp-tx-status-chip,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrHubV2.jsx:502,HrHubV2,hr-hub-v2-dest-accountability,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrIncidents.jsx:169,HrIncidents,hr-inc-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/HrPayrollVariance.jsx:300,HrPayrollVariance,variance-csv-download,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/HrPayrollVariance.jsx:307,HrPayrollVariance,"<Stat label={t(""Total"")} value={summary.total} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrPayrollVariance.jsx:308,HrPayrollVariance,"<Stat label={t(""Matched"")} value={summary.matched} cls=""text",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/HrPayrollVariance.jsx:309,HrPayrollVariance,"<Stat label={t(""Flagged"")} value={summary.flagged} cls={summ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/HrPayrollVariance.jsx:310,HrPayrollVariance,"<Stat label={t(""Pending Review"")} value={summary.pending} cl",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/HrSafetyRecords.jsx:139,HrSafetyRecords,hr-safety-add-training-completed,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/HrTrainingRecords.jsx:103,HrTrainingRecords,hr-train-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/HrV2Preview.jsx:239,HrV2Preview,hr-v2-compliance-grid,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/HrV2Preview.jsx:312,HrV2Preview,hr-v2-accountability-table,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReport.jsx:1072,IncidentReport,incident-report-review-auto-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReport.jsx:1079,IncidentReport,incident-report-review-typed-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReport.jsx:1086,IncidentReport,incident-report-review-selected-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReport.jsx:1093,IncidentReport,incident-report-review-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReport.jsx:1099,IncidentReport,incident-report-review-witness-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReportViewer.jsx:117,IncidentReportViewer,"<KV label={t(""Occurred at"")} value={d.occurred_at} testId=""r",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:118,IncidentReportViewer,"<KV label={t(""Reported at"")} value={d.reported_at} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:119,IncidentReportViewer,"<KV label={t(""Submitted at"")} value={d.submitted_at} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:120,IncidentReportViewer,"<KV label={t(""Reporter"")} value={d.reporter_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:121,IncidentReportViewer,"<KV label={t(""State"")} value={d.state} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:132,IncidentReportViewer,"<KV label={t(""Observed conditions"")} value={d.observed_condi",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:134,IncidentReportViewer,"<KV label={t(""Immediate actions"")} value={d.immediate_action",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:145,IncidentReportViewer,"<KV label={t(""Readiness"")} value={`${d.readiness_pct ?? 0}%`",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:147,IncidentReportViewer,"<KV label={t(""SLA"")} value={d.sla_status} />",STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/IncidentReportViewer.jsx:148,IncidentReportViewer,"<KV label={t(""OSHA recordable"")} value={String(d.osha_record",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:149,IncidentReportViewer,"<KV label={t(""Root cause captured"")} value={d.root_cause_pre",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:226,IncidentReportViewer,"<KV label={t(""Entries"")} value={d.entries_count} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReportViewer.jsx:227,IncidentReportViewer,"<KV label={t(""Total lost days"")} value={d.total_lost_days} /",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/IncidentReportViewer.jsx:295,IncidentReportViewer,"<KV label={t(""Summary"")} value={d.summary} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:297,IncidentReportViewer,"<KV label={t(""Categories"")} value={(d.categories || []).join",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:299,IncidentReportViewer,"<KV label={t(""Contributing factors"")} value={(d.contributing",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:309,IncidentReportViewer,"{entries.map(([k, v]) => <KV key={k} label={k} value={v} />)",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:388,IncidentReportViewer,"<KV label={t(""Root cause"")} value={d.root_cause_summary} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:390,IncidentReportViewer,"<KV label={t(""Contributing factors"")}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/IncidentReportViewer.jsx:395,IncidentReportViewer,"<KV label={t(""Executive review notes"")} value={d.executive_r",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/NewDailyReport.jsx:1067,NewDailyReport,daily-report-autosave-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/NewDailyReport.jsx:1087,NewDailyReport,dr-v3-sticky-submit-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/NewDailyReportV3.jsx:1067,NewDailyReportV3,daily-report-autosave-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/NewDailyReportV3.jsx:1087,NewDailyReportV3,dr-v3-sticky-submit-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/NewIncident.jsx:1574,NewIncident,incident-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/NewInspection.jsx:730,NewInspection,inspection-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/NewMeeting.jsx:1193,NewMeeting,meeting-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/NewQaqcInspection.jsx:518,NewQaqcInspection,qaqc-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/NewSafetyEquipmentIssuance.jsx:550,NewSafetyEquipmentIssuance,iss-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/NewSafetyEquipmentIssuance.jsx:602,NewSafetyEquipmentIssuance,iss-photo-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsCenterCommand.jsx:301,OperationsCenterCommand,oc-cmd-project-health-rows,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/OperationsControlCaseDetail.jsx:286,OperationsControlCaseDetail,occ-case-evidence-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCaseDetail.jsx:287,OperationsControlCaseDetail,occ-case-baseline-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCaseDetail.jsx:288,OperationsControlCaseDetail,occ-case-forecast-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCaseDetail.jsx:289,OperationsControlCaseDetail,occ-case-confidence-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCaseDetail.jsx:290,OperationsControlCaseDetail,occ-case-task-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:358,OperationsControlCenter,occ-control-plane-registry-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:560,OperationsControlCenter,trust-layer-count-healthy,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:564,OperationsControlCenter,trust-layer-count-attention,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:568,OperationsControlCenter,trust-layer-count-critical,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:572,OperationsControlCenter,trust-layer-count-unknown,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:577,OperationsControlCenter,trust-layer-count-neutral,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/OperationsControlCenter.jsx:1263,OperationsControlCenter,occ-governance-status-section,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/OperationsControlCenter.jsx:1273,OperationsControlCenter,occ-governance-health-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmCrewCompliance.jsx:156,PmCrewCompliance,pm-crew-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/PmHub.jsx:287,PmHub,pm-crew-compliance-card,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/PmHub.jsx:299,PmHub,pm-crew-compliance-card-tiles,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/PmHub.jsx:306,PmHub,pm-crew-card-tile-expiring,KPI_CONCEPT,expiring_rate,lib.kpi_expiry,RECONCILED_KPI
+frontend/src/pages/PmMondayReviewWorkspace.jsx:360,PmMondayReviewWorkspace,pm-monday-review-complete,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PmMondayReviewWorkspace.jsx:381,PmMondayReviewWorkspace,pm-monday-briefing-generate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PmMondayReviewWorkspace.jsx:402,PmMondayReviewWorkspace,pm-monday-review-open-variances,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/PmMondayReviewWorkspace.jsx:427,PmMondayReviewWorkspace,pm-monday-briefing-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmMondayReviewWorkspace.jsx:428,PmMondayReviewWorkspace,pm-monday-briefing-generated-at,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PmMondayReviewWorkspace.jsx:453,PmMondayReviewWorkspace,pm-monday-review-variance-panel,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/PmMondayReviewWorkspace.jsx:459,PmMondayReviewWorkspace,pm-monday-review-variance-count,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/PmMondayReviewWorkspace.jsx:543,PmMondayReviewWorkspace,pm-monday-review-production-open-variances,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/PmMondayReviewWorkspace.jsx:551,PmMondayReviewWorkspace,pm-monday-review-payroll-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectBudgetAuthority.jsx:458,PmProjectBudgetAuthority,pm-project-budget-import-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectBudgetAuthority.jsx:484,PmProjectBudgetAuthority,pm-project-budget-active-import-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectBudgetAuthority.jsx:626,PmProjectBudgetAuthority,pm-project-budget-review-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectControlsAuthority.jsx:237,PmProjectControlsAuthority,pm-project-controls-pay-item-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectDetail.jsx:148,PmProjectDetail,pm-project-day-events-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectDetail.jsx:351,PmProjectDetail,pm-project-mm-status-row,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectSchedule.jsx:608,PmProjectSchedule,pm-project-schedule-import-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:634,PmProjectSchedule,pm-project-schedule-active-import-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectSchedule.jsx:724,PmProjectSchedule,pm-project-schedule-activity-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:725,PmProjectSchedule,pm-project-schedule-constraint-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:736,PmProjectSchedule,pm-project-schedule-forecast-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:861,PmProjectSchedule,pm-project-schedule-lookahead-status-value,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectSchedule.jsx:862,PmProjectSchedule,pm-project-schedule-lookahead-2w-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:863,PmProjectSchedule,pm-project-schedule-lookahead-4w-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PmProjectSchedule.jsx:868,PmProjectSchedule,pm-project-schedule-lookahead-status-input,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PmProjectSchedule.jsx:909,PmProjectSchedule,pm-project-schedule-review-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/PoRequests.jsx:272,PoRequests,po-status-filter,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/PoRequests.jsx:653,PoRequests,"<KV label=""Vendor"" value={po.vendor} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:654,PoRequests,"<KV label=""Category"" value={po.category} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:655,PoRequests,"<KV label=""Description"" value={po.description} multiline />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:656,PoRequests,"<KV label=""Requested by"" value={`${po.requested_by_name} (${",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:657,PoRequests,"<KV label=""Submitted"" value={formatLocalDateTime(po.created_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:658,PoRequests,"{po.needed_by_date && <KV label=""Needed by"" value={po.needed",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:659,PoRequests,"{po.approved_by && <KV label=""Approved by"" value={`${po.appr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/PoRequests.jsx:660,PoRequests,"{po.rejection_reason && <KV label=""Reason"" value={po.rejecti",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:142,ProjectHealth,project-health-forbidden,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:164,ProjectHealth,project-health-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:174,ProjectHealth,project-health-page,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:178,ProjectHealth,project-health-summary,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:205,ProjectHealth,project-health-summary-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ProjectHealth.jsx:214,ProjectHealth,project-health-summary-confidence,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:249,ProjectHealth,project-health-sort,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:259,ProjectHealth,project-health-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:266,ProjectHealth,project-health-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:273,ProjectHealth,project-health-empty,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:280,ProjectHealth,project-health-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectHealth.jsx:318,ProjectHealth,project-health-disclaimer,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectPnlPage.jsx:197,ProjectPnlPage,pnl-labor-rate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectPnlPage.jsx:236,ProjectPnlPage,pnl-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ProjectStaffingHub.jsx:110,ProjectStaffingHub,staffing-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ProjectStaffingHub.jsx:140,ProjectStaffingHub,overload-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ReturnEquipment.jsx:421,ReturnEquipment,ret-total-chargeback,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/SafetyAudits.jsx:119,SafetyAudits,audits-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/SafetyCaseWorkspace.jsx:123,SafetyCaseWorkspace,case-header-days-open,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyCaseWorkspace.jsx:158,SafetyCaseWorkspace,case-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyCaseWorkspace.jsx:161,SafetyCaseWorkspace,case-health-pct,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyCaseWorkspace.jsx:167,SafetyCaseWorkspace,case-health-blockers,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyCaseWorkspace.jsx:623,SafetyCaseWorkspace,case-closeout-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/SafetyCorrectiveActions.jsx:673,SafetyCorrectiveActions,safety-ca-form-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/SafetyEmployeeProfiles.jsx:107,SafetyEmployeeProfiles,safety-emp-accountability-link,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/SafetyFireExtImport.jsx:233,SafetyFireExtImport,"<Stat label=""Total Rows"" value={preview.total_rows} accent=""",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/SafetyFireExtImport.jsx:234,SafetyFireExtImport,"<Stat label=""Will Create"" value={preview.to_create} accent=""",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyFireExtImport.jsx:235,SafetyFireExtImport,"<Stat label=""Will Update"" value={preview.to_update} accent=""",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyFireExtImport.jsx:236,SafetyFireExtImport,"<Stat label=""Will Skip"" value={preview.to_skip} accent={prev",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyFireExtinguishers.jsx:458,SafetyFireExtinguishers,safety-fe-inspect-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/SafetyHub.jsx:252,SafetyHub,safety-hub-kpi-help-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyHub.jsx:256,SafetyHub,safety-kpi-strip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyHub.jsx:327,SafetyHub,safety-group-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/SafetyHubV2.jsx:221,SafetyHubV2,safety-kpi-strip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyHubV2.jsx:265,SafetyHubV2,safety-hub-v2-section-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/SafetyHubV2.jsx:272,SafetyHubV2,safety-hub-v2-queue-grid-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/SafetyIncidents.jsx:130,SafetyIncidents,incidents-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/SafetyTopicLibrary.jsx:398,SafetyTopicLibrary,selection-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/SafetyTopicLibrary.jsx:541,SafetyTopicLibrary,confirm-generate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/SafetyTrainingRecords.jsx:360,SafetyTrainingRecords,safety-tr-form-completed,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ShopHub.jsx:328,ShopHub,shop-status-line,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/ShopHubV2.jsx:290,ShopHubV2,shop-recovery-map-maintenance-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ShopHubV2.jsx:296,ShopHubV2,shop-recovery-map-inspection-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/TrenchBoxesAdmin.jsx:177,TrenchBoxesAdmin,trench-box-count-chip,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ViewDailyReport.jsx:417,ViewDailyReport,"<KV label={t(""Project Name"")} value={data.project_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:418,ViewDailyReport,"<KV label={t(""Project Number"")} value={data.project_number} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:440,ViewDailyReport,"<KV label={t(""Date"")} value={formatDateLong(data.report_date",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:441,ViewDailyReport,"<KV label={t(""Prepared By"")} value={data.prepared_by} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:442,ViewDailyReport,"<KV label={t(""Superintendent"")} value={data.superintendent} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:446,ViewDailyReport,daily-report-notification-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/ViewDailyReport.jsx:465,ViewDailyReport,daily-report-notification-status-text,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/ViewDailyReport.jsx:515,ViewDailyReport,"<KV label={t(""Schedule Delays"")} value={data.schedule_delays",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:516,ViewDailyReport,"<KV label={t(""Weather Impact"")} value={data.weather_impact} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:517,ViewDailyReport,"<KV label={t(""Accidents on Site"")} value={data.safety_incide",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:518,ViewDailyReport,"<KV label={t(""Injuries Reported"")} value={data.injuries_repo",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:520,ViewDailyReport,"<KV label={t(""Detail"")} value={data.incident_notes} full />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:529,ViewDailyReport,"<KV label={t(""Safety Notified"")} value={data.safety_notified",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:532,ViewDailyReport,<KV,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:556,ViewDailyReport,"<KV label={t(""General Notes"")} value={data.general_notes} fu",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewDailyReport.jsx:849,ViewDailyReport,dr-view-schedule-actual-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ViewEquipmentInspection.jsx:216,ViewEquipmentInspection,"<KV label=""Project"" value={sanitizeOperatorReference(data.pr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:217,ViewEquipmentInspection,"<KV label=""Project #"" value={sanitizeOperatorProjectNumber(d",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:218,ViewEquipmentInspection,"<KV label=""Location"" value={sanitizeOperatorReference(data.l",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:219,ViewEquipmentInspection,"<KV label=""Operator"" value={sanitizeOperatorReference(format",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:220,ViewEquipmentInspection,"<KV label=""Date / Time"" value={`${data.inspection_date} ${da",EXCLUDED_NON_KPI,on_time_rate,excluded (SectionTimeline false-match),EXCLUDED_NON_KPI
+frontend/src/pages/ViewEquipmentInspection.jsx:227,ViewEquipmentInspection,"<KV label=""Type"" value={data.equipment_type} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:228,ViewEquipmentInspection,"<KV label=""Unit"" value={data.equipment_unit} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:229,ViewEquipmentInspection,"<KV label=""Make"" value={data.equipment_make} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:230,ViewEquipmentInspection,"<KV label=""Model"" value={data.equipment_model} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:231,ViewEquipmentInspection,"<KV label=""Serial #"" value={data.equipment_serial} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:232,ViewEquipmentInspection,"<KV label=""Hour Meter / Odometer"" value={data.hour_meter || ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:241,ViewEquipmentInspection,view-pass-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ViewEquipmentInspection.jsx:245,ViewEquipmentInspection,view-fail-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ViewEquipmentInspection.jsx:249,ViewEquipmentInspection,view-na-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/ViewEquipmentInspection.jsx:331,ViewEquipmentInspection,"<KV label=""Deficiencies"" value={data.deficiency_notes} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewEquipmentInspection.jsx:332,ViewEquipmentInspection,"<KV label=""Corrective Actions"" value={data.corrective_action",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:471,ViewIncident,"<KV label={t(""Project Name"")} value={sanitizeOperatorReferen",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:472,ViewIncident,"<KV label={t(""Project Number"")} value={sanitizeOperatorProje",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:504,ViewIncident,<KV,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:508,ViewIncident,"<KV label={t(""Incident Time"")} value={data.incident_time} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:513,ViewIncident,"<KV label={t(""Reported By"")} value={data.reported_by} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:514,ViewIncident,"<KV label={t(""Supervisor"")} value={data.supervisor_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:520,ViewIncident,"<KV label={t(""Incident Type"")} value={data.incident_type} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:521,ViewIncident,"<KV label={t(""Severity"")} value={sev.label} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:522,ViewIncident,"<KV label={t(""OSHA Recordable"")} value={data.osha_recordable",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:523,ViewIncident,"<KV label={t(""Work Stopped"")} value={data.work_stopped} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:530,ViewIncident,"<KV label={t(""Name"")} value={data.person_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:531,ViewIncident,"<KV label={t(""Role / Trade"")} value={data.person_role} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:532,ViewIncident,"<KV label={t(""Employer"")} value={data.person_employer} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:537,ViewIncident,"<KV label={t(""Body Part"")} value={data.body_part} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:538,ViewIncident,"<KV label={t(""Injury Nature"")} value={data.injury_nature} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:544,ViewIncident,"<KV label={t(""Medical Facility"")} value={data.medical_facili",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:545,ViewIncident,"<KV label={t(""Sent Home / Off Site"")} value={data.sent_home}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:552,ViewIncident,"<KV label={t(""Description"")} value={data.description} full /",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:553,ViewIncident,"<KV label={t(""Immediate Cause"")} value={data.immediate_cause",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:582,ViewIncident,"<KV label={t(""Notes"")} value={data.root_cause_notes} full />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:630,ViewIncident,"<KV label={t(""Responsible Party"")} value={data.responsible_p",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:679,ViewIncident,"<KV label={t(""Safety Manager"")} value={data.notified_safety_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:680,ViewIncident,"<KV label={t(""Project Manager"")} value={data.notified_pm} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:681,ViewIncident,"<KV label={t(""General Contractor"")} value={data.notified_gc}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:682,ViewIncident,"<KV label={t(""Owner / Agency"")} value={data.notified_owner} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:683,ViewIncident,"<KV label={t(""OSHA"")} value={data.notified_osha} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewIncident.jsx:684,ViewIncident,"<KV label={t(""Other"")} value={data.notified_other} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:305,ViewInspection,"<KV label={t(""Project Name"")} value={sanitizeOperatorReferen",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:306,ViewInspection,"<KV label={t(""Project Number"")} value={sanitizeOperatorProje",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:340,ViewInspection,"<KV label={t(""Date"")} value={formatDateLong(data.inspection_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:341,ViewInspection,"<KV label={t(""Time"")} value={data.inspection_time} />",EXCLUDED_NON_KPI,on_time_rate,excluded (SectionTimeline false-match),EXCLUDED_NON_KPI
+frontend/src/pages/ViewInspection.jsx:342,ViewInspection,"<KV label={t(""Operation"")} value={data.operation} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:343,ViewInspection,"<KV label={t(""Inspector"")} value={data.inspector_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:344,ViewInspection,"<KV label={t(""Foreman / Supervisor"")} value={data.foreman_na",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:345,ViewInspection,"<KV label={t(""Crew / Personnel"")} value={data.crew_personnel",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:346,ViewInspection,"<KV label={t(""Subcontractors"")} value={data.subcontractors} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:347,ViewInspection,"<KV label={t(""Weather Conditions"")} value={data.weather_cond",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:411,ViewInspection,"<KV label={t(""Hazards Observed"")} value={data.hazards_observ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:412,ViewInspection,"<KV label={t(""Stop Work Issued"")} value={data.stop_work_issu",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:413,ViewInspection,"<KV label={t(""Corrected On Site"")} value={data.corrected_on_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewInspection.jsx:415,ViewInspection,"<KV label={t(""Responsible Party"")} value={data.responsible_p",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:235,ViewMeeting,"<KV label={t(""Project Name"")} value={sanitizeOperatorReferen",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:236,ViewMeeting,"<KV label={t(""Project Number"")} value={sanitizeOperatorProje",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:266,ViewMeeting,"<KV label={t(""Date"")} value={formatDateLong(data.meeting_dat",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:267,ViewMeeting,"<KV label={t(""Time"")} value={data.meeting_time} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:268,ViewMeeting,"<KV label={t(""Conducted By"")} value={data.conducted_by} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:269,ViewMeeting,"<KV label={t(""Category"")} value={t(data.topic_category)} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:272,ViewMeeting,"<KV label={t(""Crew Size"")} value={String(data.crew_size)} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:274,ViewMeeting,"{data.shift && <KV label={t(""Shift"")} value={data.shift} />}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:276,ViewMeeting,<KV,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:302,ViewMeeting,"<KV label={t(""Topic / Subject"")} value={data.topic} full />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:303,ViewMeeting,"<KV label={t(""Hazards Reviewed"")} value={data.hazards_review",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:315,ViewMeeting,return <KV label={labelText} value={data.discussion_notes} f,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:344,ViewMeeting,"<KV label={t(""References Cited"")} value={data.references_cit",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewMeeting.jsx:345,ViewMeeting,"<KV label={t(""Action Items / Follow-Up"")} value={data.action",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/ViewSafetyForm.jsx:344,ViewSafetyForm,view-safety-form-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminAIConfiguration.jsx:300,AdminAIConfiguration,admin-ai-system-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminAIConfiguration.jsx:646,AdminAIConfiguration,admin-ai-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAIConfiguration.jsx:659,AdminAIConfiguration,admin-ai-health-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAIConfiguration.jsx:672,AdminAIConfiguration,admin-ai-health-banner,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAnalytics.jsx:146,AdminAnalytics,analytics-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAnalytics.jsx:254,AdminAnalytics,analytics-sink-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetAdmin.jsx:52,AdminAssetAdmin,asset-admin-status-pill,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminAssetAdmin.jsx:199,AdminAssetAdmin,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:158,AdminAssetMapping,"<Stat l=""Current Trust"" v={`${impact.current.trust_score_pct",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:159,AdminAssetMapping,"<Stat l=""Potential Trust"" v={`${impact.potential.trust_score",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:160,AdminAssetMapping,"<Stat l=""HIGH Matches Waiting"" v={impact.actions.high_confid",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:161,AdminAssetMapping,"<Stat l=""Est. Dispatches Impacted"" v={impact.actions.estimat",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:162,AdminAssetMapping,"<Stat l=""Est. Assets Confirmed"" v={impact.actions.estimated_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:163,AdminAssetMapping,"<Stat l=""Coverage %"" v={`${impact.current.coverage_pct}%`} t",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:164,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={impact.current.mapped_assets} tes",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:165,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={impact.current.unmapped_assets}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:177,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.current.coverage_pct}%`} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:178,AdminAssetMapping,"<KV l=""Trust"" v={`${impact.current.trust_score_pct}%`} />",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:179,AdminAssetMapping,"<KV l=""Mapped"" v={impact.current.mapped_assets} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:185,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.potential.coverage_pct}%`} acc",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:186,AdminAssetMapping,"<KV l=""Trust"" v={`${impact.potential.trust_score_pct}%`} acc",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:187,AdminAssetMapping,"<KV l=""Mapped"" v={impact.potential.mapped_assets} accent />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:364,AdminAssetMapping,"<Stat l=""Projects Verified"" v={exec.projects_verified} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:365,AdminAssetMapping,"<Stat l=""Projects Pending"" v={exec.projects_pending} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:366,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={exec.mapped_assets} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:367,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={exec.unmapped_assets} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:368,AdminAssetMapping,"<Stat l=""Trust Score"" v={`${exec.trust_score_pct}%`} />",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:369,AdminAssetMapping,"<Stat l=""Potential Trust"" v={`${exec.potential_trust_score_p",KPI_CONCEPT,health_score,lib.trust_score(+distinct),RECONCILED_KPI
+frontend/src/pages/admin/AdminAssetMapping.jsx:370,AdminAssetMapping,"<Stat l=""Coverage"" v={`${exec.coverage_pct}%`} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetMapping.jsx:371,AdminAssetMapping,"<Stat l=""Top Risk"" v={(exec.highest_risk_gaps || [])[0]?.tru",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetSpineHealth.jsx:143,AdminAssetSpineHealth,asset-spine-health-page,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminAssetSpineHealth.jsx:177,AdminAssetSpineHealth,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminCommandCenter.jsx:144,AdminCommandCenter,cc-drill-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminComplianceFindings.jsx:159,AdminComplianceFindings,admin-compliance-findings,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/admin/AdminComplianceFindings.jsx:200,AdminComplianceFindings,findings-filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminDispatch.jsx:77,AdminDispatch,dp-tab-utilization,KPI_CONCEPT,utilization,kpi_percent_complete.utilization_percent/storage_capacity_truth,RECONCILED_KPI
+frontend/src/pages/admin/AdminDispatch.jsx:205,AdminDispatch,dp-utilization,KPI_CONCEPT,utilization,kpi_percent_complete.utilization_percent/storage_capacity_truth,RECONCILED_KPI
+frontend/src/pages/admin/AdminDispatch.jsx:220,AdminDispatch,util-search,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminDispatch.jsx:238,AdminDispatch,util-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminGeofenceReconciliation.jsx:212,AdminGeofenceReconciliation,recon-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernance.jsx:242,AdminGovernance,gov-score-banner,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminGovernance.jsx:247,AdminGovernance,gov-score-value,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminGovernance.jsx:254,AdminGovernance,gov-health-label,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminGovernance.jsx:262,AdminGovernance,gov-total-open,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernance.jsx:355,AdminGovernance,gov-status-loading,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminGovernance.jsx:359,AdminGovernance,gov-status-strip,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminGovernanceHierarchyFoundation.jsx:400,AdminGovernanceHierarchyFoundation,hierarchy-toggle-status-button,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminGovernanceOperationalIntelligence.jsx:154,AdminGovernanceOperationalIntelligence,admin-governance-operational-intelligence-backfill-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminGovernanceProjectBudgetAuthority.jsx:229,AdminGovernanceProjectBudgetAuthority,admin-project-budget-review-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectBudgetAuthority.jsx:317,AdminGovernanceProjectBudgetAuthority,admin-project-budget-imports-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectControlsAuthority.jsx:163,AdminGovernanceProjectControlsAuthority,admin-project-controls-work-type-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectControlsAuthority.jsx:201,AdminGovernanceProjectControlsAuthority,admin-project-controls-review-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectScheduleAuthority.jsx:237,AdminGovernanceProjectScheduleAuthority,admin-project-schedule-review-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectScheduleAuthority.jsx:262,AdminGovernanceProjectScheduleAuthority,admin-project-schedule-actuals-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminGovernanceProjectScheduleAuthority.jsx:365,AdminGovernanceProjectScheduleAuthority,admin-project-schedule-imports-count-badge,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminIntegrationCenter.jsx:170,AdminIntegrationCenter,"<Stat label=""Records mapped"" value={p.records_mapped} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminIntegrationCenter.jsx:171,AdminIntegrationCenter,"<Stat label=""Last sync"" value={p.last_sync_at ? p.last_sync_",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminIntegrationCenter.jsx:172,AdminIntegrationCenter,"<Stat label=""Last success"" value={p.last_successful_sync_at ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminIntegrationCenter.jsx:173,AdminIntegrationCenter,"<Stat label=""Last failure"" value={p.last_failed_sync_at ? p.",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminIntegrationCenter.jsx:1402,AdminIntegrationCenter,ic-geofence-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminJhaAcknowledgements.jsx:116,AdminJhaAcknowledgements,admin-jha-acks-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/admin/AdminJhaAcknowledgements.jsx:141,AdminJhaAcknowledgements,admin-jha-acks-compliance-table,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/admin/AdminMfa.jsx:160,AdminMfa,mfa-status-panel,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminMfa.jsx:178,AdminMfa,mfa-status-badge,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminOS.jsx:980,AdminOS,admin-os-count-healthy,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOS.jsx:986,AdminOS,admin-os-count-warning,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOS.jsx:992,AdminOS,admin-os-count-critical,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOS.jsx:998,AdminOS,admin-os-count-wiring,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOS.jsx:1004,AdminOS,admin-os-kpi-row,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligence.jsx:63,AdminOperationalIntelligence,oi-score-chip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligence.jsx:111,AdminOperationalIntelligence,oi-cockpit-top-strip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligence.jsx:478,AdminOperationalIntelligence,oi-cockpit-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:62,AdminOperationalIntelligenceRecipients,"<Stat label=""Total recipients""   value={totals.total} testid",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:63,AdminOperationalIntelligenceRecipients,"<Stat label=""Active""             value={totals.active}   ton",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:64,AdminOperationalIntelligenceRecipients,"<Stat label=""Inactive""           value={totals.inactive} ton",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:65,AdminOperationalIntelligenceRecipients,"<Stat label=""Groups""             value={totals.groups}      ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:66,AdminOperationalIntelligenceRecipients,"<Stat label=""Products represented"" value={totals.products}  ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:451,AdminOperationalIntelligenceRecipients,oi-directory-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:455,AdminOperationalIntelligenceRecipients,oi-directory-selected-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:623,AdminOperationalIntelligenceRecipients,"<Stat label=""Inserted"" value={result.inserted ?? 0} tone=""em",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:624,AdminOperationalIntelligenceRecipients,"<Stat label=""Duplicate (skipped)"" value={result.duplicate ??",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:625,AdminOperationalIntelligenceRecipients,"<Stat label=""Errors"" value={result.skipped ?? 0} tone=""slate",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalIntelligenceRecipients.jsx:959,AdminOperationalIntelligenceRecipients,oi-recipients-back-to-cockpit,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:160,AdminOperationalInventory,"<Stat label=""Portals"" value={snap.totals.portals} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalInventory.jsx:161,AdminOperationalInventory,"<Stat label=""User types"" value={snap.totals.user_types} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalInventory.jsx:162,AdminOperationalInventory,"<Stat label=""Public routes"" value={snap.totals.public_routes",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalInventory.jsx:163,AdminOperationalInventory,"<Stat label=""Guidance articles"" value={snap.totals.guidance_",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalInventory.jsx:164,AdminOperationalInventory,"<Stat label=""Drift · P0"" value={driftBySeverity.p0} tone={dr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:165,AdminOperationalInventory,"<Stat label=""Drift · P1"" value={driftBySeverity.p1} tone={dr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:166,AdminOperationalInventory,"<Stat label=""Drift · P2"" value={driftBySeverity.p2} tone={dr",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:167,AdminOperationalInventory,"<Stat label=""Translation %"" value={`${snap.translation.pct_b",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:439,AdminOperationalInventory,"<Stat label=""Total articles"" value={data.total_articles} />",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/AdminOperationalInventory.jsx:440,AdminOperationalInventory,"<Stat label=""title_es present"" value={data.title_es_present}",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:441,AdminOperationalInventory,"<Stat label=""body_es present""  value={data.body_es_present} ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminOperationalInventory.jsx:442,AdminOperationalInventory,"<Stat label=""Schema landed"" value={data.schema_landed ? ""yes",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:302,AdminProjectIdentityGovernance,identity-governance-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminProjectIdentityGovernance.jsx:404,AdminProjectIdentityGovernance,identity-status-filter,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/AdminRecovery.jsx:569,AdminRecovery,backup-trust-score-panel,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/AssetProfile.jsx:94,AssetProfile,asset-profile-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/DeployRecovery.jsx:137,DeployRecovery,deploy-recovery-r2-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/DeployRecovery.jsx:144,DeployRecovery,deploy-recovery-recent-backup-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/DeployRecovery.jsx:196,DeployRecovery,recovery-health-link,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/SystemHealth.jsx:45,SystemHealth,admin-system-health-page,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/SystemHealth.jsx:61,SystemHealth,health-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/SystemHealth.jsx:72,SystemHealth,health-overall-canonical,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/SystemHealth.jsx:84,SystemHealth,health-cards,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:182,Wp17dCertificationDashboard,wp17d-survivor-counts-grid,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:189,Wp17dCertificationDashboard,wp17d-route-status-panel,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:201,Wp17dCertificationDashboard,wp17d-route-status-table,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:210,Wp17dCertificationDashboard,wp17d-completion-pct,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/DailyReportV2.jsx:95,DailyReportV2,dr-v2-status-saving,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/daily-report-v2/sections/AISummarySection.jsx:167,AISummarySection,dr-v2-ai-regenerate,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/DaySetupSection.jsx:69,DaySetupSection,dr-v2-daysetup-date,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/DaySetupSection.jsx:78,DaySetupSection,dr-v2-daysetup-shift,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/DaySetupSection.jsx:92,DaySetupSection,dr-v2-daysetup-supervisor,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/DaySetupSection.jsx:101,DaySetupSection,dr-v2-daysetup-gps,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/DaySetupSection.jsx:112,DaySetupSection,dr-v2-daysetup-weather,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/daily-report-v2/sections/SignatureSubmitSection.jsx:48,SignatureSubmitSection,dr-v2-submit-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/odr/OdrPublicViewer.jsx:83,OdrPublicViewer,"<KV k=""Crew Name"" v={crew.crew_name} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:84,OdrPublicViewer,"<KV k=""Crew Type"" v={crew.crew_type} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:85,OdrPublicViewer,"<KV k=""Primary Operation"" v={crew.primary_operation} />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:106,OdrPublicViewer,"<KV k=""Total Hours Lost"" v={(data.delays || {}).total_hours_",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/odr/OdrPublicViewer.jsx:119,OdrPublicViewer,"? <KV k=""Safety Event"" v=""Recorded"" />",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:128,OdrPublicViewer,"<KV k=""Hours Lost"" v={(data.weather_impact || {}).hours_lost",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:129,OdrPublicViewer,"<KV k=""Description"" v={((data.weather_impact || {}).descript",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/odr/OdrPublicViewer.jsx:135,OdrPublicViewer,<KV,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/operational_records/OperationalRecords.jsx:131,OperationalRecords,op-records-counts,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/operations_actions/OperationsActionDetail.jsx:177,OperationsActionDetail,"<KV label={t(""Created By"")} value={oa.created_by?.name} test",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/operations_actions/OperationsActionDetail.jsx:178,OperationsActionDetail,"<KV label={t(""Created"")} value={formatPlatformTime(oa.create",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/operations_actions/OperationsActionDetail.jsx:179,OperationsActionDetail,"<KV label={t(""Current Owner"")} value={oa.current_owner?.name",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/operations_actions/OperationsActionDetail.jsx:180,OperationsActionDetail,"<KV label={t(""Last Updated"")} value={formatPlatformTime(oa.l",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/operations_actions/OperationsActionDetail.jsx:189,OperationsActionDetail,oa-det-status-actions,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/shop/FuelLubeVisitDetail.jsx:80,FuelLubeVisitDetail,fuel-lube-detail-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitDetail.jsx:82,FuelLubeVisitDetail,fuel-lube-detail-totals-grid,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:361,FuelLubeVisitForm,fuel-lube-visit-form-totals,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:363,FuelLubeVisitForm,fuel-lube-visit-form-totals-grid,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:364,FuelLubeVisitForm,fuel-lube-totals-red-diesel,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:365,FuelLubeVisitForm,fuel-lube-totals-clear-diesel,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:366,FuelLubeVisitForm,fuel-lube-totals-gasoline,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:367,FuelLubeVisitForm,fuel-lube-totals-def,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:368,FuelLubeVisitForm,fuel-lube-totals-engine-oil,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:369,FuelLubeVisitForm,fuel-lube-totals-hyd-oil,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:370,FuelLubeVisitForm,fuel-lube-totals-coolant,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:371,FuelLubeVisitForm,fuel-lube-totals-trans-fluid,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:372,FuelLubeVisitForm,fuel-lube-totals-gear-oil,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:373,FuelLubeVisitForm,fuel-lube-totals-units,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:374,FuelLubeVisitForm,fuel-lube-totals-greased,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitForm.jsx:375,FuelLubeVisitForm,fuel-lube-totals-issues,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitRecords.jsx:129,FuelLubeVisitRecords,fuel-lube-records-count-strip,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/FuelLubeVisitRecords.jsx:130,FuelLubeVisitRecords,fuel-lube-records-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/PmWorkOrders.jsx:149,PmWorkOrders,pm-work-order-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/shop/PmWorkOrders.jsx:217,PmWorkOrders,pm-complete-form,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/PmWorkOrders.jsx:220,PmWorkOrders,pm-complete-meter,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/PmWorkOrders.jsx:227,PmWorkOrders,pm-complete-by,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/PmWorkOrders.jsx:232,PmWorkOrders,pm-complete-notes,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/PmWorkOrders.jsx:248,PmWorkOrders,pm-complete-submit,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:112,ServiceTruckReconciliationDetail,strr-detail-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:114,ServiceTruckReconciliationDetail,strr-detail-visit-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:121,ServiceTruckReconciliationDetail,strr-detail-variance-table,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/shop/ServiceTruckReconciliationDetail.jsx:129,ServiceTruckReconciliationDetail,strr-detail-variance-grid,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/shop/ServiceTruckReconciliationRecords.jsx:118,ServiceTruckReconciliationRecords,strr-list-filter-variance,KPI_CONCEPT,variance_percent,lib.kpi_variance,RECONCILED_KPI
+frontend/src/pages/shop/ServiceTruckReconciliationRecords.jsx:126,ServiceTruckReconciliationRecords,strr-list-filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/shop/ServiceTruckReconciliationRecords.jsx:142,ServiceTruckReconciliationRecords,strr-list-count-strip,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/ServiceTruckReconciliationRecords.jsx:143,ServiceTruckReconciliationRecords,strr-list-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/ShopAssetCare.jsx:103,ShopAssetCare,ac-kpi-snapshot,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/shop/ShopManagerQueue.jsx:297,ShopManagerQueue,shop-manager-queue-counts-strip,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/ShopTrenchSafetyRepairs.jsx:84,ShopTrenchSafetyRepairs,repair-queue-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/shop/UnitHistoryTimeline.jsx:367,UnitHistoryTimeline,unit-history-event-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/transportation/TransportationAcademy.jsx:55,TransportationAcademy,academy-progress-pct,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:226,_command_queue,tx-cq-health-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:229,_command_queue,tx-cq-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:236,_command_queue,tx-cq-health-last,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:253,_command_queue,tx-cq-health-stale,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:259,_command_queue,tx-cq-health-routes,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_command_queue.jsx:285,_command_queue,tx-cq-health-controls,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_lists.jsx:67,_lists,tx-carriers-summary-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/transportation/_lists.jsx:372,_lists,tx-fleet-summary-total,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/transportation/_lists.jsx:764,_lists,tx-fleet-edit-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/transportation/_lists.jsx:899,_lists,carrier-tab-rates,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_lists.jsx:1055,_lists,carrier-pane-rates,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_lists.jsx:1064,_lists,carrier-rate-history-link,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_modals.jsx:338,_modals,carrier-form-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/transportation/_views.jsx:177,_views,tx-dashboard-top-cleanup-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/transportation/_views.jsx:223,_views,tx-dashboard-hr-health-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:236,_views,tx-dashboard-hr-health,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:239,_views,tx-dashboard-hr-health-chip,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:287,_views,compliance-loading,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/transportation/_views.jsx:292,_views,tx-compliance-page,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/transportation/_views.jsx:296,_views,compliance-refresh,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/transportation/_views.jsx:366,_views,doc-filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/transportation/_views.jsx:621,_views,tx-rate-center,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:627,_views,rate-refresh,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:628,_views,rate-new-btn,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:634,_views,rate-active-card,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:638,_views,rate-active-value,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:657,_views,rate-history-table,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:669,_views,rate-loading,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_views.jsx:671,_views,rate-empty,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:271,_widgets,rate-create-dialog,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:279,_widgets,rate-create-hourly-input,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:285,_widgets,rate-create-activate-checkbox,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:293,_widgets,rate-create-error,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:296,_widgets,rate-create-cancel,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:297,_widgets,rate-create-submit,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/transportation/_widgets.jsx:550,_widgets,insp-complete,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/ExcavationOversight.jsx:178,ExcavationOversight,exc-filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:619,PublicExcavationForm,exc-rated-depth-gap,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:642,PublicExcavationForm,exc-rated-depth-ack-reason,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:647,PublicExcavationForm,exc-rated-depth-ack-tabulated,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:653,PublicExcavationForm,exc-rated-depth-ack-confirm,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:719,PublicExcavationForm,exc-locate-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/PublicExcavationForm.jsx:725,PublicExcavationForm,exc-utility-notes,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:240,PublicTrenchSafetyDashboard,"<Stat label={t(""Active Assets"")}    value={overview?.total_a",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:241,PublicTrenchSafetyDashboard,"<Stat label={t(""Available"")}        value={totals[""Available",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:242,PublicTrenchSafetyDashboard,"<Stat label={t(""Inspection Hold"")}  value={totals[""Inspectio",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:243,PublicTrenchSafetyDashboard,"<Stat label={t(""Repair"")}           value={totals[""Repair""] ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:246,PublicTrenchSafetyDashboard,"<Stat label={t(""Trench Boxes"")}     value={typeTotals[""Trenc",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:247,PublicTrenchSafetyDashboard,"<Stat label={t(""End Panels"")}       value={typeTotals[""End P",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:248,PublicTrenchSafetyDashboard,"<Stat label={t(""Spreader Bars"")}    value={typeTotals[""Sprea",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:249,PublicTrenchSafetyDashboard,"<Stat label={t(""Road Plates"")}      value={typeTotals[""Road ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyDashboard.jsx:250,PublicTrenchSafetyDashboard,"<Stat label={t(""Other Assets"")}     value={(typeTotals[""Hydr",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/PublicTrenchSafetyReport.jsx:62,PublicTrenchSafetyReport,public-report-status-coaching,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyActions.jsx:472,TrenchSafetyActions,status-change-dialog,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyActions.jsx:483,TrenchSafetyActions,status-target,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyActions.jsx:491,TrenchSafetyActions,status-reason,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyActions.jsx:495,TrenchSafetyActions,status-save,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyAssetDetail.jsx:186,TrenchSafetyAssetDetail,trench-detail-status-badge,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyAssetDetail.jsx:203,TrenchSafetyAssetDetail,btn-change-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyAssetsList.jsx:111,TrenchSafetyAssetsList,trench-list-count,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyAssetsList.jsx:163,TrenchSafetyAssetsList,trench-list-filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyHub.jsx:156,TrenchSafetyHub,trench-hub-kpis,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:287,TrenchSafetyPolish,"<Stat label={t(""Total Assets"")}         value={total}       ",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:288,TrenchSafetyPolish,"<Stat label={t(""Available"")}            value={cs[""Available",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:289,TrenchSafetyPolish,"<Stat label={t(""Assigned"")}             value={cs[""Assigned""",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:290,TrenchSafetyPolish,"<Stat label={t(""On Hold"")}              value={al.on_hold   ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:291,TrenchSafetyPolish,"<Stat label={t(""Open Repairs"")}         value={al.open_repai",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:292,TrenchSafetyPolish,"<Stat label={t(""Inspections Due"")}      value={al.inspection",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:293,TrenchSafetyPolish,"<Stat label={t(""Recent Activity · 7d"")} value={recent}      ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:297,TrenchSafetyPolish,ops-summary-status-cards,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:301,TrenchSafetyPolish,ops-status-grid,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:303,TrenchSafetyPolish,<Stat,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:385,TrenchSafetyPolish,trench-filter-chips-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:542,TrenchSafetyPolish,csv-preview-count-ok,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:545,TrenchSafetyPolish,csv-preview-count-dup,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:548,TrenchSafetyPolish,csv-preview-count-err,POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:116,TrenchSafetyPulse,pulse-card-score,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:123,TrenchSafetyPulse,"<Stat label={t(""On Hold"")}        value={al.on_hold ?? 0}   ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:124,TrenchSafetyPulse,"<Stat label={t(""Open Repairs"")}   value={al.open_repairs ?? ",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:125,TrenchSafetyPulse,"<Stat label={t(""Inspections Due"")} value={al.inspections_due",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:126,TrenchSafetyPulse,"<Stat label={t(""Recent · 7d"")}    value={snap.activity_7d_to",POPULATION_COUNT,population,Wave-4 count/total (GD-0013/14/15),GOVERNED_POPULATION
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:135,TrenchSafetyPulse,pulse-generate-btn,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:164,TrenchSafetyQrLanding,qr-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:43,TrenchSafetyReports,pct-unknown,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:45,TrenchSafetyReports,pct-na,OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:131,TrenchSafetyReports,filter-status,STATUS_BAND,status,Wave-2 status vocab (TC-0002),GOVERNED_STATUS
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:179,TrenchSafetyReports,"<div className=""border rounded p-3 bg-white""><div className=",OPEN_NEEDS_PROOF,unknown,,OPEN_NEEDS_PROOF
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:242,TrenchSafetyReports,report-inspection-compliance,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:252,TrenchSafetyReports,<Pct value={data?.compliance_score} state={data?.compliance_,KPI_CONCEPT,compliance_rate,kpi_percent_complete.compliance_rate,RECONCILED_KPI
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:345,TrenchSafetyReports,report-utilization,KPI_CONCEPT,utilization,kpi_percent_complete.utilization_percent/storage_capacity_truth,RECONCILED_KPI
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:355,TrenchSafetyReports,<Pct value={data?.utilization_pct} />,KPI_CONCEPT,utilization,kpi_percent_complete.utilization_percent/storage_capacity_truth,RECONCILED_KPI

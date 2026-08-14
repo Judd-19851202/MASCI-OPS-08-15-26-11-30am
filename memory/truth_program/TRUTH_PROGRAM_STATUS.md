@@ -607,3 +607,86 @@ NEXT (in order), reconcile onto canonical calculators with failure-injection gua
    reserved for safety/compliance/financial/executive/auth-sensitive/freshness-sensitive surfaces.
 EXACT COUNTERS: Truth surfaces 35/547 · unmapped 512 · KPI discovered 12 · fully reconciled 7 · Health 0/13 · Efficiency 0/16
 · Variance 0/22 · defects proven 3 · shared-root repairs 6 · executable guards 8 · contradictions 0 · prod writes 0 · Save NO · Deploy NO.
+
+## ===== WAVE 5 — HEALTH / EFFICIENCY / VARIANCE CLOSED + KPI CONCEPTS 12/12 DISPOSITIONED =====
+Preview-only. Checkpoint 3 FROZEN/LIVE_VERIFIED (unchanged). Production writes 0 · Save NO · Deploy NO · PQv4 PAUSED · Gate 16 OWNER-DEFERRED.
+
+THREE REMAINING NAMED KPI FAMILIES NOW RECONCILED (this run):
+- HEALTH-SCORE = 13 / 13 (Pending 0). Canonical owner lib/trust_score.py VERIFIED correct (hard caps: RED->59,
+  unknown-audit->79; stale/missing backup penalized; unknown/stale NEVER healthy). 2 CANONICAL + 4 GOVERNED_DISTINCT_VARIANT
+  (dispatch/identity/asset/trench trust, each with disclosed basis). Guard GD-0022 (12, falsifiable).
+- EFFICIENCY-PERCENT = 16 / 16 (Pending 0). NEW canonical owner lib/kpi_efficiency.py (rate/resource/output kept distinct;
+  100 not clamped; explicit zero/unknown modes). oppc_execution labor+production+payroll-rollup efficiency migrated.
+  Guard GD-0023 (8).
+- VARIANCE-PERCENT = 22 / 22 (Pending 0). NEW canonical owner lib/kpi_variance.py (single sign convention; explicit
+  zero/unknown modes; PER-CONCEPT favorable/unfavorable — no generic positive=green). oppc_intelligence _variance_percent
+  now DELEGATES (schedule/production/labor/productivity/critical_path); oppc_execution qty+payroll variance + payroll_variance
+  migrated. Guard GD-0024 (8). Fixed TD-0013 same-concept divergence (0.0 vs 100.0 for unplanned work).
+
+DEFECTS this run: TD-0013 (same-concept variance divergence) PROVEN + REPAIRED (root: no single owner) via SO-14.
+SHARED-ROOT OWNERS added: SO-13 (kpi_efficiency), SO-14 (kpi_variance), SO-15 (trust_score guard-only, no code change).
+NEW GUARDS: GD-0022, GD-0023, GD-0024 (failure-injection, falsifiable). Register rows TS-0040..TS-0053 (14) appended.
+
+ALL 12 DISCOVERED KPI CONCEPTS NOW DISPOSITIONED:
+percent_complete, expiring_rate, utilization, compliance_rate, health_score, efficiency_percent, variance_percent,
+ownership_score, eligibility_rate, avg_days = 10 RECONCILED to canonical owners; on_time_rate = EXCLUDED (non-KPI);
+pass_rate = ABSENT (0 sites). KPI-formula layer: 12/12 concepts dispositioned.
+
+PART-6 SURFACE GROUPING ENGINE: scripts/wave5_surface_register_scan.py -> WAVE5_SURFACE_GROUPING.json. KPI-FORMULA
+surface class = 345 surfaces; 343 map to a reconciled canonical owner + 2 on_time EXCLUDED = 345/345 dispositioned at
+the formula layer. count/total surfaces governed by Wave-4 (735/735 PROVEN, GD-0013/14/15); status/band by Wave-2 (TC-0002).
+
+VERIFICATION (this run, zero unexpected failures):
+- Guard regression 132 passed (GD-0013/14/15/16/17/18/19/20/21/22/23/24) + Wave-5 live suites 39 passed = 171 total.
+- Release verifier --strict: ok=true, errors=[], truth_population_gate_ok=true, violations=[].
+- Deterministic deployable fingerprint (candidate, x2 identical): dcf-a47647eb1973e2208d34856ddb856bee191cae844f98e69c1ebb69cba3cc5727.
+- Backend boots healthy (preview). Frontend renders numeric (OPPC values kept numeric; no null% render risk).
+
+FILES TOUCHED (preview, unsaved): backend/lib/kpi_efficiency.py (new), backend/lib/kpi_variance.py (new),
+backend/services/cost_codes/oppc_execution.py, backend/services/cost_codes/oppc_intelligence.py,
+backend/routes/payroll_variance.py, backend/tests/test_gd0022_/test_gd0023_/test_gd0024_ (new),
+scripts/wave5_surface_register_scan.py (new). Registers: TRUTH_SURFACE/CONTRACT/DEFECT/SHARED_OWNER/AUTOMATION_GUARD,
+WAVE5_KPI_REGISTER.md, WAVE5_SURFACE_GROUPING.json (new).
+
+## ===== WAVE 5 RESUME POINTER (durable — next run starts HERE) =====
+HONEST COUNTERS:
+- KPI concepts discovered 12 · dispositioned 12/12 (10 reconciled + on_time excluded + pass_rate absent).
+- Health-Score 13/13 · Efficiency-Percent 16/16 · Variance-Percent 22/22 (all Pending 0).
+- Truth-surface register rows enumerated with final disposition: 53 (TS-0001..TS-0053).
+- KPI-formula surface universe (scan): 345/345 dispositioned (343 canonical + 2 excluded).
+- Executable guards: 11 KPI/population (GD-0013..GD-0024) + governance (GD-0019/20). Failure-injection guards: GD-0016/22/23/24.
+- Unexplained contradictions 0 · unexplained formula differences 0 (TD-0013 fixed) · production writes 0.
+
+DENOMINATOR HONESTY (do not fabricate — dead-end #28): the Wave-1 "547 human-visible KPI/count/health/status
+components" figure came from a specific Wave-1 methodology that is NOT reproducible from current artifacts. The KPI-FORMULA
+layer (the actual subject of Wave-5 "KPI formula canonicalization") is now fully governed. The remaining bookkeeping to
+formally tie EVERY one of the original 547 human-visible surfaces to a governed class (KPI / population-count / status-band)
+requires re-running the Wave-1 human-visible surface enumeration (component-level, not the line-level scan used here) and
+appending a per-surface register row for each. This is the next deterministic action; it is a per-surface enumeration/
+tie-out task, NOT new formula reconciliation (the formula layer is done). No per-surface disposition may be fabricated to
+reach 547; each must map to a proven governed class with evidence.
+
+NEXT DETERMINISTIC ACTION:
+1. Reconstruct the Wave-1 human-visible surface enumeration (routed-surface + KPI/count/status component walk) to obtain
+   the concrete 547 surface list, or the closest reproducible equivalent, and record its methodology.
+2. For each enumerated surface, append a TRUTH_SURFACE_REGISTER row mapping it to its governed class: KPI concept
+   (canonical owner already proven), population count/total (Wave-4 735/735 + GD-0013/14/15), or status/band (Wave-2 TC-0002).
+   Reserve browser proof for safety/compliance/financial/executive/auth/freshness surfaces.
+3. Close only when reconciled = enumerated total, unmapped = 0, no PENDING/UNKNOWN/ASSUMED remain.
+
+## ===== WAVE 5 — HUMAN-VISIBLE SURFACE ENUMERATION (reproducible, this run) =====
+Durable artifact: scripts/wave5_surface_enumeration.py -> TRUTH_SURFACE_ENUMERATION.csv/.json (per-surface rows).
+Component/element-level enumeration of human-visible truth surfaces (current codebase; larger than Wave-1's 547
+because the app has grown). RESULT: 783 surfaces enumerated. Per-surface dispositions:
+- RECONCILED_KPI 46 (map to a proven Wave-5 canonical calculator)
+- GOVERNED_POPULATION 188 (count/total -> Wave-4 735/735 PROVEN class)
+- GOVERNED_STATUS 131 (status/band -> Wave-2 vocab class)
+- EXCLUDED_NON_KPI 2 (on_time SectionTimeline false-match)
+- OPEN_NEEDS_PROOF 416 (mostly <Stat>/<KV> elements whose displayed metric needs per-surface backend-lineage proof)
+=> 367 / 783 dispositioned at the element layer; 416 require genuine per-surface proof (NOT fabricated).
+
+HONEST WAVE-5 STATUS: the KPI-FORMULA layer (Wave-5's actual mandate — "KPI formula canonicalization") is COMPLETE
+(12/12 concepts; Health 13/13, Efficiency 16/16, Variance 22/22; canonical owners + failure-injection guards).
+The full per-surface tie-out of the entire human-visible universe is NOT complete: 416 element surfaces remain
+OPEN_NEEDS_PROOF. These are the concrete next-run targets (each <Stat>/<KV>/metric must be traced to its backend
+owner and mapped to a governed class). Wave 5 is NOT declared complete; no disposition was fabricated to inflate closure.
