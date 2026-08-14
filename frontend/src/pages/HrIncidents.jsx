@@ -125,10 +125,10 @@ export default function HrIncidents() {
         />
 
         <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3" data-testid="hr-inc-summary">
-          <SummaryCard icon={FileText} label={t("In window")} value={data.summary?.total_in_window ?? 0} tint="slate" testid="hr-inc-tile-total" />
-          <SummaryCard icon={AlertTriangle} label={t("Recordable")} value={data.summary?.recordable_in_window ?? 0} tint={data.summary?.recordable_in_window ? "rose" : "slate"} testid="hr-inc-tile-recordable" />
-          <SummaryCard icon={CircleSlash} label={t("Open")} value={data.summary?.open_in_window ?? 0} tint={data.summary?.open_in_window ? "amber" : "slate"} testid="hr-inc-tile-open" />
-          <SummaryCard icon={ShieldCheck} label={t("Shown")} value={data.count ?? 0} tint="slate" testid="hr-inc-tile-shown" />
+          <SummaryCard icon={FileText} label={t("In window")} value={err ? "—" : (data.summary?.total_in_window ?? 0)} tint="slate" testid="hr-inc-tile-total" />
+          <SummaryCard icon={AlertTriangle} label={t("Recordable")} value={err ? "—" : (data.summary?.recordable_in_window ?? 0)} tint={!err && data.summary?.recordable_in_window ? "rose" : "slate"} testid="hr-inc-tile-recordable" />
+          <SummaryCard icon={CircleSlash} label={t("Open")} value={err ? "—" : (data.summary?.open_in_window ?? 0)} tint={!err && data.summary?.open_in_window ? "amber" : "slate"} testid="hr-inc-tile-open" />
+          <SummaryCard icon={ShieldCheck} label={t("Shown")} value={err ? "—" : (data.count ?? 0)} tint="slate" testid="hr-inc-tile-shown" />
         </div>
 
         <div className="bg-white border border-slate-200 rounded-md p-3 grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-3 items-end" data-testid="hr-inc-filters">

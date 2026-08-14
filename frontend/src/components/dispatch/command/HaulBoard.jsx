@@ -25,6 +25,14 @@ function fmtAgo(iso) {
   } catch { return "—"; }
 }
 
+function fmtMin(m) {
+  if (m == null) return "—";
+  if (m < 60) return `${m}m`;
+  const h = Math.floor(m / 60);
+  const r = m % 60;
+  return r ? `${h}h ${r}m` : `${h}h`;
+}
+
 export default function HaulBoard() {
   const [data, setData] = useState(null);
   const [loading, setLoading] = useState(true);
@@ -149,13 +157,13 @@ export default function HaulBoard() {
                     }>{r.current_state}</StatusChip>
                   </td>
                   <td className="px-2 py-2 text-right text-slate-700 font-mono">
-                    {r.current_state_since_min != null ? `${r.current_state_since_min}m` : "—"}
+                    {fmtMin(r.current_state_since_min)}
                   </td>
                   <td className="px-2 py-2 text-right text-slate-400 font-mono text-[10px]">
                     {r.fleetwatcher?.tons != null ? r.fleetwatcher.tons : "—"}
                   </td>
                   <td className="px-2 py-2 text-right text-slate-400 font-mono text-[10px]">
-                    {r.fleetwatcher?.cycle_time_min != null ? `${r.fleetwatcher.cycle_time_min}m` : "—"}
+                    {fmtMin(r.fleetwatcher?.cycle_time_min)}
                   </td>
                 </tr>
               ))}

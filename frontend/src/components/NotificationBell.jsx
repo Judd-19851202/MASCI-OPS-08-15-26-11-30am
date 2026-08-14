@@ -228,6 +228,9 @@ export default function NotificationBell({ accent = "slate", variant = "default"
   const refreshCount = useCallback(async () => {
     if (!isSignedInAnywhere()) return;
     const n = await getUnreadCount();
+    // Truth: an unavailable notifications service returns null — never
+    // overwrite a known unread count with a false 0.
+    if (n === null || n === undefined) return;
     setUnread(n);
     // Audible cue only when count strictly increases AND not muted
     // AND user has interacted (audio context only works post-gesture

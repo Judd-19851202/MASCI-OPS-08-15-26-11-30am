@@ -346,9 +346,13 @@ export const TRUST_STATUS_STYLES = {
 // domain landing to compute the domain's overall pill.
 const _ORDER = { red: 3, yellow: 2, unknown: 1, green: 0 };
 export function worstStatus(cards) {
+  // Truth: an empty/null payload is UNKNOWN, never HEALTHY. A missing per-card
+  // status is UNKNOWN, not green — so an unavailable module can never render a
+  // false green "HEALTHY" verdict.
+  if (!cards || cards.length === 0) return "unknown";
   let worst = "green";
-  for (const c of cards || []) {
-    const s = c?.status || "green";
+  for (const c of cards) {
+    const s = c?.status || "unknown";
     if ((_ORDER[s] ?? 0) > (_ORDER[worst] ?? 0)) worst = s;
   }
   return worst;

@@ -292,10 +292,10 @@ frontend/src/components/MotiveOpsIntelPanel.jsx:130,MotiveOpsIntelPanel,ois-pane
 frontend/src/components/MotiveOpsIntelPanel.jsx:137,MotiveOpsIntelPanel,ois-ops-intel-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/MotiveOpsIntelPanel.jsx:163,MotiveOpsIntelPanel,ois-panel-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/MotiveOpsIntelPanel.jsx:233,MotiveOpsIntelPanel,ois-recent-events-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/NotificationBell.jsx:386,NotificationBell,notification-drawer,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/NotificationBell.jsx:451,NotificationBell,notification-mute-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/components/NotificationBell.jsx:460,NotificationBell,notification-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/NotificationBell.jsx:556,NotificationBell,notification-tasks-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/NotificationBell.jsx:389,NotificationBell,notification-drawer,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/NotificationBell.jsx:454,NotificationBell,notification-mute-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/components/NotificationBell.jsx:463,NotificationBell,notification-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/NotificationBell.jsx:559,NotificationBell,notification-tasks-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OfflineBanner.jsx:58,OfflineBanner,offline-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OperationsCenter.jsx:210,OperationsCenter,ops-center-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OperationsCenter.jsx:217,OperationsCenter,ops-center-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -590,7 +590,7 @@ frontend/src/components/dispatch/command/CommunicationsTab.jsx:113,Communication
 frontend/src/components/dispatch/command/CommunicationsTab.jsx:143,CommunicationsTab,broadcast-audience-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/dispatch/command/CommunicationsTab.jsx:170,CommunicationsTab,broadcast-kind-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/dispatch/command/FleetBoard.jsx:142,FleetBoard,fleet-sort,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/dispatch/command/HaulBoard.jsx:105,HaulBoard,haul-integration-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/components/dispatch/command/HaulBoard.jsx:113,HaulBoard,haul-integration-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/components/dispatch/command/ShopFeedBoard.jsx:194,ShopFeedBoard,shop-recovery-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/dispatch/command/ShopFeedBoard.jsx:230,ShopFeedBoard,shop-integration-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/components/guidance/index.jsx:109,index,what-happens-next-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,

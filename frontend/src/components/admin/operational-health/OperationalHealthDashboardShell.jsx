@@ -117,7 +117,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
               {[["green", "Healthy"], ["yellow", "Attention"], ["red", "Critical"], ["unknown", "Unknown"]].map(([key, label]) => (
                 <div key={key} className="rounded-2xl border border-slate-200 bg-slate-50 p-3" data-testid={`operational-health-count-${key}`}>
                   <div className="text-[10px] uppercase tracking-[0.2em] text-slate-500 font-mono">{t(label)}</div>
-                  <div className="mt-2 text-2xl font-black text-slate-950">{counts[key] || 0}</div>
+                  <div className="mt-2 text-2xl font-black text-slate-950">{data ? (counts[key] || 0) : "—"}</div>
                 </div>
               ))}
             </div>

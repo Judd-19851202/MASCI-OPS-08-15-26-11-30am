@@ -22,3 +22,7 @@ TD-0018,equipment-status-board,equipment,overlapping_bucket,"Status board overdu
 TD-0019,hr-portal-hydration,auth/session,unbounded_spinner,HR portal infinite spinner on token loss after ready. Fix: anti-hang deadline + debounced governed deny.,,,,,
 TD-0020,exec-operational-intelligence,executive,unavailable_as_zero,Exec KPI tiles rendered unavailable as hard 0 + briefing shape mismatch. Fix: ?? null governed dash + briefing r.data fallback.,,,,,
 TD-0021,hr-driver-qualification,hr,static_alarm_tone,Driver-qual tiles alarm-colored at count 0. Fix: value-derived neutral tint at 0.,,,,,
+TD-0022,operational-health-shell,platform/trust,false_green_default,worstStatus defaulted empty/missing to green -> false HEALTHY on unavailable. Fix: empty/null/missing -> unknown; counts render — when data null.,,,,,
+TD-0023,hr-incidents,hr,unavailable_as_zero,Incident summary tiles showed hard 0 on session-expired. Fix: err -> em-dash.,,,,,
+TD-0024,notification-bell,platform/notifications,swallow_error_to_zero,"getUnreadCount swallowed errors to 0 overwriting known count. Fix: return null on error, caller ignores null.",,,,,
+TD-0025,haul-board,dispatch,raw_minutes_display,HaulBoard rendered raw minutes (18545m). Fix: fmtMin human duration.,,,,,

@@ -55,8 +55,8 @@ export async function listNotifications(params = {}) {
 export async function getUnreadCount() {
   try {
     const r = await api.get("/notifications/unread-count", _opts());
-    return r.data?.unread || 0;
-  } catch { return 0; }
+    return r.data?.unread ?? 0;
+  } catch { return null; }
 }
 export async function markRead(id) {
   return api.post(`/notifications/${id}/read`, {}, _opts());
