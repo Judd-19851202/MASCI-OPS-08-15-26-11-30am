@@ -220,7 +220,7 @@ export default function PmMondayReviewWorkspace() {
       setWorkspace(r.data || null);
       toast.success("Monday review started.");
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not start Monday review.");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, "Could not start Monday review."));
     }
   };
 
@@ -236,7 +236,7 @@ export default function PmMondayReviewWorkspace() {
       setWorkspace(r.data || null);
       toast.success("Monday review metadata updated.");
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not update Monday review metadata.");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, "Could not update Monday review metadata."));
     }
   };
 
@@ -265,7 +265,7 @@ export default function PmMondayReviewWorkspace() {
       setWorkspace(r.data || null);
       toast.success(`${code} review saved.`);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || `Could not save ${code} review.`);
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, `Could not save ${code} review.`));
     } finally {
       setSavingCode("");
     }
@@ -278,7 +278,7 @@ export default function PmMondayReviewWorkspace() {
       setWorkspace(r.data || null);
       toast.success("Monday review completed.");
     } catch (e) {
-      toast.error(e?.response?.data?.detail?.code || e?.response?.data?.detail || "Monday review is not ready yet.");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail?.code || e?.response?.data?.detail, "Monday review is not ready yet."));
     }
   };
 
@@ -304,7 +304,7 @@ export default function PmMondayReviewWorkspace() {
       toast.success("Variance review saved.");
       await load(projectNumber, weekEnding);
     } catch (e) {
-      toast.error(e?.response?.data?.detail || "Could not save variance review.");
+      toast.error(sanitizeOperatorError(e?.response?.data?.detail, "Could not save variance review."));
     } finally {
       setSavingVarianceKey("");
     }

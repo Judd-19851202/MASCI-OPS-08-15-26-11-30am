@@ -251,7 +251,14 @@ export function sanitizeOperatorReference(value, fallback = "Linked record") {
 }
 
 export function sanitizeOperatorError(value, fallback = "This information is unavailable right now.") {
-  const raw = String(value || "").trim();
+  let v = value;
+  // Governed API errors often arrive as an object detail
+  // (e.g. { code, message }). String(object) => "[object Object]" which must
+  // never reach an operator toast. Extract a human string field first.
+  if (v && typeof v === "object") {
+    v = v.message || v.detail || v.reason || v.error || v.code || "";
+  }
+  const raw = String(v || "").trim();
   if (!raw) return fallback;
   const safe = sanitizeOperatorCopy(raw, fallback);
   if (!safe || containsOperatorUnsafeLanguage(raw)) return fallback;

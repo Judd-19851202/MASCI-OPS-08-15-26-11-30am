@@ -149,7 +149,7 @@ function QueueCard({ to, testid, title, why, source, value, loaded, variantWhenA
         metric={loaded ? (value === null ? "—" : value) : "…"}
         variant={isAttention ? variantWhenAttention : "default"}
         status={
-          !loaded ? <StatusChip statusKey="draft" compact label={t("Loading")} />
+          !loaded ? <StatusChip severity="neutral" compact label={t("Loading")} />
           : value === null ? <StatusChip statusKey="offline_feed" compact />
           : isAttention ? <StatusChip statusKey="pending_verification" compact />
           : <StatusChip statusKey="verified" compact />

@@ -375,7 +375,7 @@ function CompetentPersonBlock({ certs }) {
       <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
         <MetricCard testid="cp-active" label="Active" value={certs.active_competent_persons} tone="emerald" icon={ShieldCheck} />
         <MetricCard testid="cp-expiring" label="Expiring ≤ 30d" value={certs.expiring_soon} tone={certs.expiring_soon > 0 ? "amber" : "slate"} />
-        <MetricCard testid="cp-expired" label="Expired" value={certs.expired} tone={certs.expired > 0 ? "amber" : "slate"} />
+        <MetricCard testid="cp-expired" label="Expired" value={certs.expired} tone={certs.expired > 0 ? "rose" : "slate"} />
         <MetricCard testid="cp-suspended-revoked" label="Suspended / revoked"
                     value={(certs.suspended || 0) + (certs.revoked || 0)}
                     tone={((certs.suspended || 0) + (certs.revoked || 0)) > 0 ? "rose" : "slate"} />

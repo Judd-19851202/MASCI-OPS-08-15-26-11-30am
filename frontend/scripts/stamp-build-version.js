@@ -72,20 +72,45 @@ fs.writeFileSync(publicFile, `${JSON.stringify(publicContract, null, 2)}\n`);
     }
   }
 
+  // RELEASE-GUARD ARCHITECTURE (P0): PREVIEW EXECUTABILITY != RELEASE AUTHORIZATION.
+  // A dev-server start (craco start -> NODE_ENV !== "production") is the PREVIEW
+  // sandbox: an unattested/mismatched candidate MUST still serve so it can be QA'd.
+  // A production build (craco build -> NODE_ENV === "production") is the release
+  // authorization boundary: mismatch stays a HARD FAIL. RELEASE_HARD_FAIL=1 forces
+  // hard-fail everywhere (deploy gates).
+  const isProductionBuild = process.env.NODE_ENV === "production" || process.env.RELEASE_HARD_FAIL === "1";
+  const previewSoftServe = !isProductionBuild;
+
+  let contractMismatch = false;
+  let fingerprintMismatch = false;
   if (attestation) {
     if (attestation.fingerprint_contract_digest && attestation.fingerprint_contract_digest !== contractDigest) {
-      console.error("[deployable-provenance] fail-closed: CONTRACT_MISMATCH — authorized contract digest != build contract digest");
-      process.exit(1);
+      contractMismatch = true;
     }
     if (attestation.authorized_deployable_fingerprint !== buildFingerprint) {
+      fingerprintMismatch = true;
+    }
+  }
+  const mismatch = contractMismatch || fingerprintMismatch;
+  const runtimeMatchesAuthorized = Boolean(attestation) && !mismatch;
+  const deployAuthorized = runtimeMatchesAuthorized;
+
+  if (mismatch && isProductionBuild) {
+    if (contractMismatch) {
+      console.error("[deployable-provenance] fail-closed: CONTRACT_MISMATCH — authorized contract digest != build contract digest");
+    } else {
       console.error(
         `[deployable-provenance] fail-closed: MISMATCH — build source does not match authorized release.\n` +
         `  authorized_deployable_fingerprint = ${attestation.authorized_deployable_fingerprint}\n` +
         `  build_deployable_fingerprint      = ${buildFingerprint}`
       );
-      process.exit(1);
     }
+    process.exit(1);
   }
+
+  const releaseProvenance = deployAuthorized
+    ? "AUTHORIZED_RELEASE"
+    : "UNATTESTED_CANDIDATE";
 
   const provenance = {
     schema_version: "MASCI_DEPLOYABLE_RELEASE_PROVENANCE/v1",
@@ -93,14 +118,30 @@ fs.writeFileSync(publicFile, `${JSON.stringify(publicContract, null, 2)}\n`);
     fingerprint_algorithm_version: dcf.FINGERPRINT_ALGORITHM_VERSION,
     fingerprint_contract_digest: contractDigest,
     build_deployable_fingerprint: buildFingerprint,
+    current_candidate_fingerprint: buildFingerprint,
     authorized_saved_sha: attestation ? attestation.authorized_saved_sha || null : null,
     authorized_deployable_fingerprint: attestation ? attestation.authorized_deployable_fingerprint || null : null,
+    authorized_saved_fingerprint: attestation ? attestation.authorized_deployable_fingerprint || null : null,
     attestation_present: Boolean(attestation),
+    // ── environment-aware release-provenance state ───────────────────────
+    environment: previewSoftServe ? "PREVIEW" : "PRODUCTION_BUILD",
+    release_provenance: releaseProvenance,
+    runtime_matches_authorized_release: runtimeMatchesAuthorized,
+    deploy_authorized: deployAuthorized,
   };
   fs.writeFileSync(provenanceFile, `${JSON.stringify(provenance, null, 2)}\n`);
+  if (mismatch && previewSoftServe) {
+    console.warn(
+      `[deployable-provenance] PREVIEW — UNATTESTED CANDIDATE — NOT AUTHORIZED FOR DEPLOYMENT\n` +
+      `  current_candidate_fingerprint  = ${buildFingerprint}\n` +
+      `  authorized_saved_fingerprint   = ${attestation ? attestation.authorized_deployable_fingerprint : "(none)"}\n` +
+      `  deploy_authorized=false · serving for QA only (release fail-close preserved for production build/deploy).`
+    );
+  }
   console.log(
     `[deployable-provenance] build_deployable_fingerprint=${buildFingerprint} ` +
-    `attestation_present=${Boolean(attestation)}`
+    `attestation_present=${Boolean(attestation)} release_provenance=${releaseProvenance} ` +
+    `deploy_authorized=${deployAuthorized}`
   );
 })();
 
