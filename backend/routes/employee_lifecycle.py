@@ -34,6 +34,7 @@ from __future__ import annotations
 from lib.mongo_query import safe_regex
 from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_action_exclusion
 from lib.synthetic_hr_filter import apply_synthetic_hr_exclusion
+from lib.kpi_percent_complete import checklist_percent
 
 import logging
 import re as _re
@@ -1361,7 +1362,10 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
                 ),
             })
 
-        pct = (fully_complete / total * 100.0) if total else 100.0
+        # PC-CHECKLIST (Wave 5): fully-complete employees / eligible employees.
+        # empty=100.0 GOVERNED: an empty eligible population has nothing outstanding
+        # == vacuously 100% complete (fleet-wide compliance scope, not per-entity).
+        pct = checklist_percent(fully_complete, total, ndigits=1, empty=100.0)
         if pct >= 95.0:
             band = "green"
         elif pct >= 75.0:
@@ -1374,7 +1378,12 @@ def build_employee_lifecycle_router(db, require_hr, require_admin,
             "trade_role_complete_count": trade_role_complete,
             "crew_complete_count": crew_complete,
             "supervisor_complete_count": sup_complete,
-            "completion_percent": round(pct, 1),
+            "completion_percent": pct,
+            # PC-CHECKLIST canonical per-field percents (same concept/scope as
+            # completion_percent) so the frontend renders instead of re-deriving.
+            "trade_role_complete_percent": checklist_percent(trade_role_complete, total, ndigits=1, empty=100.0),
+            "crew_complete_percent": checklist_percent(crew_complete, total, ndigits=1, empty=100.0),
+            "supervisor_complete_percent": checklist_percent(sup_complete, total, ndigits=1, empty=100.0),
             "status_band": band,
             "missing_records": missing_records,
             "include_inactive": include_inactive,

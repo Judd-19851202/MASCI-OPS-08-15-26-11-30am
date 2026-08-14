@@ -50,28 +50,57 @@ def clamp_stored_percent(value, *, missing=None) -> Optional[float]:
     return max(0.0, min(100.0, f))
 
 
-def checklist_percent(completed: int, total: int, *, ndigits: int = 1) -> float:
+def checklist_percent(
+    completed: int, total: int, *, ndigits: int = 1, empty: Optional[float] = 0.0,
+) -> Optional[float]:
     """PC-CHECKLIST: 100 * completed_eligible / total_eligible.
-    Empty denominator -> 0.0. Guards against divide-by-zero and clamps to [0,100]."""
-    if not total or total <= 0:
-        return 0.0
+
+    `empty` GOVERNS the empty-denominator result and MUST be chosen explicitly by
+    the caller per its business scope (no hidden default lie):
+      * 0.0   -> nothing-of-nothing rendered as 0% (default, e.g. per-entity checklist).
+      * 100.0 -> vacuously complete: no eligible items outstanding (e.g. fleet-wide
+                 completeness where "0 records to fix" == fully compliant).
+      * None  -> UNKNOWN (empty set is not a meaningful percent).
+    Guards divide-by-zero; numerator floored at 0; result clamped to [0,100]."""
+    if not total or int(total) <= 0:
+        return empty
     pct = 100.0 * (max(0, int(completed)) / int(total))
     return round(max(0.0, min(100.0, pct)), ndigits)
 
 
-def checklist_percent_from_flags(flags: Iterable[bool], *, ndigits: int = 1) -> float:
+def checklist_percent_from_flags(
+    flags: Iterable[bool], *, ndigits: int = 1, empty: Optional[float] = 0.0,
+) -> Optional[float]:
     """PC-CHECKLIST convenience: ratio of truthy flags to total flags."""
     flags = list(flags)
-    return checklist_percent(sum(1 for f in flags if f), len(flags), ndigits=ndigits)
+    return checklist_percent(sum(1 for f in flags if f), len(flags), ndigits=ndigits, empty=empty)
 
 
-def schedule_rollup_percent(values: Sequence, *, agg: str = "max", ndigits: int = 2) -> float:
+SCHEDULE_MODE_MAX = "max"
+SCHEDULE_MODE_MEAN = "mean"
+SCHEDULE_MODES = (SCHEDULE_MODE_MAX, SCHEDULE_MODE_MEAN)
+
+
+def schedule_rollup_percent(values: Sequence, *, agg: str, ndigits: int = 2) -> float:
     """PC-SCHEDULE: aggregate approved_percent_complete across schedule rows.
-    Each input is clamped via PC-STORED semantics (missing treated as 0 for rollup).
-    agg='max' (default) or 'mean'. Empty set -> 0.0."""
+
+    The caller MUST pass an explicit governed `agg` mode (no anonymous default):
+      * SCHEDULE_MODE_MAX  ("max")  -> "current approved reading" = highest reading
+                                        (activity/line current progress from candidate rows).
+      * SCHEDULE_MODE_MEAN ("mean") -> unweighted average progress across the scope's rows
+                                        (e.g. work-package activity average).
+    A WEIGHTED rollup (EVM physical %) is a DIFFERENT governed concept owned by
+    project_earned_value_engine._weighted_average and is intentionally NOT expressed here.
+    Each input is clamped via PC-STORED semantics (missing treated as 0 in a rollup).
+    Empty set -> 0.0. Rounded to `ndigits`."""
+    if agg not in SCHEDULE_MODES:
+        raise ValueError(
+            "schedule_rollup_percent requires an explicit governed agg mode "
+            f"({SCHEDULE_MODES}); got {agg!r}"
+        )
     nums = [clamp_stored_percent(v, missing=0.0) or 0.0 for v in values]
     if not nums:
         return 0.0
-    if agg == "mean":
+    if agg == SCHEDULE_MODE_MEAN:
         return round(sum(nums) / len(nums), ndigits)
     return round(max(nums), ndigits)

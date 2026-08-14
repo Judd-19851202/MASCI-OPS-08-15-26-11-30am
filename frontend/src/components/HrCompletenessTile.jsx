@@ -156,12 +156,15 @@ export default function HrCompletenessTile({ className = "" }) {
           <div className="mt-4 grid grid-cols-2 sm:grid-cols-4 gap-3">
             <Metric label="Trade / Role"
               value={snap.trade_role_complete_count} total={snap.total_active}
+              percent={snap.trade_role_complete_percent}
               testid="hr-completeness-metric-trade" />
             <Metric label="Crew"
               value={snap.crew_complete_count} total={snap.total_active}
+              percent={snap.crew_complete_percent}
               testid="hr-completeness-metric-crew" />
             <Metric label="Supervisor"
               value={snap.supervisor_complete_count} total={snap.total_active}
+              percent={snap.supervisor_complete_percent}
               testid="hr-completeness-metric-supervisor" />
             <Metric label="Fully complete"
               value={snap.complete_count} total={snap.total_active}

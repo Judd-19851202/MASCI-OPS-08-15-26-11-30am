@@ -1362,3 +1362,20 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
   resolves on owner Save (attestation regenerates). AUTHORIZED_RELEASE.json untouched.
 - Files changed since deployed Checkpoint-1 (39c9b820): 34 (30 source + 4 tests) + new guard tests GD-0014/GD-0015.
 - Wave 5 KPI reconciliation: repair PAUSED for Checkpoint 2; discovery register/scanner preserved.
+
+## 2026-06 — WAVE 5 KPI-PERCENT-COMPLETE checkpoint (preview-only, no Save/Deploy)
+- PC-CHECKLIST reconciled + migrated + live-verified: canonical `lib/kpi_percent_complete.checklist_percent`
+  (governed explicit empty-denominator) now owns employee-completeness (+3 new canonical per-field percents)
+  and asset onboarding pct_complete. Removed the HrCompletenessTile frontend Math.round re-derivation.
+- PC-SCHEDULE audited + governed: explicit SCHEDULE_MODE_MAX / SCHEDULE_MODE_MEAN (caller must pass agg);
+  migrated the one genuine unweighted mean rollup (actuals_spine:570); documented SCHEDULE_MAX_READING and
+  EVM SCHEDULE_WEIGHTED_ROLLUP as distinct owners.
+- PC-STORED audited: unknown≠0 already honored where the contract permits null (ViewDailyReport §09); other
+  `|| 0` are over always-numeric backends. PC-COST audit pending (split quantity vs EV before migration).
+- Defects fixed: (1) frontend re-derivation divergence (rounding + empty semantics); (2) asset onboarding
+  endpoint 404-for-all (projected find_one `if not doc` -> `if doc is None`).
+- Guards: GD-0017 expanded 20/20; new live suite test_wave5_pc_checklist_contract.py 17/17 (preview).
+- Side Lane A: legacy users vs user_directory = DUAL AUTHORITY LOW-SEVERITY/LATENT (legacy /api/auth/* unused
+  by SPA); repair needs integration_expert + owner authorization, not executed. Side Lane B: raw-vs-SPA token =
+  INTENTIONAL SESSION BINDING; headless mechanism documented; no auth weakening. See LIVE_AUTH_ROOTCAUSE_AUDIT.md.
+- Production writes 0 · Save NO · Deploy NO · Checkpoint 2 frozen LIVE_VERIFIED.

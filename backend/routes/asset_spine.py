@@ -26,6 +26,7 @@ from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from pydantic import BaseModel, Field
 
 from services.asset_spine import AssetSpine
+from lib.kpi_percent_complete import checklist_percent
 
 logger = logging.getLogger(__name__)
 
@@ -415,8 +416,8 @@ def register_asset_spine_routes(
         asset_id: str,
         _: Any = Depends(require_any_portal_dep),
     ):
-        doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0, "onboarding": 1})
-        if not doc:
+        doc = await db.equipment_master.find_one({"id": asset_id}, {"_id": 0, "id": 1, "onboarding": 1})
+        if doc is None:
             raise HTTPException(status_code=404, detail="Asset not found")
         ob = doc.get("onboarding") or {}
         steps = list(AssetSpine.ONBOARDING_STEPS)
@@ -425,7 +426,11 @@ def register_asset_spine_routes(
             "steps": steps,
             "completed": {s: bool(ob.get(s)) for s in steps},
             "detail": ob,
-            "pct_complete": round(100.0 * sum(1 for s in steps if ob.get(s)) / len(steps), 1),
+            # PC-CHECKLIST (Wave 5): completed onboarding steps / total steps.
+            # Fixed 12-step denominator; empty=0.0 governed (denominator never empty).
+            "pct_complete": checklist_percent(
+                sum(1 for s in steps if ob.get(s)), len(steps), ndigits=1, empty=0.0,
+            ),
         }
 
     # ----- HEALTH ----------------------------------------------------------

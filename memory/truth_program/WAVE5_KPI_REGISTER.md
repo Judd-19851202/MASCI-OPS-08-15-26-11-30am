@@ -33,8 +33,12 @@ Durable artifacts:
 
 ## STATUS
 - Register + ranking: DONE (this session).
-- Reconciliation: RESUMED. KPI-PERCENT-COMPLETE canonical CONTRACT BUILT (lib/kpi_percent_complete.py +
-  WAVE5_PERCENT_COMPLETE_CONTRACT.md + GD-0017 guard 4/4). The 84 sites separated into governed concepts
-  PC-STORED / PC-CHECKLIST / PC-SCHEDULE / PC-COST (+ non-formula noise excluded). Consumer migration is the
-  next step (contract-first, per owner). After that: KPI-EXPIRING-RATE (50), KPI-UTILIZATION (45).
+- Reconciliation: IN PROGRESS. **KPI-PERCENT-COMPLETE**: PC-CHECKLIST = RECONCILED+MIGRATED+LIVE-VERIFIED
+  (canonical `checklist_percent` owns employee-completeness + asset onboarding; frontend re-derivation removed;
+  governed empty-denominator explicit). PC-SCHEDULE = AUDITED+GOVERNED (explicit SCHEDULE_MODE_MAX/MEAN; one
+  mean rollup migrated; MAX-reading + EVM weighted-rollup documented as distinct owners). PC-STORED = AUDITED
+  (truthful as-is; unknown≠0 already honored). PC-COST = AUDIT-PENDING (split quantity vs EV before migration).
+  Guards: GD-0017 20/20 + test_wave5_pc_checklist_contract.py 17/17 (live preview). See WAVE5_PERCENT_COMPLETE_CONTRACT.md.
+  Defects repaired: frontend re-derivation divergence + asset-onboarding 404-for-all reachability bug.
+  NEXT: PC-COST audit -> KPI-EXPIRING-RATE (50) -> KPI-UTILIZATION (45).
 - Note: KPI-OWNERSHIP-SCORE already canonicalized in Wave 2 (SO-07/TD-0006 attributable denominator, GD-0007).

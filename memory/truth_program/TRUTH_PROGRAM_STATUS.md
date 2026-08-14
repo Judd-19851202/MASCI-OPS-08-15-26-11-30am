@@ -327,3 +327,60 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
   if yes -> REAL AUTHORITY DEFECT, repair in preview so user_directory is sole authority + add dual-authority guard. No prod mutation.
 - Wave 5 continues: PC-CHECKLIST -> PC-SCHEDULE -> PC-STORED -> PC-COST consumer migration; expand GD-0017; then EXPIRING-RATE, UTILIZATION.
 - No Save. No Deploy. Production read-only. Product Quality v4 PAUSED. Gate 16 OWNER-DEFERRED. Production writes 0.
+
+## ===== WAVE 5 — KPI-PERCENT-COMPLETE CHECKPOINT (this session, preview-only) =====
+CHECKPOINT_2 FROZEN: CHECKPOINT_2_LIVE_VERIFIED = YES · AUTH_GATED_PROBES_PENDING = 0 (unchanged, not reopened).
+
+- KPI-PERCENT-COMPLETE (84 sites) decomposed + progressed:
+  - PC-CHECKLIST = RECONCILED + MIGRATED + LIVE-VERIFIED. Canonical `checklist_percent(empty=…)` now owns:
+    employee-completeness (backend completion_percent + 3 new canonical per-field percents; frontend
+    HrCompletenessTile re-derivation REMOVED) and asset onboarding pct_complete. Governed empty-denominator
+    made EXPLICIT (0.0 / 100.0 / None) — employee scope empty=100.0 (vacuously complete), asset scope empty=0.0.
+  - PC-SCHEDULE = AUDITED + GOVERNED. Explicit modes SCHEDULE_MODE_MAX / SCHEDULE_MODE_MEAN (caller MUST pass
+    agg; no anonymous default). Migrated the one genuine unweighted mean rollup (actuals_spine:570). Documented
+    SCHEDULE_MAX_READING (single-activity/line current reading; NOT a rollup) and SCHEDULE_WEIGHTED_ROLLUP
+    (EVM physical %, owned by project_earned_value_engine._weighted_average) as distinct governed concepts.
+  - PC-STORED = AUDITED — TRUTHFUL AS-IS. The one nullable-contract field (daily-report percent_complete)
+    already renders unknown as blank (ViewDailyReport §09, correct reference). Other `|| 0` sites are over
+    always-numeric backends (no unknown state, no lie). No unsafe change manufactured.
+  - PC-COST = AUDIT-PENDING (owner: prove denominator first). Identified distinct denominators: quantity-based
+    (foundation overall_percent_complete = installed/authorized; oppc_execution actual/planned qty) vs
+    EV/budget (earned_value_engine). Will split into PC-COST-QUANTITY vs PC-COST-EARNED before any migration.
+- FORMULA/DENOMINATOR DEFECTS PROVEN + REPAIRED this checkpoint (2):
+  (1) Frontend re-derivation divergence — HrCompletenessTile sub-metrics used integer Math.round + empty→0,
+      diverging from canonical 1dp + empty→100; repaired by rendering backend canonical percents.
+  (2) Asset onboarding endpoint 404-for-all — `if not doc` on a projected find_one 404'd every asset with no
+      `onboarding` field, making pct_complete unreachable; repaired to `if doc is None` (+ project id). Live-verified.
+  Plus latent anonymous max/mean scatter risk mitigated by explicit governed schedule modes.
+- SHARED-ROOT REPAIRS: 1 (canonical `checklist_percent` adoption across backend + frontend + asset onboarding;
+  schedule mode governance under one shared owner `lib/kpi_percent_complete.py`).
+- EXECUTABLE KPI GUARDS: 2 — GD-0017 expanded (20/20: 0/100/unknown/zero-denom/one-of-many/N-A/duplicate/
+  deleted/invalid/negative/rounding/mode-diff/same-scope equality + divergence FAILURE fixtures) and live
+  contract suite test_wave5_pc_checklist_contract.py (17/17 on preview).
+- SIDE LANE A (legacy users vs user_directory authority): DUAL AUTHORITY = LOW-SEVERITY / LATENT. Legacy
+  /api/auth/* (db.users) gate is unused by the SPA; canonical path uses user_directory only. Repair is an
+  auth-subsystem change requiring integration_expert + owner authorization — NOT executed, NO prod mutation.
+  See LIVE_AUTH_ROOTCAUSE_AUDIT.md.
+- SIDE LANE B (raw vs SPA token): INTENTIONAL SESSION BINDING (per-portal X-<Portal>-Token header + session
+  continuity TTL). Not a defect; no auth weakening. Correct headless mechanism documented. See LIVE_AUTH audit.
+
+### WAVE 5 DURABLE COUNTERS (this checkpoint)
+- Truth surfaces reconciled: 16 / 547 (13 prior + employee-completeness + asset-onboarding + work-package schedule rollup)
+- KPI concepts discovered: 12
+- KPI concepts fully reconciled: 1 (KPI-OWNERSHIP-SCORE, Wave 2) · KPI-PERCENT-COMPLETE in progress (PC-CHECKLIST done)
+- Percent-Complete sites: 84 / 84 classified · PC-CHECKLIST migrated (4 compute sites: asset_spine:428,
+  employee_lifecycle completion + per-field, HrCompletenessTile) · PC-SCHEDULE mean-rollup migrated + modes governed
+- Expiring-Rate sites: 0 / 50 (next)
+- Utilization sites: 0 / 45 (after expiring-rate)
+- Formula/denominator defects proven: 2 (this checkpoint) [+ Wave-2/4 historical]
+- Shared-root repairs: 1 (this checkpoint)
+- Executable KPI guards: 2 (GD-0017 20/20; PC-CHECKLIST live 17/17)
+- Unexplained contradictions: 0
+- Production writes: 0 · Save: NO · Deploy: NO · Product Quality v4: PAUSED · Gate 16: OWNER-DEFERRED
+
+FILES TOUCHED (preview, unsaved): backend/lib/kpi_percent_complete.py, backend/routes/employee_lifecycle.py,
+backend/routes/asset_spine.py, backend/services/project_schedule_actuals_spine.py,
+backend/tests/test_gd0017_percent_complete_contract.py, backend/tests/test_wave5_pc_checklist_contract.py (new),
+frontend/src/components/HrCompletenessTile.jsx. Registers: WAVE5_PERCENT_COMPLETE_CONTRACT.md,
+WAVE5_KPI_REGISTER.md, LIVE_AUTH_ROOTCAUSE_AUDIT.md, TRUTH_PROGRAM_STATUS.md.
+NEXT: PC-COST audit (split quantity vs EV), then KPI-EXPIRING-RATE (50), then KPI-UTILIZATION (45).

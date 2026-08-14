@@ -24,6 +24,7 @@ from services.project_schedule_authority import (
     list_schedule_activities,
     list_schedule_versions,
 )
+from lib.kpi_percent_complete import schedule_rollup_percent, SCHEDULE_MODE_MEAN
 
 
 COLL_SCHEDULE_ACTUAL_CANDIDATES = "project_schedule_actual_candidates"
@@ -567,7 +568,12 @@ async def _sync_work_package_actual_state(db, project_number: str, version_id: s
     }
     actual_totals = {
         "approved_activity_count": sum(1 for row in activities if ((row.get("actual_state") or {}).get("status") not in {None, "", "not_started"})),
-        "approved_percent_complete_average": round(sum(_to_float((row.get("actual_state") or {}).get("approved_percent_complete"), 0.0) for row in activities) / max(len(activities), 1), 2),
+        # PC-SCHEDULE / SCHEDULE_MODE_MEAN (Wave 5): unweighted average of activity
+        # approved progress across this work package. Explicit governed mode.
+        "approved_percent_complete_average": schedule_rollup_percent(
+            [(row.get("actual_state") or {}).get("approved_percent_complete") for row in activities],
+            agg=SCHEDULE_MODE_MEAN,
+        ),
         "installed_quantity_total": round(sum(_to_float((row.get("actual_state") or {}).get("installed_quantity_total"), 0.0) for row in activities), 4),
         "labor_hours_total": round(sum(_to_float((row.get("actual_state") or {}).get("labor_hours_total"), 0.0) for row in activities), 4),
     }
