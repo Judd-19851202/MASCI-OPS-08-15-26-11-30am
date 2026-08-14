@@ -282,3 +282,30 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - Regression (zero unexpected failures): fast guard suite (GD-0004/0013/0014/0015/0016 + TD-0003/0005/0006/0009/0010/0011) 65 passed; release/build-guard + provenance + fingerprint + dr03 48 passed (the previously-expected 4 pre-Save build-guard failures are GONE under the new attestation); Wave-4 live contract suite 62 passed; release gate test_checkpoint_d5_d6 39 passed (run earlier).
 - Wave 4 = FULLY PROVEN (1,042/1,042 · 735/735 · unrepaired D 0). GD-0014/GD-0015 = PRE-SAVE ENFORCED (one guard owner).
 - Workspace tracked source CLEAN. Source changes after Save = 0. Production writes = 0. Second Save = NO. Deploy = NO. Wave 5 PAUSED.
+
+## ===== CHECKPOINT 2 — DEPLOYED (live status, owner decision C) =====
+- CHECKPOINT_2_DEPLOYED = YES
+- CHECKPOINT_2_PROVENANCE = VERIFIED (prod authorized SHA 2fc6a1340bb7b7588b8f969cda2bb02023d9ec43;
+  canonical+build fingerprint dcf-3009d36800011d0762b5299396cb3359c3991ac48d69ce29a45074dfa9dd55ec;
+  release_provenance=VERIFIED; runtime_matches_intended_release=TRUE; FE=BE; app_env=production; DB=masci_safety).
+- CHECKPOINT_2_DIRECT_LIVE_CONTRACTS = PASS (fleet units count5/total149 page<<total; suppliers 167/167;
+  jobs 34/34; equipment-master-lookup 604/604; trench public overview total_active_assets=14 streamed;
+  frontend serves 200 under new attestation; no release-identity fail-closed).
+- CHECKPOINT_2_AUTH_GATED_PROBES_PENDING = 3 -> LIVE_AUTH_EVIDENCE_PENDING:
+  (1) /api/employees page/count/total, (2) governance/audit page<<total, (3) SO-08b operations_registry.
+  Reason: no legitimate non-must-change production admin session available to this environment. NOT marked PASS
+  from cryptographic identity alone. NOT a Wave-4/code defect: production correctly enforcing a
+  must_change_password state on the Super Admin account is an account/auth-state condition, not an app defect.
+- CHECKPOINT_2_LIVE_VERIFIED = NO (do not set until the 3 probes actually run successfully with a legitimate
+  admin session; then execute read-only and close the gap).
+- No Save. No Deploy. Product Quality v4 PAUSED. Gate 16 OWNER-DEFERRED. Production writes 0. Prod account state unchanged.
+
+## ===== CORRECTION — must_change_password root cause (see LIVE_AUTH_ROOTCAUSE_AUDIT.md) =====
+- CORRECTED: production must_change_password for jaymn.judd@mascigc.com = FALSE (all 8 portal tokens issued).
+  Earlier interim note wrongly attributed the 3 auth-gated probe failures to must_change_password.
+- Actual blocker: portal-token READ validators (_require_any_portal_read / _is_valid_directory_admin_token_async)
+  reject even fresh multi-login tokens (401) — a headless portal-session binding nuance, NOT a must_change or Wave-4
+  defect. Browser SPA sessions unaffected. The 3 probes remain LIVE_AUTH_EVIDENCE_PENDING.
+- must_change_password is a STORED boolean read post-auth (not derived/breach). Password verified correct. No prod defect
+  for this account. Preview shows directory (must_change=False) vs legacy `users` (must_change=True) divergence — seed
+  hygiene review item, not auto-repaired, no production mutation.

@@ -33,6 +33,8 @@ Durable artifacts:
 
 ## STATUS
 - Register + ranking: DONE (this session).
-- Reconciliation: PAUSED FOR TRUTH ENGINE CHECKPOINT 2 (owner directive). Resume after Checkpoint 2 is
-  deployed + live-verified. Next target on resume: KPI-PERCENT-COMPLETE (highest blast radius, backend-heavy 64 sites).
+- Reconciliation: RESUMED. KPI-PERCENT-COMPLETE canonical CONTRACT BUILT (lib/kpi_percent_complete.py +
+  WAVE5_PERCENT_COMPLETE_CONTRACT.md + GD-0017 guard 4/4). The 84 sites separated into governed concepts
+  PC-STORED / PC-CHECKLIST / PC-SCHEDULE / PC-COST (+ non-formula noise excluded). Consumer migration is the
+  next step (contract-first, per owner). After that: KPI-EXPIRING-RATE (50), KPI-UTILIZATION (45).
 - Note: KPI-OWNERSHIP-SCORE already canonicalized in Wave 2 (SO-07/TD-0006 attributable denominator, GD-0007).
