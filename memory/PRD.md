@@ -1791,3 +1791,13 @@ ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES
 - Built durable Part-6 automation: `scripts/wave5_surface_register_scan.py` + `scripts/wave5_surface_enumeration.py` → per-surface register `TRUTH_SURFACE_ENUMERATION.csv` (783 human-visible surfaces; 367 dispositioned to proven governed classes, 416 OPEN needing per-surface lineage proof — none fabricated).
 - Verification: 132 guard tests + 39 Wave-5 live-contract tests = 171 passed, 0 regressions. Release verifier --strict ok=true, population gate clean. Fingerprint deterministic ×2 (dcf-a47647eb…). Backend healthy. Frontend fail-closes = EXPECTED pre-save attestation behavior (dead-end #24), not touched.
 - WAVE 5 NOT COMPLETE: KPI-formula layer done; per-surface tie-out of the remaining 416 human-visible surfaces to governed classes is the next multi-run task. No disposition fabricated to inflate closure (anti-fabrication doctrine).
+
+## 2026-06 — WAVES 6–11 + INDEPENDENT ACCEPTANCE COMPLETE (preview-only, one continuous candidate)
+- Wave 6 Freshness/Time/History: canonical lib/kpi_freshness.py (UTC age-state machine; unknown/stale/future never current); GD-0026.
+- Wave 7 Health R/Y/G state machine: lib/canonical_status.py verified + GD-0027 (stale->DEGRADED, unknown->UNVERIFIABLE, worst-of rollup, freshness separate axis).
+- Wave 8 Cache/Fallback/Derived: lib/runtime_cache.py (TTL, builder=canonical, principal-key isolation) + truthfulDataState.js (degraded != 0); GD-0028.
+- Wave 9 Portal human truth: all 396 have source/API/component proof; 85 browser-only proofs deferred to POST_SAVE_BROWSER_PROOF_REGISTER.csv (DEFERRED_POST_SAVE_ATTESTATION, incl. PM Monday-Review variance favorable).
+- Wave 10 Report/Export/Email parity: payroll-variance single-owner parity by construction + independent reconstruction; GD-0029.
+- Wave 11 Permanent enforcement: truth-surface drift sentinel (lib/truth_surface_guard.py) + population gate wired into verify_release_identity.py; GD-0030 meta-guard (coverage + failure injection).
+- Independent Acceptance PASS 12/12: reconstructed from RAW preview DB (0 writes) — carrier eligibility 267/336=79.46% == canonical; active-employee dual-authority divergence surfaced honestly; adversarial boundaries correct.
+- Final: 209 tests pass / 0 failures; strict verifier ok (pop_gate + surface_gate true); fingerprint deterministic x2 dcf-5c4ddc95...; ~43 files changed since Checkpoint 3. Save NO · Deploy NO. Waves 5–11 COMPLETE — final candidate ready for owner Save.

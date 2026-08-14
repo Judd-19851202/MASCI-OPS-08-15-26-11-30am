@@ -1,0 +1,94 @@
+{
+  "generated": "independent_pre_release_acceptance",
+  "db": "masci_safety_preview",
+  "production_writes": 0,
+  "acceptance": "PASS",
+  "failures": [],
+  "checks_total": 12,
+  "checks_passed": 12,
+  "findings": [
+    {
+      "check": "active_employee_reconstruction",
+      "pass": true,
+      "detail": {
+        "total": 454,
+        "is_active_true": 441,
+        "lifecycle_Active": 442,
+        "missing_is_active_flag": 1
+      }
+    },
+    {
+      "check": "active_employee_dual_authority_visible",
+      "pass": true,
+      "detail": {
+        "divergence_is_active_vs_lifecycle": 1,
+        "note": "divergence recorded; is_active is canonical per Wave-3 employee_status"
+      }
+    },
+    {
+      "check": "carrier_population_total_equals_sum_of_status",
+      "pass": true,
+      "detail": {
+        "total": 336,
+        "by_status": {
+          "pending_review": 68,
+          "active": 267,
+          "inactive": 1
+        }
+      }
+    },
+    {
+      "check": "carrier_pending_not_counted_as_eligible",
+      "pass": true,
+      "detail": {
+        "pending_or_unknown": 68,
+        "note": "eligibility must exclude pending/unknown"
+      }
+    },
+    {
+      "check": "eligibility_rate_matches_canonical",
+      "pass": true,
+      "detail": {
+        "eligible": 267,
+        "total": 336,
+        "independent": 79.46,
+        "canonical": 79.46
+      }
+    },
+    {
+      "check": "variance_zero_baseline_is_unknown_not_zero",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "variance_sign_and_over_100",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "efficiency_zero_denom_unknown_not_zero",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "freshness_unknown_not_current",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "freshness_old_is_stale_not_current",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "trust_red_not_green",
+      "pass": true,
+      "detail": {}
+    },
+    {
+      "check": "trust_unknown_audit_caps",
+      "pass": true,
+      "detail": {}
+    }
+  ]
+}

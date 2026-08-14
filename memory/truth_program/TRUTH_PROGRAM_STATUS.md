@@ -796,3 +796,63 @@ portal-by-portal human truth (reuse 396 lineage; browser proofs MOSTLY DEFERRED 
 Wave 11 permanent enforcement (consolidate guards into release verifier path; drift sentinels; one owner per contract)
 -> Independent Pre-Release Acceptance (independent source reconstruction; adversarial boundary tests).
 DEFERRED POST-SAVE BROWSER PROOFS: PM Monday-Review variance favorable coloring; Wave-9 portal human proofs.
+
+## ===== WAVE 8 — CACHE / WORKERS / FALLBACK / DERIVED TRUTH — COMPLETE (this run) =====
+- Canonical cache owner lib/runtime_cache.py: TTL expiry drops stale (stale-over-current=0); get_or_set_runtime_json
+  runs canonical builder on miss (source wins, fallback/cache is not canonical); delete forces recovery rebuild;
+  distinct principal-scoped keys isolate (callers MUST scope keys by principal). Frontend truthful-data-state owner
+  truthfulDataState.js keeps LOADING/TRUE_ZERO/EMPTY/UNKNOWN/UNAVAILABLE/STALE/NO_ACCESS/ERROR distinct — degraded
+  states render "—", only TRUE_ZERO renders "0" (no unlabeled degraded truth as 0).
+- Guard GD-0028 (5) failure-injection: expired-not-served, builder-canonical-wins, delete-recovery, principal-key
+  isolation, truthful-state distinctness. Prior service-worker principal isolation preserved (Wave-2, unchanged).
+- CLOSURE: cache/fallback/worker truth paths dispositioned; stale-over-current 0; fallback-as-canonical 0;
+  cross-principal leakage 0 (mechanism); unlabeled degraded truth 0. WAVE 8 = COMPLETE.
+
+## ===== WAVE 9 — PORTAL-BY-PORTAL HUMAN TRUTH — COMPLETE PRE-SAVE (this run) =====
+- Reused canonical Wave-5 lineage. Human denominator = 396 (GD-0025 locked; no governed source change).
+- All 396 surfaces have non-browser proof by disposition: DIRECT_FACT (256) = record->API->prop->render lineage;
+  CANONICAL_KPI (39) = reconciled canonical calculators (GD-0017..GD-0024); CANONICAL_STATUS (97) = Wave-2 vocab
+  (TC-0002); GOVERNED_DISTINCT_VARIANT (4) = documented distinct % owners.
+- BROWSER-ONLY proofs DEFERRED (correct pre-save fail-close, dead-end #24): POST_SAVE_BROWSER_PROOF_REGISTER.csv,
+  85 items (BP-0001..BP-0085) covering color/state/conditional KPI+status surfaces incl. PM Monday-Review variance
+  favorable. Each has expected canonical state + exact post-Save test at widths 390/768/1024/1440. Marked
+  DEFERRED_POST_SAVE_ATTESTATION (NOT PASS).
+- CLOSURE PRE-SAVE: all 396 have source/API/component proof; browser-only dependencies explicitly enumerated (85);
+  no unexplained human-semantic contradiction. WAVE 9 = COMPLETE PRE-SAVE (85 deferred post-Save browser proofs).
+
+## ===== WAVE 10 — REPORT / EXPORT / EMAIL PARITY — COMPLETE (this run) =====
+- Inventoried outbound producers (ODR PDF, CSV exports, digests/emails, print). Highest-risk dual UI+export path:
+  payroll-variance CSV. Proven UI<->API<->export parity BY CONSTRUCTION: build_variance_rows computes variance_pct
+  ONCE via canonical lib.kpi_variance (_canon_variance); API and CSV serialize the same rows. No independent export formula.
+- Independent reconstruction: exact=41.5h vs masci=40h -> 3.8% matches canonical exactly; zero/unknown baseline -> None
+  (UNKNOWN, not a fabricated 0 in export). Static scan: no ungoverned KPI percent formula in payroll/ODR export producers.
+- Guard GD-0029 (3): single-owner parity, independent reconstruction, no-ungoverned-export-formula.
+- CLOSURE: outbound truth paths dispositioned; UI<->API<->output contradictions 0; scope leakage 0; formula drift 0;
+  unknown/N/A parity defects 0. WAVE 10 = COMPLETE.
+
+## ===== WAVE 11 — PERMANENT TRUTH ENFORCEMENT — COMPLETE (this run) =====
+- Consolidated enforcement into canonical release verifier (backend/scripts/verify_release_identity.py):
+  now runs population-truth gate (GD-0014/15) AND the NEW truth-surface enumeration drift sentinel
+  (GD-0025 via lib/truth_surface_guard.py — one owner, no duplicate scanner) plus deployable fingerprint +
+  identity contracts. Verifier emits truth_surface_gate_ok / truth_surface_gate_violations.
+- Drift sentinel FAILURE-INJECTED (GD-0030): rejects broken invariant / OPEN>0 / unregistered-surface drift;
+  passes only the current clean candidate. Guard-coverage meta-check: GD-0013..GD-0029 all present (no gap).
+- One canonical owner per defect class; no wildcard suppression. Guards GD-0026/27/28/29 additionally guard
+  freshness/health/cache/parity classes. WAVE 11 = COMPLETE.
+
+## ===== FINAL INDEPENDENT PRE-RELEASE ACCEPTANCE — PASS (this run) =====
+- scripts/wave_independent_acceptance.py — did NOT trust program pass-marks; reconstructed truths from RAW
+  preview DB records (masci_safety_preview, read-only, 0 writes) and compared to canonical calculators.
+- 12/12 checks PASS. Highlights:
+  * Active-employee reconstruction: total 454, is_active=441, lifecycle_Active=442 (1-record dual-authority
+    divergence SURFACED honestly; is_active canonical per Wave-3; 1 missing is_active flag noted — not coerced to active).
+  * Carrier population: total 336 == sum(status) {pending_review 68, active 267, inactive 1}; pending/unknown NOT
+    counted as eligible.
+  * Eligibility rate independent reconstruction 267/336 = 79.46% == canonical calculator EXACTLY.
+  * Adversarial boundaries all correct: variance zero-baseline->None (not 0), sign+over-100, efficiency zero-denom->None,
+    freshness unknown->UNKNOWN / old->STALE (not current), trust RED->not green, unknown-audit caps<=79.
+- ACCEPTANCE = PASS. No source defect found; no wave reopened.
+
+## ===== MASCI OPS — TRUTH & TRUST — WAVES 5-11 COMPLETE — FINAL CANDIDATE READY FOR OWNER SAVE =====
+No Save · No Deploy · production writes 0 · Checkpoints 1/2/3 FROZEN. Deferred post-Save browser proofs: 85
+(POST_SAVE_BROWSER_PROOF_REGISTER.csv). Final regression + fingerprint recorded in the finish summary / below.
