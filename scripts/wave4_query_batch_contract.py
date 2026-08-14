@@ -81,15 +81,14 @@ def classify_site(source_lines, lineno, trunc_arg):
             break
     if not total_from_len:
         return "A_PAGE_ONLY", start, end
-    # total-from-len present. Gate genuine D on a SMALL concrete bound: large
-    # safety caps (>=2000) and request-controlled variable limits do not
-    # truncate real master populations (max observed 604) -> SAFE_LARGE_BOUND
-    # (future-proofing advisory, not a current defect).
+    # total-from-len present. Per owner Wave-4 standard, DO NOT excuse a fixed
+    # cap because today's population is small — future-scale truncation is a
+    # truth defect. A FIXED numeric bound whose len() is presented as a total
+    # is D. A request-controlled variable limit means `count` describes the
+    # returned page (A_PAGE_ONLY).
     bound = _bound_magnitude(arg, snippet_line)
     if bound is None:
         return "A_PAGE_ONLY", start, end  # variable/request-controlled page size
-    if bound >= 2000:
-        return "SAFE_LARGE_BOUND", start, end
     return "D_DEFECT", start, end
 
 

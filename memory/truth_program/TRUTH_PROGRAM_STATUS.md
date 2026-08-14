@@ -117,3 +117,13 @@ See /app/memory/test_credentials.md (Super Admin jaymn.judd@mascigc.com). Previe
 - WAVE 4 finish: per-consumer dataflow proof for the ~104 count:=len() QUERY_BATCH sites -> A/B/C/D; harden any human-visible-total consumer with count_documents (TD-0009 pattern).
 - WAVE 5 KPI formula/denominator reconciliation (shared calculators, biggest blast radius first).
 - WAVE 6 freshness/time/history. WAVE 7 health state machines (failure injection). WAVE 8 cache/background/fallback. WAVE 9 portal-by-portal to 547/547. WAVE 10 report/export/PDF/email parity. WAVE 11 permanent automated drift guards.
+
+
+## ===== WAVE 4 D-CLASS (strict standard) — IN PROGRESS =====
+- Strict re-run (fixed-cap len-as-total = D regardless of current population): QUERY_BATCH strict-verified 585/735; 150 D-candidates enumerated (heuristic over-approx; each needs per-consumer confirmation).
+- Confirmed pattern (sampled): {"items": docs, "count": len(docs)} from fixed to_list(N) with no count_documents = genuine fleet-units contract-class.
+- REPAIRED representative: TD-0012 GET /api/employees -> added total=count_documents (live preview count=233/total=233/page_size=233). TD-0009 fleet-units already fixed+deployed.
+- REMAINING: ~148 D-candidates require per-consumer dataflow confirmation + canonical count_documents hardening + scale test. Systematic multi-turn pass. Precise list in WAVE4_SITE_CLASSIFICATION.json (query_batch_contract.defects).
+- Wave 4 status: CLASSIFIED 1042/1042; QUERY_BATCH strict-verified 586/735 (585 + TD-0012); NOT YET FULLY PROVEN (target 735/735).
+- Guards: GD-0004..GD-0012 all PASS (backend 34 + frontend 12).
+- WAVE 5 (KPI reconciliation): NOT STARTED (blocked on remaining budget; resume next).

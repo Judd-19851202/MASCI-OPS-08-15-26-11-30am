@@ -6107,13 +6107,18 @@ async def list_employees(_actor: Dict[str, Any] = Depends(_require_any_portal_re
     # supervisor_display / display_identity so downstream consumers
     # (Daily Report V3, ODS labor_fact, PDF, HR Time Verification,
     # Payroll Variance, PM Intelligence) never re-derive HR aliases.
+    _roster_query = apply_synthetic_hr_exclusion({"$and": [ACTIVE_FILTER, canonical_active_clause]})
     cursor = db.employees.find(
-        apply_synthetic_hr_exclusion({"$and": [ACTIVE_FILTER, canonical_active_clause]}),
+        _roster_query,
         PUBLIC_ROSTER_PROJECTION,
     ).sort("name", 1)
     raw_docs = await cursor.to_list(5000)
     docs = [normalize_employee_identity(d) for d in raw_docs]
-    return {"items": docs, "count": len(docs)}
+    # TRUTH PROGRAM · TD-0012 (Wave-4 D-class): `count` is the returned page
+    # length (backward-compatible); `total` is the true canonical population via
+    # count_documents so the count never silently caps at the 5000 batch bound.
+    _roster_total = await db.employees.count_documents(_roster_query)
+    return {"items": docs, "count": len(docs), "total": _roster_total, "page_size": len(docs)}
 
 @api_router.get("/hr/employee-roster")
 async def hr_employee_roster(
