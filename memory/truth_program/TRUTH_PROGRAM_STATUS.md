@@ -384,3 +384,57 @@ backend/tests/test_gd0017_percent_complete_contract.py, backend/tests/test_wave5
 frontend/src/components/HrCompletenessTile.jsx. Registers: WAVE5_PERCENT_COMPLETE_CONTRACT.md,
 WAVE5_KPI_REGISTER.md, LIVE_AUTH_ROOTCAUSE_AUDIT.md, TRUTH_PROGRAM_STATUS.md.
 NEXT: PC-COST audit (split quantity vs EV), then KPI-EXPIRING-RATE (50), then KPI-UTILIZATION (45).
+
+## ===== WAVE 5 — KPI FAMILIES CLOSURE CHECKPOINT (percent-complete + expiring-rate + utilization) =====
+CHECKPOINT_2 FROZEN: CHECKPOINT_2_LIVE_VERIFIED = YES · AUTH_GATED_PROBES_PENDING = 0 (unchanged). Preview-only. No Save/Deploy.
+
+THREE KPI FAMILIES RECONCILED + LIVE-VERIFIED (preview, authenticated Super Admin browser/portal session):
+- KPI-PERCENT-COMPLETE = **FULLY RECONCILED** (84/84 final disposition, Pending 0). PC-CHECKLIST + PC-SCHEDULE + PC-STORED
+  + PC-COST all governed. Canonical calcs: checklist_percent, schedule_rollup_percent(mode), quantity_progress_percent,
+  clamp_stored_percent. PC-COST is QUANTITY-only (no $-burn/EV/billing % exists in codebase). See WAVE5_PERCENT_COMPLETE_CONTRACT.md.
+- KPI-EXPIRING-RATE = **RECONCILED** (50/50 final disposition, Pending 0). Canonical `lib/kpi_expiry.py` (governed UTC boundary,
+  missing≠expiring, inclusive horizon, governed rate modes). Boundary verified IDENTICAL across all producers by source
+  inspection; document authority migrated to expiry_status. Guard GD-0018. See WAVE5_KPI_REGISTER.md.
+- KPI-UTILIZATION = **RECONCILED** (45/45 final disposition, Pending 0). 4 DISTINCT concepts kept separate (equipment-run,
+  storage, fleet-status, trench). used/available math unified in utilization_percent (capacity-bounded); equipment-run's two
+  uses migrated. Storage keeps its own owner. See WAVE5_KPI_REGISTER.md.
+
+DEFECTS PROVEN + REPAIRED this checkpoint (3):
+1. Frontend %-complete re-derivation divergence (HrCompletenessTile) — REPAIRED (render backend canonical).
+2. Asset onboarding endpoint 404-for-all (projected find_one `if not doc`) — REPAIRED (`if doc is None`). Live-verified.
+3. **D-EXPIRY-SCOPE**: `document_expirations._read_scope` read governance keys that never existed
+   (`is_super_admin`/`authority_level`/`permissions`) so EVERY portal incl. Super Admin saw 0 of 423 rows (compliance
+   blackout). REPAIRED by aligning to the real governance contract (`governance_scope_mode=="global"` bypass;
+   `direct_permissions`+`delegated_permissions` for category scope). NOT an access-policy change, NOT auth-weakening —
+   restores intended design. Live-verified: Super Admin now sees documents; summary counts non-zero; all 236 non-Archived
+   rows' status match canonical expiry_status.
+
+LIVE VERIFICATION (testing agent iteration_26, authenticated): PC-COST overall_percent_complete exact + overrun preserved
+(24-06 -> 10.0%); UTILIZATION fleet_size=766 buckets sum exact, equipment util 80/82 -> 97.6% exact; EXPIRING all 236 rows
+match canonical; regression employee-completeness + asset onboarding green; zero 500s.
+
+### WAVE 5 DURABLE COUNTERS (cumulative)
+- Truth surfaces reconciled: ~28 / 547
+- KPI concepts discovered: 12
+- KPI concepts FULLY reconciled: 4 (KPI-OWNERSHIP-SCORE[W2], KPI-PERCENT-COMPLETE, KPI-EXPIRING-RATE, KPI-UTILIZATION)
+- Percent-Complete: 84 / 84 FINAL · Expiring-Rate: 50 / 50 FINAL · Utilization: 45 / 45 FINAL
+- Formula/denominator defects proven: 3 (this checkpoint) [+ Wave 2/4 historical]
+- Shared-root repairs: 5 (checklist_percent, quantity_progress_percent[3 cores], utilization_percent[2 uses],
+  kpi_expiry canonical, document_expirations _read_scope contract)
+- Executable KPI guards: GD-0017 (30 cases: checklist/schedule/cost/utilization) + GD-0018 (10 cases: expiry) +
+  live suites test_wave5_pc_checklist_contract (17) + test_wave5_kpi_reconciliation_contract (22)
+- Unexplained contradictions: 0 · Production writes: 0 · Save: NO · Deploy: NO · Product Quality v4: PAUSED · Gate 16: OWNER-DEFERRED
+
+WAVE 5 NOT COMPLETE: remaining discovered KPI concepts (eligibility_rate, avg_days, pass_rate, and the balance toward the
+full 547 truth-surface denominator) are not yet reconciled. Next KPI targets to continue Wave 5.
+
+FILES TOUCHED (preview, unsaved) this checkpoint: backend/lib/kpi_percent_complete.py (+quantity_progress_percent,
++utilization_percent), backend/lib/kpi_expiry.py (new), backend/services/cost_codes/foundation.py,
+backend/services/cost_codes/oppc_execution.py, backend/services/operational_kpis/aggregator.py,
+backend/routes/document_expirations.py, backend/tests/test_gd0017_* , test_gd0018_* (new), test_wave5_pc_checklist_* ,
+test_wave5_kpi_reconciliation_contract.py (new). Registers: WAVE5_PERCENT_COMPLETE_CONTRACT.md, WAVE5_KPI_REGISTER.md.
+
+SAVE/DEPLOY EVALUATION (owner decision): the accumulated preview candidate (Wave-5 KPI canonicalization across
+percent-complete + expiring-rate + utilization, 3 KPI families fully dispositioned, +1 compliance-blackout fix, all
+guard + live tests green) is coherent and self-contained. It is a reasonable next Truth Engine Save/Deploy checkpoint
+candidate — AWAITING explicit owner authorization (no Save/Deploy performed).

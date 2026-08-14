@@ -10,8 +10,9 @@ Guards: `test_gd0017_percent_complete_contract.py` (20/20) + `test_wave5_pc_chec
 ## STATUS (updated this checkpoint)
 - PC-CHECKLIST: **RECONCILED + MIGRATED + LIVE-VERIFIED** (preview).
 - PC-SCHEDULE: **AUDITED + GOVERNED** (explicit modes) + 1 genuine mean-rollup migrated.
-- PC-STORED: **AUDITED — TRUTHFUL AS-IS** (nullable-contract field already renders unknown≠0; other `||0` are over always-numeric backends).
-- PC-COST: **AUDIT PENDING** (do NOT migrate until denominator concept proven per owner).
+- PC-STORED: **AUDITED — TRUTHFUL AS-IS** (unknown≠0 honored; other `||0` over always-numeric backends).
+- PC-COST: **RECONCILED** (quantity-only concept; canonical `quantity_progress_percent`; 3 cores migrated).
+- **KPI-PERCENT-COMPLETE = FULLY RECONCILED — 84/84 final disposition, Pending 0.**
 
 ## GOVERNED CONCEPTS
 
@@ -74,11 +75,51 @@ Explicit governed modes in `kpi_percent_complete.py`: `SCHEDULE_MODE_MAX`, `SCHE
   readiness -> 0% is a legitimate business default (no readiness computed). Documented; not a PC-STORED lie.
 - CONCLUSION: PC-STORED is already truthful; no unsafe change manufactured.
 
-## PC-COST — DEFERRED AUDIT (do not migrate until denominator proven)
-Distinct denominators identified (NOT interchangeable — will become explicit KPI IDs at migration):
-- `foundation.py:674 overall_percent_complete` = weighted_installed_qty / authorized_qty (QUANTITY-BASED).
-- `oppc_execution.py:641 percent_complete` = total_actual_qty / total_planned_qty (QUANTITY-BASED).
-- `pm_routes.py:303 cost_code_progress_percent` = downstream of overall_percent_complete.
-- EVM (`project_earned_value_engine`) = earned value / budget (COST/EV-BASED) — different concept again.
-=> PC-COST must be split into `PC-COST-QUANTITY` (installed/estimated qty) vs `PC-COST-EARNED` (EV/budget)
-   before any migration; do NOT let cost completion inherit schedule semantics.
+## PC-COST — RECONCILED (QUANTITY-only; no $-burn / EV / billing concept exists here)
+Canonical calculator `quantity_progress_percent()` (overrun >100 allowed; zero/neg/missing denom -> governed empty).
+KEY AUDIT TRUTH: every PC-COST site in this codebase is QUANTITY-based. There is NO actual-cost/budget burn,
+committed-cost, earned-value-ratio, or billed/contract-value % Complete among the 84 sites. (`crew_productivity_percent`,
+`labor_efficiency_percent`, `production_efficiency_percent`, `variance_percent` in oppc_execution are efficiency/variance
+KPIs, NOT % complete, and were not flagged.) So PC-COST reduces to ONE governed concept with two governed scopes:
+
+| KPI ID | Formula | Scope | Site(s) migrated |
+|---|---|---|---|
+| PC-COST-QUANTITY | installed_qty / authorized_qty * 100 (overrun allowed) | ENTERPRISE per-project, CURRENT cumulative | `foundation.py` per-code `progress_pct` (:628) + `overall_percent` (:670) |
+| PC-COST-QUANTITY-WINDOWED | actual_qty / planned_qty * 100 | TIME_WINDOWED (Monday review week) | `oppc_execution.py:641` production_summary.percent_complete |
+
+- `authorized_quantity` already reflects approved change orders (original + approved COs); calculator consumes the
+  governed denominator (does not re-derive CO math).
+- Consumer lineage: `foundation.overall_percent_complete` (:674) -> `foundation` job dict `cost_code_progress_percent`
+  (:994) -> `pm_routes.py:303` -> frontend `PmJobsRead.jsx:202`, `PmCostCodeAssignmentCard.jsx:99`,
+  `daily-report-v3/sections.jsx:1113` (all render the backend value; `|| 0` harmless — backend always numeric).
+  `oppc_confidence_data.py:105` reads `overall_percent_complete` (consumer, no re-derivation).
+- Guards: GD-0017 adds PC-COST-QUANTITY cases (0/100/overrun-not-clamped/zero-neg-missing-denom/change-order-denom/
+  distinct-from-checklist-and-schedule/same-scope equality). GD-0017 = 26/26.
+
+## ===== KPI-PERCENT-COMPLETE — FINAL DISPOSITION OF ALL 84 SITES (Pending = 0) =====
+Every site has a final governed disposition (migrated / governed-owner / truthful-as-is / non-formula):
+
+- MIGRATED to canonical calculator (8 compute sites): checklist -> asset_spine:427, employee_lifecycle:1377 (+3 per-field),
+  HrCompletenessTile.jsx:169; schedule mean -> actuals_spine:570; cost -> foundation:628, foundation:670, oppc_execution:641.
+- GOVERNED DISTINCT OWNER (documented, correct as-is): SCHEDULE_MAX_READING -> actuals_spine:619, earned_value:479;
+  SCHEDULE_WEIGHTED_ROLLUP (EVM) -> earned_value:809/811 (`_weighted_average`); oppc_execution:641 downstream slots
+  333/497/536/682 (derived from the migrated weekly percent); oppc_briefings:142 (reads monday completion_percent).
+- PC-STORED (parse/clamp of an entered/imported value; unknown!=0 honored where nullable): authority:412/909/1053
+  (import/entry clamp), foundation:194/484/516 (imported cost-line stored %), daily_reports:293 (Optional[float]=None),
+  actuals_spine:603/634/681/707/761/797/846 (approved stored value clamp/round), schedule_engine:260/327/329/458 &
+  foundation:390/393/397/423 (schedule-task stored progress), operational_kpis/aggregator:346-384 (stored snapshot
+  passthrough), daily_summary:186/427/774 & pdf_render:1386 (render/export of stored daily % ), enterprise_governance:
+  387/416 (Pydantic model default fields).
+- TRUTHFUL-AS-IS FRONTEND (evidence: unknown!=0 where contract permits; else backend always numeric): ViewDailyReport.jsx:752
+  (renders blank for null — reference pattern), sections.jsx:1113/1212 & PmJobsRead:202 & PmCostCodeAssignmentCard:99
+  (backend always numeric -> `|| 0` never a lie), PmMondayReviewWorkspace:343 (absent readiness = 0% legit default),
+  dailyReportSummaryPayload.js:70/193 (internal summary-math input, not a truth display), edit inputs
+  PmProjectSchedule:117/140/203/815, sections.jsx:1381/1389, ScheduleActualsWorkspace:89 (form defaults).
+- NON-FORMULA (headers / alias maps / comments): authority:134/1683/1703/1782/1800/1816/1838/1858/1135, pdf_render:1368/1372,
+  dailyReportSchema.js:107, dailyReportSummaryPayload.test.js:44/68 (test fixtures).
+
+### CLOSURE
+KPI-PERCENT-COMPLETE = **FULLY RECONCILED**. Sites classified 84/84 · final disposition 84/84 · Pending 0 ·
+unexplained formula differences 0 · duplicate local formula owners 0 (all same-concept/same-scope routed to one
+calculator; distinct concepts explicitly separated) · unknown-as-0 defects 0 · same-concept/same-scope disagreements 0.
+

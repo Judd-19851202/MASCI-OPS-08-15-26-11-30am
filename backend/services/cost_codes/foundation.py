@@ -9,6 +9,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from lib.kpi_percent_complete import quantity_progress_percent
 from services.ods_spine.store import COLL_PROJECT_CFG
 
 ALLOWED_UNITS = {"LF", "CY", "TONS", "LS"}
@@ -625,7 +626,8 @@ def build_progress_snapshot(assignments: List[Dict[str, Any]], daily_rows: List[
             authorized_quantity,
         )
         installed_quantity = round(totals_by_code.get(code, 0.0), 4)
-        progress_pct = round((installed_quantity / authorized_quantity) * 100.0, 2) if authorized_quantity > 0 else 0.0
+        # PC-COST-QUANTITY (Wave 5): installed qty / authorized qty (overrun may exceed 100).
+        progress_pct = quantity_progress_percent(installed_quantity, authorized_quantity)
         report_dates = sorted({
             str(row.get("report_date") or "")
             for row in (daily_rows or [])
@@ -667,7 +669,7 @@ def build_progress_snapshot(assignments: List[Dict[str, Any]], daily_rows: List[
             "status": "overrun" if overrun_quantity > 0 else ("in_progress" if installed_quantity > 0 else "not_started"),
         })
 
-    overall_percent = round((weighted_numerator / authorized_total) * 100.0, 2) if authorized_total > 0 else 0.0
+    overall_percent = quantity_progress_percent(weighted_numerator, authorized_total)
     overall_overrun_quantity = round(max(installed_total - authorized_total, 0.0), 4)
     per_code.sort(key=lambda row: (row.get("sort_order") or 0, row.get("code") or ""))
     return {

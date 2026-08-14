@@ -28,6 +28,7 @@ ROLE-AWARE VIEWS:
 from __future__ import annotations
 
 from lib.mongo_query import safe_regex
+from lib.kpi_expiry import expiry_status
 
 import logging
 import uuid
@@ -90,15 +91,8 @@ class DocExpirationPatch(BaseModel):
 
 
 def compute_status(exp_date: Optional[date]) -> str:
-    if not exp_date:
-        return "Not Applicable"
-    today = datetime.now(timezone.utc).date()
-    days = (exp_date - today).days
-    if days < 0:
-        return "Expired"
-    if days <= max(WARN_THRESHOLDS):
-        return "Expiring Soon"
-    return "Current"
+    # PC/EXPIRY canonical (Wave 5): governed UTC boundary, missing -> Not Applicable.
+    return expiry_status(exp_date, horizon_days=max(WARN_THRESHOLDS))
 
 
 def _serialize(doc: Dict[str, Any]) -> Dict[str, Any]:
@@ -334,9 +328,13 @@ def build_document_expirations_router(db, require_any_portal_token, require_admi
     async def _read_scope(actor: Dict[str, Any]) -> Dict[str, Any]:
         governed_actor = _governed_actor(actor)
         context = await build_governance_actor_context(db, governed_actor)
-        perms = set(context.get("permissions") or [])
-        if context.get("is_super_admin") or context.get("authority_level") == "global":
+        # Global-authority actors (system admin / executive / cross-project portals)
+        # see every category. The governance context surfaces this as
+        # governance_scope_mode == "global" (see enterprise_governance._is_cross_project_actor).
+        if context.get("governance_scope_mode") == "global":
             return {}
+        # Category-scoped actors: read permissions come from direct + delegated permissions.
+        perms = set(context.get("direct_permissions") or []) | set(context.get("delegated_permissions") or [])
         category_map = {
             "employee": "document_expirations.read.employee",
             "training_cert": "document_expirations.read.training_cert",

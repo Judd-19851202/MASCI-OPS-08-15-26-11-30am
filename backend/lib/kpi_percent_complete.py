@@ -21,9 +21,16 @@ Governed concepts (see WAVE5_PERCENT_COMPLETE_CONTRACT.md for the full site map)
 
   PC-SCHEDULE    Approved schedule progress rollup (max/avg of approved_percent_complete
                  across schedule rows for a scope). Uses clamp_stored_percent on each
-                 input; aggregation (max or mean) is chosen by the caller's governed
-                 scope. Empty set -> 0.0. Rounded to 2 dp.
-                 -> schedule_rollup_percent()
+                 input; aggregation mode (max or mean) MUST be chosen explicitly by the
+                 caller. Empty set -> 0.0. Rounded to 2 dp.
+                 -> schedule_rollup_percent(agg=SCHEDULE_MODE_MAX|MEAN)
+
+  PC-COST        QUANTITY-based cost/progress: installed_or_actual_qty / authorized_or_planned
+   (QUANTITY)    _qty. DISTINCT from the above: overrun MAY exceed 100% (no clamp by default);
+                 zero/negative/missing denominator -> governed empty (default 0.0). Note: this
+                 codebase has NO $-cost-burn, committed, earned-value-ratio, or billing %
+                 concept among the % Complete sites — cost progress here is purely quantity.
+                 -> quantity_progress_percent()
 
 All calculators are pure and side-effect free.
 """
@@ -104,3 +111,50 @@ def schedule_rollup_percent(values: Sequence, *, agg: str, ndigits: int = 2) -> 
     if agg == SCHEDULE_MODE_MEAN:
         return round(sum(nums) / len(nums), ndigits)
     return round(max(nums), ndigits)
+
+
+def quantity_progress_percent(
+    numerator_qty, denominator_qty, *, ndigits: int = 2, empty: float = 0.0, clamp_max: Optional[float] = None,
+) -> float:
+    """PC-COST-QUANTITY: 100 * installed_or_actual_quantity / authorized_or_planned_quantity.
+
+    This is the QUANTITY-based cost/progress concept (installed qty / authorized qty, or
+    actual qty / planned qty). It is DISTINCT from PC-CHECKLIST and PC-SCHEDULE:
+      * Cost/quantity progress MAY legitimately exceed 100% (overrun), so there is NO
+        [0,100] clamp by default (clamp_max=None). Pass clamp_max=100.0 only if a caller's
+        business rule explicitly caps it.
+      * Zero / negative / missing denominator (no authorized quantity / no plan) -> `empty`
+        (governed, default 0.0 — "no authorized scope yet" == 0% installed).
+    `authorized_quantity` is expected to already reflect approved change orders (original +
+    approved COs); this function does not re-derive change-order math. Rounded to `ndigits`."""
+    den = _to_float(denominator_qty, 0.0) or 0.0
+    if den <= 0:
+        return empty
+    pct = 100.0 * ((_to_float(numerator_qty, 0.0) or 0.0) / den)
+    if clamp_max is not None:
+        pct = min(pct, clamp_max)
+    return round(pct, ndigits)
+
+
+def utilization_percent(
+    used, available, *, ndigits: int = 1, empty: Optional[float] = 0.0, clamp_max: Optional[float] = 100.0,
+) -> Optional[float]:
+    """KPI-UTILIZATION: 100 * used / available.
+
+    Covers capacity-style utilization where `used` is a subset of `available`:
+      * equipment run utilization  -> run_hours / (run_hours + idle_hours)
+      * storage capacity           -> used_bytes / total_bytes
+    Capacity-bounded, so clamped to `clamp_max` (default 100.0 — you cannot exceed 100%
+    of available capacity). Zero / negative / missing `available` -> `empty` (governed,
+    default 0.0 == "no available capacity/time observed -> 0% utilized"; pass empty=None
+    for UNKNOWN when no observation should read as no-data rather than zero).
+    NOTE: distinct utilization CONCEPTS (equipment vs storage vs fleet-status vs labor)
+    are NOT interchangeable — each concept keeps its own governed caller/denominator; this
+    helper only unifies the used/available ratio MATH + zero-denominator + clamp rules."""
+    den = _to_float(available, 0.0) or 0.0
+    if den <= 0:
+        return empty
+    pct = 100.0 * ((_to_float(used, 0.0) or 0.0) / den)
+    if clamp_max is not None:
+        pct = min(pct, clamp_max)
+    return round(pct, ndigits)

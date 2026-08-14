@@ -14,6 +14,7 @@ import pytest
 sys.path.insert(0, str(Path("/app/backend")))
 from lib.kpi_percent_complete import (  # noqa: E402
     clamp_stored_percent, checklist_percent, checklist_percent_from_flags, schedule_rollup_percent,
+    quantity_progress_percent, utilization_percent,
 )
 
 
@@ -119,8 +120,80 @@ def test_schedule_rollup_empty_and_missing():
 
 
 # ---------------------------------------------------------------------------
-# Concepts stay DISTINCT — same label, different truth
+# PC-COST-QUANTITY  (installed/actual qty ÷ authorized/planned qty; overrun allowed)
 # ---------------------------------------------------------------------------
+def test_quantity_progress_basic_and_rounding():
+    assert quantity_progress_percent(0, 100) == 0.0            # 0% installed
+    assert quantity_progress_percent(50, 100) == 50.0
+    assert quantity_progress_percent(100, 100) == 100.0        # exactly complete
+    assert quantity_progress_percent(1, 3) == 33.33            # 2 dp rounding
+
+
+def test_quantity_progress_overrun_is_not_clamped():
+    # Cost/quantity overrun MUST be visible (installed > authorized) — no [0,100] clamp.
+    assert quantity_progress_percent(120, 100) == 120.0
+    # unless a caller explicitly opts into a cap:
+    assert quantity_progress_percent(120, 100, clamp_max=100.0) == 100.0
+
+
+def test_quantity_progress_zero_and_missing_denominator_is_governed_zero():
+    assert quantity_progress_percent(50, 0) == 0.0             # no authorized scope -> 0%
+    assert quantity_progress_percent(50, None) == 0.0
+    assert quantity_progress_percent(50, -10) == 0.0           # negative budget guarded
+    assert quantity_progress_percent(50, 0, empty=None) is None  # caller may choose UNKNOWN
+
+
+def test_quantity_progress_change_order_denominator_is_caller_supplied():
+    # authorized_quantity already reflects approved change orders (original + approved COs);
+    # the calculator just consumes the governed denominator it is handed.
+    original, approved_co, installed = 80.0, 20.0, 50.0
+    authorized = original + approved_co          # 100
+    assert quantity_progress_percent(installed, authorized) == 50.0
+
+
+def test_quantity_progress_is_distinct_from_checklist_and_schedule():
+    # Same numbers, different concept truth: 120/100 -> cost 120% (overrun) but a checklist
+    # would clamp to 100 and a schedule rollup input clamps to 100.
+    assert quantity_progress_percent(120, 100) == 120.0
+    assert checklist_percent(120, 100) == 100.0
+    assert schedule_rollup_percent([120], agg="max") == 100.0
+
+
+def test_quantity_progress_same_scope_consumers_agree():
+    # foundation overall_percent and oppc weekly percent_complete share ONE calculator;
+    # same inputs must yield the identical value regardless of caller.
+    assert quantity_progress_percent(340, 500) == quantity_progress_percent(340, 500)
+
+
+# ---------------------------------------------------------------------------
+# KPI-UTILIZATION  (used / available; capacity-bounded; distinct concepts stay distinct)
+# ---------------------------------------------------------------------------
+def test_utilization_basic_and_zero_denominator():
+    assert utilization_percent(30, 40) == 75.0          # equipment run 30 / (30+10)
+    assert utilization_percent(0, 40) == 0.0
+    assert utilization_percent(40, 40) == 100.0
+    assert utilization_percent(5, 0) == 0.0             # no available time -> governed 0
+    assert utilization_percent(5, 0, empty=None) is None  # caller may choose UNKNOWN
+
+
+def test_utilization_is_capacity_bounded_by_default():
+    # utilization cannot exceed 100% of available capacity (unlike cost overrun).
+    assert utilization_percent(120, 100) == 100.0
+    assert utilization_percent(120, 100, clamp_max=None) == 120.0   # opt-out if a caller needs it
+
+
+def test_utilization_math_matches_equipment_run_formula():
+    run, idle = 63.0, 21.0
+    assert utilization_percent(run, run + idle, ndigits=1) == round(run / (run + idle) * 100.0, 1)
+
+
+def test_utilization_vs_cost_overrun_are_distinct():
+    # 120/100: utilization clamps to 100 (capacity), cost quantity shows 120 (overrun).
+    assert utilization_percent(120, 100) == 100.0
+    assert quantity_progress_percent(120, 100) == 120.0
+
+
+
 def test_concepts_are_distinct_not_one_formula():
     # stored known-0 vs stored unknown vs empty checklist are three different truths
     assert clamp_stored_percent(0) == 0.0

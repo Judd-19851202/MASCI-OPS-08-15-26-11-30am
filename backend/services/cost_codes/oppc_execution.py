@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from lib.synthetic_dr_filter import apply_synthetic_dr_exclusion
+from lib.kpi_percent_complete import quantity_progress_percent
 from services.cost_codes.foundation import (
     build_planning_lifecycle_snapshot,
     build_planning_readiness,
@@ -638,7 +639,8 @@ async def build_project_execution_workspace(db, project_number: str, week_ending
             "planned_quantity": total_planned_qty,
             "actual_quantity": total_actual_qty,
             "remaining_quantity": total_remaining_qty,
-            "percent_complete": round((total_actual_qty / total_planned_qty) * 100.0, 2) if total_planned_qty > 0 else 0.0,
+            # PC-COST-QUANTITY-WINDOWED (Wave 5): weekly actual qty / planned qty.
+            "percent_complete": quantity_progress_percent(total_actual_qty, total_planned_qty),
             "actual_labor_hours": total_actual_labor,
             "actual_equipment_hours": total_actual_equipment,
             "actual_trucks": total_actual_trucks,

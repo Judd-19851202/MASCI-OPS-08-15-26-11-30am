@@ -40,6 +40,8 @@ from collections import Counter, defaultdict
 from datetime import datetime, timezone, timedelta, date
 from typing import Any, Dict, Iterable, List, Optional, Tuple
 
+from lib.kpi_percent_complete import utilization_percent
+
 # --------------------------------------------------------------------------
 # Windows
 # --------------------------------------------------------------------------
@@ -225,17 +227,15 @@ def _equipment_kpis(facts: List[Dict[str, Any]]) -> Dict[str, Any]:
             by_day_idle[d] += idle
 
     denom = total_run + total_idle
-    utilization = (total_run / denom * 100.0) if denom > 0 else 0.0
+    # KPI-UTILIZATION (equipment run): run / (run + idle). Governed zero-denom -> 0.
+    utilization = utilization_percent(total_run, denom, ndigits=6)
     per_eq = sorted(
         (
             {
                 "equipment": lbl,
                 "run": round(v["run"], 2),
                 "idle": round(v["idle"], 2),
-                "utilization": round(
-                    (v["run"] / (v["run"] + v["idle"]) * 100.0)
-                    if (v["run"] + v["idle"]) > 0 else 0.0, 1,
-                ),
+                "utilization": utilization_percent(v["run"], v["run"] + v["idle"], ndigits=1),
             }
             for lbl, v in by_equipment.items()
         ),

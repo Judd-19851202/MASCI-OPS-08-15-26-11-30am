@@ -1379,3 +1379,16 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
   by SPA); repair needs integration_expert + owner authorization, not executed. Side Lane B: raw-vs-SPA token =
   INTENTIONAL SESSION BINDING; headless mechanism documented; no auth weakening. See LIVE_AUTH_ROOTCAUSE_AUDIT.md.
 - Production writes 0 · Save NO · Deploy NO · Checkpoint 2 frozen LIVE_VERIFIED.
+
+## 2026-06 — WAVE 5 KPI families closure (percent-complete + expiring-rate + utilization) [preview-only]
+- KPI-PERCENT-COMPLETE FULLY RECONCILED (84/84): +PC-COST quantity_progress_percent (foundation:628/670, oppc_execution:641);
+  overrun >100 preserved; cost is quantity-only (no $-burn/EV/billing % exists).
+- KPI-EXPIRING-RATE RECONCILED (50/50): new canonical lib/kpi_expiry.py (governed UTC boundary, missing≠expiring, inclusive
+  horizon, rate modes); document_expirations.compute_status migrated; GD-0018 guard (10).
+- KPI-UTILIZATION RECONCILED (45/45): 4 distinct concepts kept separate; utilization_percent unifies used/available math
+  (capacity-bounded); equipment-run migrated; storage keeps own owner.
+- Defect fixed (D-EXPIRY-SCOPE): document-expirations returned 0 rows to every portal incl. Super Admin due to
+  _read_scope reading non-existent governance keys; realigned to governance_scope_mode/global + direct/delegated perms
+  (no auth-weakening, no policy change). Live-verified.
+- Guards: GD-0017 expanded to 30 cases; GD-0018 10; live suites 17 + 22 (testing agent iteration_26 all green).
+- Production writes 0 · Save NO · Deploy NO · Checkpoint 2 frozen LIVE_VERIFIED.
