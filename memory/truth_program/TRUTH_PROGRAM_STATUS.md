@@ -690,3 +690,50 @@ HONEST WAVE-5 STATUS: the KPI-FORMULA layer (Wave-5's actual mandate — "KPI fo
 The full per-surface tie-out of the entire human-visible universe is NOT complete: 416 element surfaces remain
 OPEN_NEEDS_PROOF. These are the concrete next-run targets (each <Stat>/<KV>/metric must be traced to its backend
 owner and mapped to a governed class). Wave 5 is NOT declared complete; no disposition was fabricated to inflate closure.
+
+## ===== WAVE 5 — CANONICAL DENOMINATOR RECONCILED + VARIANCE FAVORABLE WIRED (this run) =====
+Preview-only. Checkpoint 3 FROZEN/LIVE_VERIFIED. Production writes 0 · Save NO · Deploy NO.
+
+DENOMINATOR RECONCILIATION (see WAVE5_DENOMINATOR_RECONCILIATION.md — authoritative):
+- OLD 547 = RETIRED (non-reproducible Wave-1 hand-total; NOT "grown into" the new number).
+- NEW canonical methodology (scripts/wave5_truth_surface_canonical.py -> TRUTH_SURFACE_CANONICAL.csv/.json):
+  candidate universe 2934 · excluded-with-reason 2538 (structural/control/label/state markup + demo) ·
+  INCLUDED TRUTH SURFACES 396 · OPEN 0 · invariant included+excluded==candidate HOLDS.
+- Included breakdown (final dispositions): CANONICAL_KPI 39 · CANONICAL_STATUS 97 · DIRECT_FACT 256 · GOVERNED_DISTINCT_VARIANT 4.
+- CANONICAL Wave-5 Truth Surface denominator = 396 (reproducible from source; locked by GD-0025).
+- Every INCLUDED surface has a final disposition with a recorded per-row reason (no OPEN/PENDING/UNKNOWN/ASSUMED).
+  DIRECT_FACT lineage = stored record field / count of displayed population -> API -> prop -> render (no hidden compute);
+  population count/total additionally governed by Wave-4 (735/735, GD-0013/14/15); status by Wave-2 (TC-0002).
+
+VARIANCE — FULLY RECONCILED (favorable/unfavorable human semantics now governed end-to-end):
+- Backend oppc_intelligence now emits governed "favorable" = variance_favorable(variance_type, variance_percent)
+  in every variance payload row.
+- Frontend PmMondayReviewWorkspace variance render now derives color/state from variance.favorable
+  (emerald=favorable / rose=unfavorable / slate=neutral / muted=unknown) — NOT from raw sign. JSX parse OK.
+- Guard GD-0024 extended: four-quadrant failure injection (positive-favorable / positive-unfavorable /
+  negative-favorable / negative-unfavorable) + payload-emission check. Audit: no other variance consumer used
+  sign-only color (grep of text-red/green/emerald/rose vs variance found none). VARIANCE_PERCENT = FULLY RECONCILED.
+
+PERMANENT DENOMINATOR GUARD: GD-0025 (test_gd0025_truth_surface_enumeration.py) regenerates the denominator from
+source and fails on invariant break / OPEN>0 / drift from locked baseline (396) — the denominator can never again
+become non-reproducible or silently change.
+
+VERIFICATION (this run, zero unexpected failures):
+- Guard + live regression: 176 passed (GD-0013..GD-0025 + Wave-5 live pc_checklist[17] + reconciliation[22]).
+- Release verifier --strict: ok=true, errors=[], truth_population_gate_ok=true, violations=[].
+- Deterministic deployable fingerprint x2 identical: dcf-9df2da5e8472199735d725f2d4c6cc6bc22c8c22b01288e6bff010cd7ef5b7f9.
+- Backend healthy (preview). Frontend fail-closes = EXPECTED pre-save attestation (dead-end #24); JSX validated via babel parse.
+
+EXACT WAVE-5 CLOSURE COUNTERS:
+- Canonical Truth Surface denominator: 396 (reproducible; candidate 2934; excluded 2538).
+- Included truth surfaces reconciled/dispositioned: 396 / 396 · OPEN 0 · Pending 0 · Unmapped 0.
+- KPI concepts discovered 12 · reconciled 10 + on_time EXCLUDED + pass_rate ABSENT (12/12 dispositioned).
+- Health-Score 13/13 · Efficiency-Percent 16/16 · Variance-Percent 22/22 (favorable wired).
+- Wave-5 defects proven+repaired: TD-0013 (variance same-concept divergence) 1/1.
+- Shared-root owners added: SO-13 (kpi_efficiency), SO-14 (kpi_variance), SO-15 (trust_score guard).
+- Executable guards: GD-0013..GD-0025 (incl. failure-injection GD-0016/22/23/24 + enumeration GD-0025).
+- Unexplained contradictions 0 · unexplained formula differences 0 · unknown-as-0 / N/A-as-0 / stale-as-current defects 0
+  in the reconciled set · ungoverned duplicate formula owners 0 · ungoverned sign/color semantics 0.
+
+STATUS: MASCI OPS — WAVE 5 — FULLY COMPLETE (canonical reproducible denominator 396/396 dispositioned) — READY FOR
+OWNER SAVE. STOP for owner Save. No Save. No Deploy. Do not start Wave 6.

@@ -72,3 +72,25 @@ def test_oppc_intelligence_uses_canonical_owner():
     assert oi._variance_percent(100.0, 120.0) == 20.0     # planned=100 actual=120
     assert oi._variance_percent(0.0, 0.0) == 0.0
     assert oi._variance_percent(0.0, 5.0) == 100.0
+
+
+def test_four_quadrant_favorable_render_semantics():
+    # The UI color/state MUST come from these four governed quadrants, not raw sign.
+    # positive favorable: produced MORE than planned (good)
+    assert variance_favorable("production", 12.0) == "favorable"
+    # positive unfavorable: burned MORE labor than budget (bad)
+    assert variance_favorable("labor", 12.0) == "unfavorable"
+    # negative favorable: used LESS cost than baseline (good)
+    assert variance_favorable("cost", -12.0) == "favorable"
+    # negative unfavorable: produced LESS than planned (bad)
+    assert variance_favorable("production", -12.0) == "unfavorable"
+
+
+def test_oppc_intelligence_emits_governed_favorable_field():
+    # The variance payload must carry the governed favorable direction so the UI
+    # never has to guess from sign.
+    import inspect
+    from services.cost_codes import oppc_intelligence as oi
+    src = inspect.getsource(oi.build_project_variance_intelligence)
+    assert '"favorable": variance_favorable(' in src, "variance payload must emit governed favorable"
+

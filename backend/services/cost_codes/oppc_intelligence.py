@@ -5,6 +5,7 @@ from datetime import date, datetime, timedelta, timezone
 from typing import Any, Dict, List, Optional
 
 from lib.kpi_variance import variance_percent as canonical_variance_percent
+from lib.kpi_variance import variance_favorable
 from services.cost_codes.foundation import load_project_assignments, now_iso
 
 VARIANCE_SEVERITIES = [
@@ -404,6 +405,7 @@ async def build_project_variance_intelligence(
                     "actual_value": round(item["actual_value"], 4),
                     "variance_value": round(item["variance_value"], 4),
                     "variance_percent": round(item["variance_percent"], 2),
+                    "favorable": variance_favorable(variance_type, round(item["variance_percent"], 2)),
                     "primary_cause": primary_cause,
                     "contributing_causes": contributing,
                     "controllability": controllability,

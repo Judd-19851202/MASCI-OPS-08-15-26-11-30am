@@ -470,7 +470,18 @@ export default function PmMondayReviewWorkspace() {
                             <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{variance.severity} · {variance.status}</div>
                           </div>
                           <div className="text-right text-xs text-slate-500">
-                            <div data-testid={`pm-monday-review-variance-percent-${suffix}`}>{variance.variance_percent}%</div>
+                            <div
+                              data-testid={`pm-monday-review-variance-percent-${suffix}`}
+                              className={
+                                variance.favorable === "favorable" ? "font-bold text-emerald-700"
+                                : variance.favorable === "unfavorable" ? "font-bold text-rose-700"
+                                : variance.favorable === "neutral" ? "font-bold text-slate-600"
+                                : "font-bold text-slate-400"
+                              }
+                              title={`Governed direction: ${variance.favorable || "unknown"} (per ${variance.variance_type} concept)`}
+                            >
+                              {variance.variance_percent}%{variance.favorable && variance.favorable !== "unknown" ? ` · ${variance.favorable}` : ""}
+                            </div>
                             <div>{variance.primary_cause || "unknown"}</div>
                           </div>
                         </div>
