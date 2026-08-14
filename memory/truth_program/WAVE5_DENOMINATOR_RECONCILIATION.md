@@ -67,3 +67,8 @@ machine-reproducible. This document is the authoritative reconciliation record.
 - DIRECT_FACT -> stored record field / count of the very population displayed; lineage
   record -> API serialization -> component prop -> render, no hidden computation/denominator.
 - Population count/total facts additionally governed by Wave-4 (735/735 PROVEN, GD-0013/14/15).
+
+## GOVERNED RECONCILIATION — 396 -> 397 (2026-06 final-acceptance repair cycle)
+The TD-0014/TD-0015 repairs added ONE governed truth surface (equipment-master UNAVAILABLE error state /
+trench governed N/A cell replacing a fake 0%). Candidate universe 2934->2938; excluded 2538->2539; included 396->397;
+OPEN 0; invariant HOLDS. BASELINE_INCLUDED updated to 397 in lib/truth_surface_guard.py + GD-0025 (governed, reasoned).

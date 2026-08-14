@@ -883,3 +883,32 @@ lacks system_administrator bypass) — OWNER DECISION: correct least-privilege o
 NOT COVERED: expiring-rate badge component (4 proofs) not yet located.
 DECISION: STOP for owner. Do NOT Deploy. Do NOT second-Save. Defects are owner-gated (repair requires source change +
 a new Save cycle). No defect hidden to preserve one-Save/one-Deploy.
+
+## ===== FINAL ACCEPTANCE REPAIR CYCLE — COMPLETE (preview) — READY FOR OWNER RE-SAVE =====
+Owner-authorized source repair in preview. Production READ-ONLY, writes 0. No second Save/Deploy by agent.
+- TD-0014 (compliance/utilization N/A-as-0) — REPAIRED across blast radius. Backend report_utilization by_asset_type now
+  routes through compliance_rate(sub_used, len(subset)) -> value+utilization_state (subset=0 -> NOT_APPLICABLE, no _safe_pct
+  max(,1) mask); top-level utilization emits utilization_state. Frontend TrenchSafetyReports renders ic-by-type / ic-top-risk /
+  ut-by-type via governed pctCell(value,state) (N/A / UNKNOWN, never fake 0%). Compliance rows already emitted state.
+  Blast sweep: other ${..pct}% renders are either typeof-number guarded ("—") or always-numeric distinct-variant projections
+  (asset-mapping trust/coverage) — not the same defect. Guard GD-0031.
+- TD-0015 — TWO parts. (B) FALSE-EMPTY UI: REPAIRED — EquipmentMasterPanel now sets loadError on fetch failure and renders
+  'UNAVAILABLE' + an explicit error row (data-testid equipment-master-load-error) instead of '0 units / fleet empty'.
+  Guard GD-0031. Blast note: the fetch-failure->[]->0 pattern is repaired at this shared panel. (A) AUTH 401: the endpoint
+  /equipment-master uses _require_any_portal_read (portal session-binding). Per program rule, auth changes route through the
+  integration expert and session-binding 401s are classified intentional unless proven otherwise — CLASSIFIED OWNER/AUTH-REVIEW,
+  NOT hacked. Truth impact (false 0) is eliminated regardless of the 401.
+- TD-0016 — CORRECTED: BP-0057 relabeled to CANONICAL_STATUS (AdminComplianceFindings severity/status badges; no compliance %
+  exists). Browser-proof denominator UNCHANGED at 85 (row relabeled, not removed).
+- OPPC SUPER ADMIN GLOBAL READ — REPAIRED at the canonical scope authority: _ensure_project_access(read_only=True) allows
+  global-scope actors (governance_project_scope.is_admin) on the 4 GET endpoints (execution-workspace, monday-briefing,
+  pdf, variance-intelligence); write/PUT/POST endpoints keep read_only=False (full require_governed_action — NO write bypass).
+  Ordinary PM scope preserved; unrelated roles denied. Guard GD-0031 (+ semantics test).
+- RUNTIME RULE (Wave 11 hardening): preview backend does NOT hot-reload service modules -> backend restarted after edits;
+  boots clean (200). Any pre-restart runtime evidence for changed backend modules is INVALID.
+- Truth-surface denominator: governed reconciliation 396 -> 397 (repair added one governed surface); invariant holds; OPEN 0.
+- Regression after repair: 215 passed / 0 unexpected failed (2 drift-sentinel failures were the guard CORRECTLY firing on the
+  denominator change; resolved by governed baseline reconciliation, then green). Strict verifier ok; pop+surface gates PASS.
+- New deterministic candidate fingerprint (repaired, unsaved): dcf-9430db68b6b46afe4892d1e88b36226df2654fd5cfb5e5bb0a5c0417fc1a674c (x2).
+- Frontend fail-closes (EXPECTED): repaired source != last authorized dcf-5c4ddc95 -> awaits owner RE-SAVE. Attestation NOT tampered.
+DECISION: STOP for owner RE-SAVE. Save NO · Deploy NO · production writes 0.

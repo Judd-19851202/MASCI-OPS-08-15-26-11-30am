@@ -36,7 +36,7 @@ from services.cost_codes.oppc_intelligence import (
     build_project_variance_intelligence,
     upsert_variance_review,
 )
-from lib.enterprise_governance import require_governed_action
+from lib.enterprise_governance import require_governed_action, governance_project_scope
 from lib.release_scope import is_release_deferred, raise_release_deferred_404
 
 
@@ -148,7 +148,16 @@ def _validate_variance_taxonomy(payload: VarianceReviewBody) -> None:
         raise HTTPException(status_code=422, detail="recovery_priority is not in the approved canonical taxonomy")
 
 
-async def _ensure_project_access(db, project_number: str, actor: Any, request: Optional[Request] = None) -> None:
+async def _ensure_project_access(db, project_number: str, actor: Any, request: Optional[Request] = None, read_only: bool = False) -> None:
+    # OWNER-AUTHORIZED (final acceptance): a genuine system_administrator / global-scope actor
+    # has GLOBAL PROJECT READ for oversight, truth verification, certification and support.
+    # This is READ-ONLY — write/mutation endpoints pass read_only=False and remain fully governed
+    # (no project editing / approval / write authority is broadened). Ordinary PMs stay scoped by
+    # governance_project_scope; unrelated roles remain denied by require_governed_action below.
+    if read_only:
+        scope = await governance_project_scope(db, actor)
+        if scope.is_admin:  # global scope only (system admin / super admin / governance_scope_mode=global)
+            return
     await require_governed_action(
         db,
         actor=actor,
@@ -203,7 +212,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         week_ending: Optional[str] = None,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        await _ensure_project_access(db, project_number, actor)
+        await _ensure_project_access(db, project_number, actor, read_only=True)
         return await build_project_execution_workspace(db, project_number, _week_ending(week_ending or ""))
 
     @api_router.get("/oppc/projects/{project_number}/monday-briefing")
@@ -212,7 +221,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         week_ending: Optional[str] = None,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        await _ensure_project_access(db, project_number, actor)
+        await _ensure_project_access(db, project_number, actor, read_only=True)
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(week_ending or "")
         doc = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
@@ -318,7 +327,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
     ) -> Response:
         if is_release_deferred("executive_monday_briefing_pdf"):
             raise_release_deferred_404("executive_monday_briefing_pdf")
-        await _ensure_project_access(db, project_number, actor)
+        await _ensure_project_access(db, project_number, actor, read_only=True)
         await ensure_monday_briefing_indexes(db)
         week = _week_ending(week_ending or "")
         doc = await load_monday_briefing_doc(db, scope_type="project", scope_key=project_number, week_ending=week)
@@ -333,7 +342,7 @@ def register_oppc_execution_routes(api_router: APIRouter, db, require_any_portal
         week_ending: Optional[str] = None,
         actor=Depends(require_any_portal_token),
     ) -> Dict[str, Any]:
-        await _ensure_project_access(db, project_number, actor)
+        await _ensure_project_access(db, project_number, actor, read_only=True)
         workspace = await build_project_execution_workspace(db, project_number, _week_ending(week_ending or ""))
         return await build_project_variance_intelligence(
             db,

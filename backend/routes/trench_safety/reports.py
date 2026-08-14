@@ -511,18 +511,20 @@ async def report_utilization(db, f: Filters) -> Dict[str, Any]:
     in_use = cs.get("Assigned", 0) + cs.get("In Transport", 0)
     idle = cs.get("Available", 0)
     retired = sum(1 for d in docs if not d.get("is_active") or d.get("operational_status") == "Retired")
-    utilization_pct = _safe_pct(in_use, max(len(active), 1))
+    utilization_pct, utilization_state = compliance_rate(in_use, len(active))
 
     by_type_util: Dict[str, Dict[str, int]] = {}
     for t in ASSET_TYPES:
         subset = [d for d in active if d.get("asset_type") == t]
         sub_cs = Counter(d.get("operational_status") or "Available" for d in subset)
         sub_used = sub_cs.get("Assigned", 0) + sub_cs.get("In Transport", 0)
+        _upct, _ustate = compliance_rate(sub_used, len(subset))
         by_type_util[t] = {
             "total": len(subset),
             "in_use": sub_used,
             "idle": sub_cs.get("Available", 0),
-            "utilization_pct": _safe_pct(sub_used, max(len(subset), 1)),
+            "utilization_pct": _upct,
+            "utilization_state": _ustate,
         }
 
     by_project: Dict[str, int] = Counter(
@@ -538,6 +540,7 @@ async def report_utilization(db, f: Filters) -> Dict[str, Any]:
             "retired": retired,
         },
         "utilization_pct": utilization_pct,
+        "utilization_state": utilization_state,
         "by_asset_type": by_type_util,
         "by_project": dict(by_project.most_common(15)),
         "filters": f.as_dict(),

@@ -1801,3 +1801,13 @@ ALL MASTER-DATA SELECTORS CANONICALLY BOUND: Employee/Equipment/Vendor/Job = YES
 - Wave 11 Permanent enforcement: truth-surface drift sentinel (lib/truth_surface_guard.py) + population gate wired into verify_release_identity.py; GD-0030 meta-guard (coverage + failure injection).
 - Independent Acceptance PASS 12/12: reconstructed from RAW preview DB (0 writes) — carrier eligibility 267/336=79.46% == canonical; active-employee dual-authority divergence surfaced honestly; adversarial boundaries correct.
 - Final: 209 tests pass / 0 failures; strict verifier ok (pop_gate + surface_gate true); fingerprint deterministic x2 dcf-5c4ddc95...; ~43 files changed since Checkpoint 3. Save NO · Deploy NO. Waves 5–11 COMPLETE — final candidate ready for owner Save.
+
+## 2026-06 — FINAL ACCEPTANCE REPAIR CYCLE COMPLETE (preview; ready for owner RE-SAVE)
+- Save proven (SHA 88a54127 / dcf-5c4ddc95, provenance VERIFIED); human acceptance found real defects -> repaired.
+- TD-0014 REPAIRED: trench compliance/utilization N/A-as-0 (backend utilization rows -> compliance_rate value+state; frontend pctCell governed N/A/UNKNOWN). GD-0031.
+- TD-0015 (B) REPAIRED: EquipmentMasterPanel renders UNAVAILABLE/error on load failure, never false "0 units". (A) 401 auth = OWNER/AUTH-REVIEW (portal session-binding; not hacked; truth impact removed).
+- TD-0016 CORRECTED: BP-0057 relabeled CANONICAL_STATUS; browser-proof denominator unchanged (85).
+- OPPC REPAIRED: system_administrator global PROJECT READ via _ensure_project_access(read_only=True) on 4 GET endpoints; writes fully governed (no bypass); PM scope preserved. GD-0031.
+- Runtime rule: preview backend doesn't hot-reload service modules -> restart-after-change mandated; boots clean.
+- Truth-surface denominator governed reconciliation 396->397 (repair added one governed surface); GD-0025/0030 green.
+- Regression 215 passed / 0 unexpected; strict verifier ok (pop+surface gates PASS). New deterministic fingerprint dcf-80253472...; 47 files changed since Checkpoint 3. Save NO / Deploy NO. Frontend fail-closes pre-reSave (expected). READY FOR OWNER RE-SAVE; 85 browser proofs execute post-reSave.

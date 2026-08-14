@@ -21,7 +21,9 @@ from pathlib import Path
 from typing import List
 
 # Governed baseline — change ONLY with a recorded reconciliation (WAVE5_DENOMINATOR_RECONCILIATION.md).
-BASELINE_INCLUDED = 396
+# 396 -> 397 (2026-06 repair cycle): TD-0014/TD-0015 repairs added ONE governed truth surface
+# (equipment-master UNAVAILABLE error state / trench governed N/A cell). Invariant holds, OPEN=0.
+BASELINE_INCLUDED = 397
 
 
 def gate_violations(repo_root: Path) -> List[str]:

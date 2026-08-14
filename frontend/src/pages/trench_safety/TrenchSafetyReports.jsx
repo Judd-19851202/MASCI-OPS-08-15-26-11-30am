@@ -38,6 +38,20 @@ const STATUSES = [
 ];
 const CONDITIONS = ["Excellent", "Good", "Fair", "Poor", "Out Of Service"];
 
+// Compact governed percentage cell for tables — same N/A / UNKNOWN / value rules as <Pct>,
+// so a zero/absent denominator never renders as a fake 0%.
+function pctCell(value, state) {
+  if (state === "NOT_APPLICABLE")
+    return <span data-testid="pct-cell-na" className="text-slate-400 font-semibold">N/A</span>;
+  if (state === "UNKNOWN" || state === "UNAVAILABLE" || value === null || value === undefined)
+    return <span data-testid="pct-cell-unknown" className="text-slate-400 font-semibold">UNKNOWN</span>;
+  const v = Number.isFinite(value) ? value : null;
+  if (v === null)
+    return <span data-testid="pct-cell-unknown" className="text-slate-400 font-semibold">UNKNOWN</span>;
+  const color = v >= 90 ? "text-emerald-700" : v >= 75 ? "text-blue-700" : v >= 60 ? "text-amber-700" : "text-red-700";
+  return <span className={"font-semibold " + color}>{v}%</span>;
+}
+
 function Pct({ value, state }) {
   if (state === "UNKNOWN" || state === "UNAVAILABLE")
     return <span data-testid="pct-unknown" className="font-mono font-black text-2xl text-slate-400">UNKNOWN</span>;
@@ -253,12 +267,12 @@ function ReportInspectionCompliance({ data }) {
       </div>
       <MiniTable
         headers={[t("Type"), t("Total"), t("Overdue"), t("Compliance %")]}
-        rows={Object.entries(data?.by_asset_type || {}).map(([k, v]) => [t(k), v.total, v.overdue, `${v.compliance_pct}%`])}
+        rows={Object.entries(data?.by_asset_type || {}).map(([k, v]) => [t(k), v.total, v.overdue, pctCell(v.compliance_pct, v.compliance_state)])}
         testId="ic-by-type"
       />
       <MiniTable
         headers={[t("Yard / Location"), t("Total"), t("Overdue"), t("Compliance %")]}
-        rows={(data?.top_risk_areas || []).map((r) => [r.yard, r.total, r.overdue, `${r.compliance_pct}%`])}
+        rows={(data?.top_risk_areas || []).map((r) => [r.yard, r.total, r.overdue, pctCell(r.compliance_pct, r.compliance_state)])}
         testId="ic-top-risk"
       />
       <MiniTable
@@ -356,7 +370,7 @@ function ReportUtilization({ data }) {
       </div>
       <MiniTable
         headers={[t("Type"), t("Total"), t("In Use"), t("Idle"), t("Util %")]}
-        rows={Object.entries(data?.by_asset_type || {}).map(([k, v]) => [t(k), v.total, v.in_use, v.idle, `${v.utilization_pct}%`])}
+        rows={Object.entries(data?.by_asset_type || {}).map(([k, v]) => [t(k), v.total, v.in_use, v.idle, pctCell(v.utilization_pct, v.utilization_state)])}
         testId="ut-by-type"
       />
       <MiniTable

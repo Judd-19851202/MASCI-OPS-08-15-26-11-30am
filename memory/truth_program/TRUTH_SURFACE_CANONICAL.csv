@@ -183,16 +183,17 @@ frontend/src/components/EmailRoutingV2Panel.jsx:554,EmailRoutingV2Panel,v2-audit
 frontend/src/components/EmailRoutingV2Panel.jsx:574,EmailRoutingV2Panel,v2-audit-drawer-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EnvBanner.jsx:37,EnvBanner,env-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentLines.jsx:140,EquipmentLines,equipment-lines-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:335,EquipmentMasterPanel,equipment-master-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:349,EquipmentMasterPanel,equipment-master-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:361,EquipmentMasterPanel,equipment-master-export-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:377,EquipmentMasterPanel,equipment-master-bulk-input,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:384,EquipmentMasterPanel,equipment-master-bulk-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:418,EquipmentMasterPanel,equipment-master-add-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:429,EquipmentMasterPanel,equipment-tabs,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:472,EquipmentMasterPanel,equipment-master-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:766,EquipmentMasterPanel,eq-form-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/EquipmentMasterPanel.jsx:790,EquipmentMasterPanel,eq-history-fullpage-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:338,EquipmentMasterPanel,equipment-master-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:352,EquipmentMasterPanel,equipment-master-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:364,EquipmentMasterPanel,equipment-master-export-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:380,EquipmentMasterPanel,equipment-master-bulk-input,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:387,EquipmentMasterPanel,equipment-master-bulk-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:431,EquipmentMasterPanel,equipment-master-add-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:442,EquipmentMasterPanel,equipment-tabs,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:485,EquipmentMasterPanel,equipment-master-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:566,EquipmentMasterPanel,equipment-master-load-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:783,EquipmentMasterPanel,eq-form-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/EquipmentMasterPanel.jsx:807,EquipmentMasterPanel,eq-history-fullpage-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentPartsPanel.jsx:17,EquipmentPartsPanel,equipment-parts-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentReturnLines.jsx:158,EquipmentReturnLines,equipment-return-serial-input,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/EquipmentReturnLines.jsx:183,EquipmentReturnLines,equipment-return-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2923,13 +2924,14 @@ frontend/src/pages/trench_safety/TrenchSafetyReportDistribution.jsx:200,TrenchSa
 frontend/src/pages/trench_safety/TrenchSafetyReportDistribution.jsx:214,TrenchSafetyReportDistribution,sub-list-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyReportDistribution.jsx:244,TrenchSafetyReportDistribution,sub-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyReportDistribution.jsx:297,TrenchSafetyReportDistribution,digest-viewer-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:131,TrenchSafetyReports,filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:179,TrenchSafetyReports,"<div className=""border rounded p-3 bg-white""><div className=""text-[10p",GOVERNED_DISTINCT_VARIANT,distinct_percentage_metric,backend-computed % rendered (distinct governed variant)
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:242,TrenchSafetyReports,report-inspection-compliance,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:252,TrenchSafetyReports,<Pct value={data?.compliance_score} state={data?.compliance_score_stat,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:345,TrenchSafetyReports,report-utilization,CANONICAL_KPI,utilization,kpi_percent_complete.utilization_percent/storage
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:355,TrenchSafetyReports,<Pct value={data?.utilization_pct} />,CANONICAL_KPI,utilization,kpi_percent_complete.utilization_percent/storage
-frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:550,TrenchSafetyReports,reports-actions,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:41,TrenchSafetyReports,// Compact governed percentage cell for tables — same N/A / UNKNOWN / ,GOVERNED_DISTINCT_VARIANT,distinct_percentage_metric,backend-computed % rendered (distinct governed variant)
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:145,TrenchSafetyReports,filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:193,TrenchSafetyReports,"<div className=""border rounded p-3 bg-white""><div className=""text-[10p",GOVERNED_DISTINCT_VARIANT,distinct_percentage_metric,backend-computed % rendered (distinct governed variant)
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:256,TrenchSafetyReports,report-inspection-compliance,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:266,TrenchSafetyReports,<Pct value={data?.compliance_score} state={data?.compliance_score_stat,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:359,TrenchSafetyReports,report-utilization,CANONICAL_KPI,utilization,kpi_percent_complete.utilization_percent/storage
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:369,TrenchSafetyReports,<Pct value={data?.utilization_pct} />,CANONICAL_KPI,utilization,kpi_percent_complete.utilization_percent/storage
+frontend/src/pages/trench_safety/TrenchSafetyReports.jsx:564,TrenchSafetyReports,reports-actions,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyShell.jsx:51,TrenchSafetyShell,trench-safety-tabs-shell,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyShell.jsx:58,TrenchSafetyShell,trench-safety-tabs,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyTabulatedData.jsx:21,TrenchSafetyTabulatedData,trench-tabdata-title,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,

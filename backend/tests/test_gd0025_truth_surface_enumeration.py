@@ -19,7 +19,8 @@ SCANNER = os.path.join(REPO, "scripts", "wave5_truth_surface_canonical.py")
 SUMMARY = os.path.join(REPO, "memory", "truth_program", "TRUTH_SURFACE_CANONICAL.json")
 
 # LOCKED canonical baseline (governed reconciliation required to change).
-BASELINE_INCLUDED = 396
+# 396 -> 397 (2026-06 repair cycle): TD-0014/TD-0015 repairs added ONE governed truth surface.
+BASELINE_INCLUDED = 397
 BASELINE_TOLERANCE = 0  # exact; any drift must be reconciled + this bumped with reason
 
 

@@ -125,10 +125,12 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
   const [busyRow, setBusyRow] = useState(null);
   const [uploading, setUploading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [loadError, setLoadError] = useState(null);
   const fileRef = useRef(null);
 
   const refresh = useCallback(async () => {
     setLoading(true);
+    setLoadError(null);
     try {
       const [listR, statusR, archR] = await Promise.all([
         api.get("/equipment-master"),
@@ -141,6 +143,7 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
       setArchive(archR.data?.items || []);
       setRetainDays(archR.data?.retain_days || 14);
     } catch (e) {
+      setLoadError(operationalError(e, "Failed to load fleet"));
       toast.error(operationalError(e, "Failed to load fleet"));
     } finally {
       setLoading(false);
@@ -397,12 +400,22 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
 
       {/* Stats + Add */}
       <div className="p-5 border-b-2 border-slate-100 flex items-center gap-3 flex-wrap">
+        {loadError ? (
+          <span
+            className="font-display text-2xl font-black text-amber-700"
+            data-testid="equipment-master-total"
+            title={String(loadError)}
+          >
+            UNAVAILABLE
+          </span>
+        ) : (
         <span
           className="font-display text-4xl font-black text-slate-900"
           data-testid="equipment-master-total"
         >
           {total}
         </span>
+        )}
         <span className="font-mono text-xs uppercase tracking-[0.2em] text-slate-500">
           units in fleet
         </span>
@@ -549,6 +562,10 @@ export default function EquipmentMasterPanel({ readOnly = false }) {
               </table>
             </div>
           )
+        ) : loadError ? (
+          <p className="text-sm text-amber-700 py-8 text-center font-semibold" data-testid="equipment-master-load-error">
+            {t("Fleet data unavailable")} — {String(loadError)}. {t("This is an error state, not an empty fleet.")}
+          </p>
         ) : items.length === 0 ? (
           <p className="text-sm text-slate-500 py-8 text-center italic">
             {t("Fleet is empty — click")} <strong>{t("Add Unit")}</strong> {t("or")} <strong>{t("Bulk Replace")}</strong>.
