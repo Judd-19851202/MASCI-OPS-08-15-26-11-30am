@@ -264,9 +264,11 @@ export function OperationalSummaryPanel({ assetsBasePath = "/safety/trench-safet
   }, []);
 
   const cs = data?.counts_by_status || {};
+  const csa = data?.counts_by_status_active || {};
   const ct = data?.counts_by_type || {};
   const al = data?.alerts || {};
   const total = data?.total_active_assets ?? 0;
+  const totalAll = data?.total_all_assets ?? 0;
   const recent = data?.recent_activity_7d ?? 0;
 
   if (loading) {
@@ -282,15 +284,21 @@ export function OperationalSummaryPanel({ assetsBasePath = "/safety/trench-safet
 
   return (
     <section className="space-y-4" data-testid="ops-summary">
-      {/* Executive summary — Total / Available / Assigned / On Hold / Repairs / Inspections / Recent activity */}
+      {/* Executive summary — ALL figures below are scoped to IN-SERVICE
+          (is_active) assets so they reconcile with Active Assets; the
+          all-lifecycle breakdown is the "Count by Status" card. Recent
+          Activity is an audit-event count (distinct entity/window). */}
+      <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold" data-testid="ops-summary-executive-scope">
+        <Boxes className="w-3.5 h-3.5" /> {t("In-service view")} <span className="text-slate-400 normal-case tracking-normal font-normal">· {t("active assets only")} ({total} {t("of")} {totalAll} {t("total including retired")})</span>
+      </div>
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" data-testid="ops-summary-executive">
         <Stat label={t("Active Assets")}         value={total}                       testId="ops-stat-total" />
-        <Stat label={t("Available")}            value={cs["Available"]   ?? 0} tone="ok"     testId="ops-stat-available" />
-        <Stat label={t("Assigned")}             value={cs["Assigned"]    ?? 0} tone="info"   testId="ops-stat-assigned" />
+        <Stat label={t("Available")}            value={csa["Available"]   ?? 0} tone="ok"     testId="ops-stat-available" />
+        <Stat label={t("Assigned")}             value={csa["Assigned"]    ?? 0} tone="info"   testId="ops-stat-assigned" />
         <Stat label={t("On Hold")}              value={al.on_hold        ?? 0} tone={(al.on_hold ?? 0) > 0 ? "danger" : "default"} testId="ops-stat-on-hold" />
         <Stat label={t("Open Repairs")}         value={al.open_repairs   ?? 0} tone={(al.open_repairs ?? 0) > 0 ? "warn" : "default"} testId="ops-stat-repairs" />
         <Stat label={t("Inspections Due")}      value={al.inspections_due ?? 0} tone={(al.inspections_due ?? 0) > 0 ? "warn" : "default"} testId="ops-stat-inspections" />
-        <Stat label={t("Recent Activity · 7d")} value={recent}                  tone="info" testId="ops-stat-recent" />
+        <Stat label={t("Recent Events · 7d")} value={recent}                  tone="info" testId="ops-stat-recent" />
       </div>
 
       {/* Asset Count Command Cards — by status + type */}

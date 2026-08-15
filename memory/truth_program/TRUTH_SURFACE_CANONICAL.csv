@@ -2859,61 +2859,62 @@ frontend/src/pages/trench_safety/TrenchSafetyHub.jsx:109,TrenchSafetyHub,trench-
 frontend/src/pages/trench_safety/TrenchSafetyHub.jsx:121,TrenchSafetyHub,trench-hub-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyHub.jsx:126,TrenchSafetyHub,trench-hub-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyHub.jsx:132,TrenchSafetyHub,trench-hub-posture,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:88,TrenchSafetyOpsCenter,posture-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:93,TrenchSafetyOpsCenter,daily-posture,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:142,TrenchSafetyOpsCenter,verify-repair-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:169,TrenchSafetyOpsCenter,verify-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:223,TrenchSafetyOpsCenter,rr-coaching,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:228,TrenchSafetyOpsCenter,rr-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:230,TrenchSafetyOpsCenter,rr-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:325,TrenchSafetyOpsCenter,fr-kind-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:336,TrenchSafetyOpsCenter,fr-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:338,TrenchSafetyOpsCenter,fr-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:428,TrenchSafetyOpsCenter,qr-mgmt-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:435,TrenchSafetyOpsCenter,qr-img-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:439,TrenchSafetyOpsCenter,qr-img-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:449,TrenchSafetyOpsCenter,qr-download,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:454,TrenchSafetyOpsCenter,qr-print,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:464,TrenchSafetyOpsCenter,qr-history-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:517,TrenchSafetyOpsCenter,photo-upload-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:544,TrenchSafetyOpsCenter,photo-caption,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:548,TrenchSafetyOpsCenter,photo-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:584,TrenchSafetyOpsCenter,photo-mgmt-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:589,TrenchSafetyOpsCenter,photo-upload-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:594,TrenchSafetyOpsCenter,photo-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:89,TrenchSafetyOpsCenter,posture-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:94,TrenchSafetyOpsCenter,daily-posture,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:143,TrenchSafetyOpsCenter,verify-repair-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:170,TrenchSafetyOpsCenter,verify-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:224,TrenchSafetyOpsCenter,rr-coaching,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:229,TrenchSafetyOpsCenter,rr-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:231,TrenchSafetyOpsCenter,rr-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:326,TrenchSafetyOpsCenter,fr-kind-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:337,TrenchSafetyOpsCenter,fr-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:339,TrenchSafetyOpsCenter,fr-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:429,TrenchSafetyOpsCenter,qr-mgmt-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:436,TrenchSafetyOpsCenter,qr-img-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:440,TrenchSafetyOpsCenter,qr-img-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:450,TrenchSafetyOpsCenter,qr-download,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:455,TrenchSafetyOpsCenter,qr-print,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:465,TrenchSafetyOpsCenter,qr-history-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:518,TrenchSafetyOpsCenter,photo-upload-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:545,TrenchSafetyOpsCenter,photo-caption,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:549,TrenchSafetyOpsCenter,photo-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:585,TrenchSafetyOpsCenter,photo-mgmt-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:590,TrenchSafetyOpsCenter,photo-upload-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyOpsCenter.jsx:595,TrenchSafetyOpsCenter,photo-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:125,TrenchSafetyPolish,quick-add-asset-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:195,TrenchSafetyPolish,quick-add-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:196,TrenchSafetyPolish,quick-add-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:274,TrenchSafetyPolish,ops-summary-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:280,TrenchSafetyPolish,ops-summary-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:287,TrenchSafetyPolish,"<Stat label={t(""Active Assets"")}         value={total}                ",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:288,TrenchSafetyPolish,"<Stat label={t(""Available"")}            value={cs[""Available""]   ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:289,TrenchSafetyPolish,"<Stat label={t(""Assigned"")}             value={cs[""Assigned""]    ?? 0}",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:290,TrenchSafetyPolish,"<Stat label={t(""On Hold"")}              value={al.on_hold        ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:291,TrenchSafetyPolish,"<Stat label={t(""Open Repairs"")}         value={al.open_repairs   ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:292,TrenchSafetyPolish,"<Stat label={t(""Inspections Due"")}      value={al.inspections_due ?? 0",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:293,TrenchSafetyPolish,"<Stat label={t(""Recent Activity · 7d"")} value={recent}                ",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:297,TrenchSafetyPolish,ops-summary-status-cards,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:301,TrenchSafetyPolish,ops-status-grid,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:303,TrenchSafetyPolish,<Stat,DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:385,TrenchSafetyPolish,trench-filter-chips-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:490,TrenchSafetyPolish,csv-import-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:504,TrenchSafetyPolish,csv-import-file-label,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:531,TrenchSafetyPolish,csv-import-preview-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:534,TrenchSafetyPolish,csv-import-commit-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:584,TrenchSafetyPolish,csv-import-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:276,TrenchSafetyPolish,ops-summary-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:282,TrenchSafetyPolish,ops-summary-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:295,TrenchSafetyPolish,"<Stat label={t(""Active Assets"")}         value={total}                ",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:296,TrenchSafetyPolish,"<Stat label={t(""Available"")}            value={csa[""Available""]   ?? 0",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:297,TrenchSafetyPolish,"<Stat label={t(""Assigned"")}             value={csa[""Assigned""]    ?? 0",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:298,TrenchSafetyPolish,"<Stat label={t(""On Hold"")}              value={al.on_hold        ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:299,TrenchSafetyPolish,"<Stat label={t(""Open Repairs"")}         value={al.open_repairs   ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:300,TrenchSafetyPolish,"<Stat label={t(""Inspections Due"")}      value={al.inspections_due ?? 0",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:301,TrenchSafetyPolish,"<Stat label={t(""Recent Events · 7d"")} value={recent}                  ",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:305,TrenchSafetyPolish,ops-summary-status-cards,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:309,TrenchSafetyPolish,ops-status-grid,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:311,TrenchSafetyPolish,<Stat,DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:393,TrenchSafetyPolish,trench-filter-chips-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:498,TrenchSafetyPolish,csv-import-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:512,TrenchSafetyPolish,csv-import-file-label,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:539,TrenchSafetyPolish,csv-import-preview-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:542,TrenchSafetyPolish,csv-import-commit-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:592,TrenchSafetyPolish,csv-import-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:75,TrenchSafetyPulse,pulse-card-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:123,TrenchSafetyPulse,"<Stat label={t(""On Hold"")}        value={al.on_hold ?? 0}             ",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
 frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:124,TrenchSafetyPulse,"<Stat label={t(""Open Repairs"")}   value={al.open_repairs ?? 0}        ",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
 frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:125,TrenchSafetyPulse,"<Stat label={t(""Inspections Due"")} value={al.inspections_due ?? 0}    ",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
 frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:126,TrenchSafetyPulse,"<Stat label={t(""Recent · 7d"")}    value={snap.activity_7d_total ?? 0} ",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:130,TrenchSafetyPulse,pulse-view-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:135,TrenchSafetyPulse,pulse-generate-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:138,TrenchSafetyPulse,pulse-send-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:143,TrenchSafetyPulse,pulse-history-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:200,TrenchSafetyPulse,pulse-viewer-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:242,TrenchSafetyPulse,pulse-history-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:247,TrenchSafetyPulse,pulse-history-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:128,TrenchSafetyPulse,pulse-card-scope-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:133,TrenchSafetyPulse,pulse-view-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:138,TrenchSafetyPulse,pulse-generate-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:141,TrenchSafetyPulse,pulse-send-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:146,TrenchSafetyPulse,pulse-history-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:203,TrenchSafetyPulse,pulse-viewer-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:245,TrenchSafetyPulse,pulse-history-dialog,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/trench_safety/TrenchSafetyPulse.jsx:250,TrenchSafetyPulse,pulse-history-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:146,TrenchSafetyQrLanding,qr-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:151,TrenchSafetyQrLanding,qr-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyQrLanding.jsx:157,TrenchSafetyQrLanding,qr-hero,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,

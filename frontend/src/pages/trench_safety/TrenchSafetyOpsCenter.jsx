@@ -66,11 +66,12 @@ export function DailyPosturePanel({ adminPortal = false }) {
     return () => { cancelled = true; };
   }, [t]);
   const base = adminPortal ? "/admin/trench-safety" : "/safety/trench-safety";
-  const tile = (key, label, value, tone, to) => (
+  const tile = (key, label, value, tone, to, title) => (
     <button
       key={key}
       type="button"
       onClick={() => nav(to)}
+      title={title}
       className={`bg-white border rounded-md p-3 text-left hover:shadow transition ${
         tone === "danger" ? "border-red-300 hover:border-red-500"
         : tone === "warn" ? "border-amber-300 hover:border-amber-500"
@@ -99,7 +100,7 @@ export function DailyPosturePanel({ adminPortal = false }) {
       {tile("fail-insp-7",    t("Failed Insp. 7d"),      a.failed_inspections_7d || 0,   "warn",   `${base}/assets?needs_review=yes`)}
       {tile("damage-reports", t("Damage Reports"),       a.new_damage_reports_7d || 0, "warn", `${base}/field-reports`)}
       {tile("cert-exp-30",    t("Renewals Due 30d"),     a.expiring_certifications_30d || 0, "warn", `${base}/assets?needs_review=yes`)}
-      {tile("oos",            t("Out Of Service"),       (c["Maintenance Hold"]||0) + (c["Retired"]||0), "default", `${base}/assets`)}
+      {tile("oos",            t("Out Of Service"),       (c["Maintenance Hold"]||0) + (c["Retired"]||0), "default", `${base}/assets`, t("Out of Service = Maintenance Hold + Retired (a rollup; distinct from the Retired-only count)"))}
     </section>
   );
 }

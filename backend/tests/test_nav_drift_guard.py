@@ -21,9 +21,12 @@ These tests are deliberately conservative. They lock the structural
 guarantees we just audited under Track 14.0-PLATFORM-TRUTH-MAP. They
 do NOT lock cosmetic content of any page.
 
-The snapshot reference is:
+The route authority is the canonical routing module:
+  /app/frontend/src/app/routing/AppRoutes.jsx
+(the Track-14.x routing refactor moved every <Route> out of App.js — now
+a thin shell — into AppRoutes.jsx). The inventory snapshot reference is:
   /app/memory/TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json
-which was generated from the App.js parsed at 2026-02-12 (341 routes).
+regenerated deterministically from AppRoutes.jsx (467 routes) on 2026-06.
 """
 from __future__ import annotations
 
@@ -34,7 +37,7 @@ from pathlib import Path
 import pytest
 
 REPO = Path("/app")
-APP_JS = REPO / "frontend/src/App.js"
+APP_JS = REPO / "frontend/src/app/routing/AppRoutes.jsx"
 ROUTE_INVENTORY = REPO / "memory/TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json"
 PM_HUB_V2 = REPO / "frontend/src/pages/PmHubV2.jsx"
 SHOP_HUB_V2 = REPO / "frontend/src/pages/ShopHubV2.jsx"
@@ -238,15 +241,22 @@ PORTAL_SHELL = REPO / "frontend/src/design-system/PortalShell.jsx"
 
 
 def test_portal_shell_applies_blueprint_grid():
-    """PortalShell must render the unified blueprint-bg grid on its
-    main content area. Removing this returns landings to plain-white
-    and breaks visual parity with deep pages (HrPageShell / AdminShell
-    that already use blueprint-bg)."""
+    """PortalShell must render the unified shell surface on its main
+    content area so landings keep visual parity with deep pages.
+
+    EVIDENCE / 2026-06 refresh: the legacy `blueprint-bg` utility was
+    superseded by the WP16/WP17 design-system shell surface. PortalShell
+    now wraps its main region in `wp16-shell-main` and its content in
+    `wp17-shell-content` (defined in design-system/wp16.css + wp17.css).
+    This guard therefore locks the CURRENT canonical shell-surface
+    classes; removing them would revert landings to a flat, parity-less
+    surface — the exact regression this test exists to prevent."""
     text = PORTAL_SHELL.read_text()
-    assert "blueprint-bg" in text, (
-        "PortalShell no longer applies the blueprint-bg grid texture — "
-        "landings will revert to flat slate-50 and break visual parity "
-        "with deep pages. See TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
+    assert "wp16-shell-main" in text and "wp17-shell-content" in text, (
+        "PortalShell no longer applies the WP16/WP17 shell surface "
+        "(wp16-shell-main / wp17-shell-content) — landings will revert to "
+        "a flat surface and break visual parity with deep pages. See "
+        "TRACK_14_0_CROSS_PORTAL_LANDING_PARITY_FIX_CLOSURE.md")
 
 
 @pytest.mark.parametrize("hub_file,sidebar_import,sidebar_jsx", [
@@ -322,19 +332,29 @@ def test_shop_hub_v2_inline_cards_use_auth_helpers():
 
 
 def test_hr_hub_v2_authheaders_reads_both_storage_tiers():
-    """HrHubV2.authHeaders() must delegate to getHrToken() /
-    getAdminToken() — these helpers read sessionStorage AND
-    localStorage. The previous implementation only checked
-    sessionStorage, silently dropping the X-HR-Token header for
-    operators using "Remember me" ON (the platform default)."""
+    """HrHubV2.authHeaders() must send credentials that are readable
+    whether the operator chose "Remember me" ON (localStorage) or OFF
+    (sessionStorage).
+
+    EVIDENCE / 2026-06 refresh: the per-page getHrToken()/getAdminToken()
+    calls were consolidated into the shared `buildPortalAuthHeaders()`
+    helper (frontend/src/lib/authHeaders.js), which itself delegates to
+    getAdminToken() (adminAuth.js) and getHrToken() (hrAuth.js) — both of
+    which read sessionStorage AND localStorage. This guard now locks that
+    canonical delegation: HrHubV2 must use buildPortalAuthHeaders, and the
+    shared helper must keep reading both token tiers. The broken single-
+    tier sessionStorage read must never return."""
     text = HR_HUB_V2.read_text()
-    assert "getHrToken" in text, (
-        "HrHubV2 no longer imports getHrToken — authHeaders() will "
-        "miss tokens persisted in localStorage by 'Remember me' ON.")
-    assert "getAdminToken" in text, (
-        "HrHubV2 no longer imports getAdminToken — admin operators "
-        "browsing the HR hub will silently fail to send credentials.")
-    # The raw single-tier read must NOT come back.
+    assert "buildPortalAuthHeaders" in text, (
+        "HrHubV2 no longer uses buildPortalAuthHeaders() — authHeaders() "
+        "may miss tokens persisted by 'Remember me' ON/OFF. Restore the "
+        "shared helper.")
+    auth_helpers = (REPO / "frontend/src/lib/authHeaders.js").read_text()
+    assert "getAdminToken" in auth_helpers and "getHrToken" in auth_helpers, (
+        "authHeaders.js (buildPortalAuthHeaders) no longer delegates to "
+        "getAdminToken()/getHrToken() — the both-storage-tier guarantee is "
+        "broken and HR reads will silently drop credentials.")
+    # The raw single-tier read must NOT come back anywhere in HrHubV2.
     assert 'sessionStorage.getItem("masci.hr.token")' not in text, (
         "HrHubV2 reverted to the broken single-tier sessionStorage "
-        "read. Restore the getHrToken()/getAdminToken() helpers.")
+        "read. Use buildPortalAuthHeaders()/getHrToken() instead.")

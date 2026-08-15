@@ -30,6 +30,10 @@ def register_dashboard_routes(
 
         counts_by_type = {t: 0 for t in ASSET_TYPES}
         counts_by_status = {s: 0 for s in OPERATIONAL_STATUSES}
+        # Active-scoped status counts (is_active only) so the executive
+        # summary can present an internally-reconciling ACTIVE breakdown,
+        # distinct from the all-lifecycle counts_by_status below.
+        counts_by_status_active = {s: 0 for s in OPERATIONAL_STATUSES}
         counts_by_condition = {c: 0 for c in CONDITIONS}
         active = 0
         missing_serial = 0
@@ -46,6 +50,7 @@ def register_dashboard_routes(
             counts_by_condition[c] = counts_by_condition.get(c, 0) + 1
             if d.get("is_active"):
                 active += 1
+                counts_by_status_active[s] = counts_by_status_active.get(s, 0) + 1
             if d.get("missing_serial_number"):
                 missing_serial += 1
             if d.get("missing_manufacturer"):
@@ -126,7 +131,25 @@ def register_dashboard_routes(
             "total_all_assets": len(docs),
             "counts_by_type": counts_by_type,
             "counts_by_status": counts_by_status,
+            "counts_by_status_active": counts_by_status_active,
             "counts_by_condition": counts_by_condition,
+            # Scope contract — each block below is a GOVERNED-DISTINCT
+            # population/window; the UI must not present them as one
+            # denominator. total_active_assets (is_active flag) and
+            # counts_by_status_active are the in-service population;
+            # counts_by_status/_type/_condition + total_all_assets cover
+            # ALL lifecycle states incl. retired & inactive; alerts.* are
+            # active-scoped work signals; recent_activity_7d is an
+            # audit-event count over the last 7 days (a different entity).
+            "scopes": {
+                "total_active_assets": "assets where is_active=true (in-service)",
+                "counts_by_status_active": "operational_status buckets over in-service (is_active) assets",
+                "counts_by_status": "operational_status buckets over ALL assets (incl. retired & inactive)",
+                "counts_by_type": "asset_type buckets over ALL assets",
+                "total_all_assets": "every asset row incl. retired & inactive",
+                "alerts": "work signals scoped to in-service (is_active) assets + open repairs",
+                "recent_activity_7d": "audit_events (kind trench_*) within the last 7 days",
+            },
             "alerts": {
                 "missing_serial_number": missing_serial,
                 "missing_manufacturer": missing_manufacturer,

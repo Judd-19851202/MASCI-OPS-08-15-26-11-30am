@@ -1,0 +1,1876 @@
+{
+  "track": "TRACK_14_0_PLATFORM_ROUTE_INVENTORY",
+  "source": "frontend/src/app/routing/AppRoutes.jsx",
+  "note": "Regenerated deterministically from the canonical routing authority (AppRoutes.jsx) after the Track-14.x routing refactor moved routes out of App.js. Sorted by (path, element).",
+  "total": 467,
+  "routes": [
+    {
+      "path": "*",
+      "element": "<NotFound />"
+    },
+    {
+      "path": "/",
+      "element": "<Hub />"
+    },
+    {
+      "path": "/_internal/design-system",
+      "element": "D(<DesignSystemDemo />)"
+    },
+    {
+      "path": "/_internal/hr-v2-preview",
+      "element": "D(<HrV2Preview />)"
+    },
+    {
+      "path": "/_internal/pm-v2-preview",
+      "element": "D(<PmV2Preview />)"
+    },
+    {
+      "path": "/_internal/v2-compare/:portal",
+      "element": "D(<V2Compare />)"
+    },
+    {
+      "path": "/_internal/v2-index",
+      "element": "D(<V2Index />)"
+    },
+    {
+      "path": "/access-denied",
+      "element": "<AccessDenied />"
+    },
+    {
+      "path": "/admin",
+      "element": "A(<AdminOS />)"
+    },
+    {
+      "path": "/admin/ai",
+      "element": "<Navigate to=\"/admin/ai-operations\" replace />"
+    },
+    {
+      "path": "/admin/ai-configuration",
+      "element": "A(<AdminAIConfiguration />)"
+    },
+    {
+      "path": "/admin/ai-operations",
+      "element": "A(<AdminAiOperations />)"
+    },
+    {
+      "path": "/admin/analytics",
+      "element": "A(<AdminAnalytics />)"
+    },
+    {
+      "path": "/admin/asset-admin",
+      "element": "A(<AdminAssetAdmin />)"
+    },
+    {
+      "path": "/admin/asset-mapping",
+      "element": "A(<AdminAssetMapping />)"
+    },
+    {
+      "path": "/admin/asset-spine",
+      "element": "A(<AdminAssetSpineHealth />)"
+    },
+    {
+      "path": "/admin/assets/:assetId",
+      "element": "A(<AssetProfile />)"
+    },
+    {
+      "path": "/admin/assets/:assetRef/thread",
+      "element": "A(<AdminAssetThread />)"
+    },
+    {
+      "path": "/admin/audit",
+      "element": "<Navigate to=\"/admin/audit-log\" replace />"
+    },
+    {
+      "path": "/admin/audit-log",
+      "element": "A(<AdminAuditLog />)"
+    },
+    {
+      "path": "/admin/command-center",
+      "element": "A(<AdminCommandCenter />)"
+    },
+    {
+      "path": "/admin/communications",
+      "element": "A(<AdminCommunications />)"
+    },
+    {
+      "path": "/admin/compliance",
+      "element": "A(<AdminCompliance />)"
+    },
+    {
+      "path": "/admin/compliance-findings",
+      "element": "A(<AdminComplianceFindings />)"
+    },
+    {
+      "path": "/admin/cost-registry",
+      "element": "A(<AdminCostRegistry />)"
+    },
+    {
+      "path": "/admin/daily",
+      "element": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "path": "/admin/daily-reports",
+      "element": "<Navigate to=\"/admin/daily\" replace />"
+    },
+    {
+      "path": "/admin/daily/:id",
+      "element": "AP(<ViewDailyReport />)"
+    },
+    {
+      "path": "/admin/database",
+      "element": "A(<AdminDatabase />)"
+    },
+    {
+      "path": "/admin/deploy-readiness",
+      "element": "A(<Navigate to=\"/admin/governance-trust\" replace />)"
+    },
+    {
+      "path": "/admin/deploy-recovery",
+      "element": "A(LB(\"/admin/deploy-recovery\", <DeployRecovery />))"
+    },
+    {
+      "path": "/admin/diagnostics",
+      "element": "A(<AdminDiagnostics />)"
+    },
+    {
+      "path": "/admin/digest-config",
+      "element": "A(<AdminDigestConfig />)"
+    },
+    {
+      "path": "/admin/dispatch",
+      "element": "A(<AdminDispatch />)"
+    },
+    {
+      "path": "/admin/dls/day-1-debrief",
+      "element": "A(<AdminDlsDay1Debrief variant=\"day-1\" />)"
+    },
+    {
+      "path": "/admin/dls/shift-qr",
+      "element": "A(<AdminDlsShiftQR />)"
+    },
+    {
+      "path": "/admin/dls/week-1-debrief",
+      "element": "A(<AdminDlsDay1Debrief variant=\"week-1\" />)"
+    },
+    {
+      "path": "/admin/driver-intel/:driverKey",
+      "element": "A(<AdminDriverIntel />)"
+    },
+    {
+      "path": "/admin/email",
+      "element": "A(<AdminEmail />)"
+    },
+    {
+      "path": "/admin/employees/:id/history",
+      "element": "A(<AdminMasterHistory kind=\"employee\" />)"
+    },
+    {
+      "path": "/admin/equipment",
+      "element": "A(<AdminEquipment />)"
+    },
+    {
+      "path": "/admin/equipment-inspections",
+      "element": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "path": "/admin/equipment/:id",
+      "element": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "path": "/admin/equipment/:id/history",
+      "element": "A(<AdminMasterHistory kind=\"equipment\" />)"
+    },
+    {
+      "path": "/admin/executive",
+      "element": "<Navigate to=\"/admin/executive-overview\" replace />"
+    },
+    {
+      "path": "/admin/executive-intelligence",
+      "element": "A(<ExecutiveIntelligence />)"
+    },
+    {
+      "path": "/admin/executive-oi",
+      "element": "<Navigate to=\"/admin/executive-operational-intelligence\" replace />"
+    },
+    {
+      "path": "/admin/executive-operational-intelligence",
+      "element": "A(<ExecutiveOperationalIntelligence />)"
+    },
+    {
+      "path": "/admin/executive-overview",
+      "element": "A(<ExecutiveOverview />)"
+    },
+    {
+      "path": "/admin/geofence-reconciliation",
+      "element": "A(<AdminGeofenceReconciliation />)"
+    },
+    {
+      "path": "/admin/governance",
+      "element": "A(<AdminGovernanceOperatingSystem />)"
+    },
+    {
+      "path": "/admin/governance-trust",
+      "element": "A(<AdminGovernanceTrust />)"
+    },
+    {
+      "path": "/admin/governance/approval-flows",
+      "element": "A(<AdminGovernanceApprovalFlowsPage />)"
+    },
+    {
+      "path": "/admin/governance/audit",
+      "element": "A(<AdminGovernanceAuditPage />)"
+    },
+    {
+      "path": "/admin/governance/authority",
+      "element": "A(<AdminGovernanceAuthorityPage />)"
+    },
+    {
+      "path": "/admin/governance/decisions",
+      "element": "A(<AdminGovernanceDecisionsPage />)"
+    },
+    {
+      "path": "/admin/governance/delegations",
+      "element": "A(<AdminGovernanceDelegationsPage />)"
+    },
+    {
+      "path": "/admin/governance/emergency-overrides",
+      "element": "A(<AdminGovernanceOverridesPage />)"
+    },
+    {
+      "path": "/admin/governance/health",
+      "element": "A(<AdminGovernanceHealthPage />)"
+    },
+    {
+      "path": "/admin/governance/identities",
+      "element": "A(<AdminGovernanceIdentitiesPage />)"
+    },
+    {
+      "path": "/admin/governance/legacy-health",
+      "element": "A(<AdminGovernance />)"
+    },
+    {
+      "path": "/admin/governance/organization",
+      "element": "A(<AdminGovernanceOrganizationPage />)"
+    },
+    {
+      "path": "/admin/governance/overview",
+      "element": "A(<AdminGovernanceOperatingSystem />)"
+    },
+    {
+      "path": "/admin/governance/permissions",
+      "element": "A(<AdminGovernancePermissionsPage />)"
+    },
+    {
+      "path": "/admin/governance/policies",
+      "element": "A(<AdminGovernancePoliciesPage />)"
+    },
+    {
+      "path": "/admin/governance/project-controls",
+      "element": "A(<AdminGovernanceProjectControlsAuthority />)"
+    },
+    {
+      "path": "/admin/governance/project-controls/budget",
+      "element": "A(<AdminGovernanceProjectBudgetAuthority />)"
+    },
+    {
+      "path": "/admin/governance/project-controls/earned-value",
+      "element": "A(<AdminEarnedValueEngine />)"
+    },
+    {
+      "path": "/admin/governance/project-controls/forecasting",
+      "element": "A(<AdminForecastingCommitments />)"
+    },
+    {
+      "path": "/admin/governance/project-controls/operational-intelligence",
+      "element": "A(<AdminGovernanceOperationalIntelligence />)"
+    },
+    {
+      "path": "/admin/governance/project-controls/schedule",
+      "element": "A(<AdminGovernanceProjectScheduleAuthority />)"
+    },
+    {
+      "path": "/admin/governance/registry",
+      "element": "A(<AdminGovernanceRegistryPage />)"
+    },
+    {
+      "path": "/admin/governance/roles",
+      "element": "A(<AdminGovernanceRolesPage />)"
+    },
+    {
+      "path": "/admin/governance/self-protection",
+      "element": "A(<SelfProtection />)"
+    },
+    {
+      "path": "/admin/governance/separation-of-duties",
+      "element": "A(<AdminGovernanceSodPage />)"
+    },
+    {
+      "path": "/admin/governance/versions",
+      "element": "A(<AdminGovernanceVersionsPage />)"
+    },
+    {
+      "path": "/admin/guidance-coverage",
+      "element": "A(<AdminGuidanceCoverage />)"
+    },
+    {
+      "path": "/admin/guide",
+      "element": "A(<AdminGuide />)"
+    },
+    {
+      "path": "/admin/health",
+      "element": "<Navigate to=\"/admin/system-health\" replace />"
+    },
+    {
+      "path": "/admin/hub_v1",
+      "element": "<Navigate to=\"/admin\" replace />"
+    },
+    {
+      "path": "/admin/hub_v2",
+      "element": "<Navigate to=\"/admin\" replace />"
+    },
+    {
+      "path": "/admin/identity-security",
+      "element": "A(<AdminIdentitySecurity />)"
+    },
+    {
+      "path": "/admin/incidents",
+      "element": "A(<IncidentsDashboard />)"
+    },
+    {
+      "path": "/admin/incidents/:id",
+      "element": "APS(<ViewIncident />)"
+    },
+    {
+      "path": "/admin/inspections",
+      "element": "AP(<Dashboard />)"
+    },
+    {
+      "path": "/admin/inspections/:id",
+      "element": "APS(<ViewInspection />)"
+    },
+    {
+      "path": "/admin/integration-truth",
+      "element": "A(LB(\"/admin/integration-truth\", <IntegrationTruth />))"
+    },
+    {
+      "path": "/admin/integrations",
+      "element": "A(<AdminIntegrationCenter />)"
+    },
+    {
+      "path": "/admin/jha",
+      "element": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "path": "/admin/jha-acknowledgements",
+      "element": "A(<AdminJhaAcknowledgements />)"
+    },
+    {
+      "path": "/admin/jha-plans",
+      "element": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "path": "/admin/jha-plans/poster",
+      "element": "AP(<PosterErrorBoundary><JhaPlansPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "path": "/admin/jha/:id",
+      "element": "<Navigate to=\"/admin/jha-plans\" replace />"
+    },
+    {
+      "path": "/admin/jobs",
+      "element": "A(<AdminJobs />)"
+    },
+    {
+      "path": "/admin/jobs/:projectNumber/team",
+      "element": "A(<AdminJobTeam />)"
+    },
+    {
+      "path": "/admin/leadership-equipment",
+      "element": "A(<AdminLeadershipEquipment />)"
+    },
+    {
+      "path": "/admin/leadership/records",
+      "element": "A(<FieldLeadershipRecords />)"
+    },
+    {
+      "path": "/admin/leadership/records/:id",
+      "element": "A(<FieldLeadershipView />)"
+    },
+    {
+      "path": "/admin/legacy-imports",
+      "element": "A(<AdminLegacyImports />)"
+    },
+    {
+      "path": "/admin/login",
+      "element": "<AdminLogin />"
+    },
+    {
+      "path": "/admin/maintenance",
+      "element": "A(<AdminMaintenance />)"
+    },
+    {
+      "path": "/admin/material-ledger-quality",
+      "element": "A(<AdminMaterialLedgerQuality />)"
+    },
+    {
+      "path": "/admin/meetings",
+      "element": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "path": "/admin/meetings/:id",
+      "element": "APS(<ViewMeeting />)"
+    },
+    {
+      "path": "/admin/mfa",
+      "element": "A(<AdminMfa />)"
+    },
+    {
+      "path": "/admin/notifications",
+      "element": "<Navigate to=\"/notifications\" replace />"
+    },
+    {
+      "path": "/admin/notifications/digest",
+      "element": "<Navigate to=\"/notifications\" replace />"
+    },
+    {
+      "path": "/admin/occ",
+      "element": "<Navigate to=\"/admin/operations-control\" replace />"
+    },
+    {
+      "path": "/admin/ods-intelligence",
+      "element": "<Navigate to=\"/admin/operational-intelligence\" replace />"
+    },
+    {
+      "path": "/admin/operational-intelligence",
+      "element": "A(<AdminOperationalIntelligence />)"
+    },
+    {
+      "path": "/admin/operational-intelligence/recipients",
+      "element": "A(<AdminOperationalIntelligenceRecipients />)"
+    },
+    {
+      "path": "/admin/operational-inventory",
+      "element": "A(<AdminOperationalInventory />)"
+    },
+    {
+      "path": "/admin/operational-language",
+      "element": "A(<AdminOperationalLanguage />)"
+    },
+    {
+      "path": "/admin/operations-control",
+      "element": "A(<OperationsControlCenter />)"
+    },
+    {
+      "path": "/admin/operations-control/cases/:caseId",
+      "element": "A(<OperationsControlCaseDetail />)"
+    },
+    {
+      "path": "/admin/operations-dashboard",
+      "element": "A(LB(\"/admin/operations-dashboard\", <AdminOperationsDashboard />))"
+    },
+    {
+      "path": "/admin/operations-events",
+      "element": "A(<AdminOperationsEvents />)"
+    },
+    {
+      "path": "/admin/people",
+      "element": "A(<AdminPeople />)"
+    },
+    {
+      "path": "/admin/photos",
+      "element": "A(<JobPhotosLibrary portalKey=\"admin\" />)"
+    },
+    {
+      "path": "/admin/platform-configuration",
+      "element": "A(<AdminPlatformConfiguration />)"
+    },
+    {
+      "path": "/admin/platform-overview",
+      "element": "A(<AdminPlatformOverview />)"
+    },
+    {
+      "path": "/admin/platform-readiness",
+      "element": "A(<Wp17dCertificationDashboard />)"
+    },
+    {
+      "path": "/admin/pnl",
+      "element": "AP(<ProjectPnlPage />)"
+    },
+    {
+      "path": "/admin/posters/print-all",
+      "element": "AP(<PosterErrorBoundary><AllPostersPrint /></PosterErrorBoundary>)"
+    },
+    {
+      "path": "/admin/preview-validation-identities",
+      "element": "A(<PreviewValidationIdentities />)"
+    },
+    {
+      "path": "/admin/profile",
+      "element": "A(<AdminProfile />)"
+    },
+    {
+      "path": "/admin/project-health",
+      "element": "A(<ProjectHealth />)"
+    },
+    {
+      "path": "/admin/project-identity",
+      "element": "A(<AdminProjectIdentityGovernance />)"
+    },
+    {
+      "path": "/admin/project-staffing",
+      "element": "A(<AdminProjectStaffing />)"
+    },
+    {
+      "path": "/admin/promo-assets",
+      "element": "A(<AdminPromoAssets />)"
+    },
+    {
+      "path": "/admin/qaqc",
+      "element": "A(<AdminQaqcList />)"
+    },
+    {
+      "path": "/admin/qaqc/:id",
+      "element": "AP(<ViewQaqcInspection />)"
+    },
+    {
+      "path": "/admin/recovery",
+      "element": "A(LB(\"/admin/recovery\", <AdminRecovery />))"
+    },
+    {
+      "path": "/admin/recovery-stream",
+      "element": "A(LB(\"/admin/recovery-stream\", <AdminRecoveryStream />))"
+    },
+    {
+      "path": "/admin/safety/issuance/:id",
+      "element": "AP(<ViewSafetyForm kind=\"issuance\" />)"
+    },
+    {
+      "path": "/admin/safety/training/:id",
+      "element": "AP(<ViewSafetyForm kind=\"training\" />)"
+    },
+    {
+      "path": "/admin/scheduler-runs",
+      "element": "A(LB(\"/admin/scheduler-runs\", <AdminSchedulerRuns />))"
+    },
+    {
+      "path": "/admin/sessions",
+      "element": "A(<AdminSessions />)"
+    },
+    {
+      "path": "/admin/storage",
+      "element": "<Navigate to=\"/admin/storage-recovery\" replace />"
+    },
+    {
+      "path": "/admin/storage-recovery",
+      "element": "A(<AdminStorageRecovery />)"
+    },
+    {
+      "path": "/admin/system",
+      "element": "A(LB(\"/admin/system\", <AdminSystem />))"
+    },
+    {
+      "path": "/admin/system-health",
+      "element": "A(LB(\"/admin/system-health\", <SystemHealth />))"
+    },
+    {
+      "path": "/admin/terminations",
+      "element": "A(<AdminTerminations />)"
+    },
+    {
+      "path": "/admin/training",
+      "element": "A(<AdminTraining />)"
+    },
+    {
+      "path": "/admin/training-videos",
+      "element": "A(<AdminTrainingVideos />)"
+    },
+    {
+      "path": "/admin/transportation/*",
+      "element": "A(<AdminTransportation />)"
+    },
+    {
+      "path": "/admin/trench-boxes",
+      "element": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "path": "/admin/trench-boxes/poster",
+      "element": "AP(<PosterErrorBoundary><TrenchBoxPoster /></PosterErrorBoundary>)"
+    },
+    {
+      "path": "/admin/trench-safety",
+      "element": "AP(<TrenchSafetyHub />)"
+    },
+    {
+      "path": "/admin/trench-safety-assets",
+      "element": "<Navigate to=\"/admin/trench-safety/assets\" replace />"
+    },
+    {
+      "path": "/admin/trench-safety/assets",
+      "element": "AP(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "path": "/admin/trench-safety/assets/:assetId",
+      "element": "AP(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "path": "/admin/trench-safety/excavations",
+      "element": "AP(<ExcavationOversight />)"
+    },
+    {
+      "path": "/admin/trench-safety/field-reports",
+      "element": "AP(<TrenchSafetyFieldReportsPage adminPortal={true"
+    },
+    {
+      "path": "/admin/trench-safety/repair-review",
+      "element": "AP(<TrenchSafetyRepairReviewPage adminPortal={true"
+    },
+    {
+      "path": "/admin/trench-safety/reports",
+      "element": "AP(<TrenchSafetyReports />)"
+    },
+    {
+      "path": "/admin/trench-safety/tabulated-data",
+      "element": "AP(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "path": "/admin/trust-spine",
+      "element": "A(<PlatformTrustDashboard />)"
+    },
+    {
+      "path": "/admin/vendors/:vendorId/thread",
+      "element": "A(<AdminVendorThread />)"
+    },
+    {
+      "path": "/admin/wp17d-certification",
+      "element": "A(<Wp17dCertificationDashboard />)"
+    },
+    {
+      "path": "/app/*",
+      "element": "<Navigate to=\"/\" replace />"
+    },
+    {
+      "path": "/asset-transfers",
+      "element": "<AssetTransfers />"
+    },
+    {
+      "path": "/change-password",
+      "element": "<DirectoryChangePassword />"
+    },
+    {
+      "path": "/cheat-sheet",
+      "element": "<Navigate to=\"/cheatsheet\" replace />"
+    },
+    {
+      "path": "/cheatsheet",
+      "element": "<PosterErrorBoundary><CheatSheet /></PosterErrorBoundary>"
+    },
+    {
+      "path": "/constraints",
+      "element": "<Constraints />"
+    },
+    {
+      "path": "/constraints/:id",
+      "element": "<ConstraintDetail />"
+    },
+    {
+      "path": "/constraints/new",
+      "element": "<NewConstraint />"
+    },
+    {
+      "path": "/d/:token",
+      "element": "<DriverMagicLanding />"
+    },
+    {
+      "path": "/daily",
+      "element": "<Navigate to=\"/admin/daily\" replace />"
+    },
+    {
+      "path": "/daily-report/v1",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily-report/v2",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily-report/v3",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily-reports",
+      "element": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "path": "/daily-reports/:id",
+      "element": "<RedirectDailyReportDetailAlias />"
+    },
+    {
+      "path": "/daily-reports/new",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily/:id",
+      "element": "<RedirectWithId base=\"/admin/daily\" />"
+    },
+    {
+      "path": "/daily/new",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily/submit",
+      "element": "<NewDailyReportV3 publicMode />"
+    },
+    {
+      "path": "/daily/v1",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily/v2",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/daily/v3",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/dev",
+      "element": "D(<DevHub />)"
+    },
+    {
+      "path": "/dev/login",
+      "element": "<DevLogin />"
+    },
+    {
+      "path": "/dispatch-portal",
+      "element": "DP(<DispatchHub />)"
+    },
+    {
+      "path": "/dispatch-portal/board",
+      "element": "DP(<DispatchBoard />)"
+    },
+    {
+      "path": "/dispatch-portal/change-password",
+      "element": "DP(<DispatchChangePassword />)"
+    },
+    {
+      "path": "/dispatch-portal/command",
+      "element": "DP(<DispatchCommandCenter />)"
+    },
+    {
+      "path": "/dispatch-portal/driver-qualification",
+      "element": "DP(<DispatchDriverQualification />)"
+    },
+    {
+      "path": "/dispatch-portal/driver/:driverKey",
+      "element": "DP(<DispatchDriverProfile />)"
+    },
+    {
+      "path": "/dispatch-portal/fleet",
+      "element": "DP(<><TransportationOpsTopBar /><FleetVisibility scope=\"dispatch\" /></>)"
+    },
+    {
+      "path": "/dispatch-portal/forgot-password",
+      "element": "<DispatchForgotPassword />"
+    },
+    {
+      "path": "/dispatch-portal/haul-ledger",
+      "element": "DP(<DispatchHaulLedger />)"
+    },
+    {
+      "path": "/dispatch-portal/hub_legacy",
+      "element": "DP(<DispatchHub />)"
+    },
+    {
+      "path": "/dispatch-portal/hub_v2",
+      "element": "DP(<DispatchHubV2 />)"
+    },
+    {
+      "path": "/dispatch-portal/login",
+      "element": "<DispatchLogin />"
+    },
+    {
+      "path": "/dispatch-portal/map",
+      "element": "DP(<DispatchOperationsMapPage />)"
+    },
+    {
+      "path": "/dispatch-portal/reset/:token",
+      "element": "<DispatchResetPassword />"
+    },
+    {
+      "path": "/document-expirations",
+      "element": "<DocumentExpirations />"
+    },
+    {
+      "path": "/driver",
+      "element": "<DriverShift />"
+    },
+    {
+      "path": "/equipment/:id",
+      "element": "<RedirectWithId base=\"/admin/equipment\" />"
+    },
+    {
+      "path": "/equipment/new",
+      "element": "<NewEquipmentInspection publicMode />"
+    },
+    {
+      "path": "/equipment/submit",
+      "element": "<NewEquipmentInspection publicMode />"
+    },
+    {
+      "path": "/executive",
+      "element": "<Navigate to=\"/admin/executive-overview\" replace />"
+    },
+    {
+      "path": "/executive-dashboard",
+      "element": "<Navigate to=\"/admin/executive-overview\" replace />"
+    },
+    {
+      "path": "/executive/ods-intelligence",
+      "element": "<Navigate to=\"/admin/operational-intelligence\" replace />"
+    },
+    {
+      "path": "/field",
+      "element": "<FieldSection />"
+    },
+    {
+      "path": "/field-leadership",
+      "element": "<Navigate to=\"/leadership\" replace />"
+    },
+    {
+      "path": "/field-leadership/portal",
+      "element": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "path": "/field-leadership/portal/change-password",
+      "element": "FL(<FieldLeadershipPortalChangePassword />)"
+    },
+    {
+      "path": "/field-leadership/portal/dashboard",
+      "element": "FL(<FieldLeadershipPortalDashboard />)"
+    },
+    {
+      "path": "/field-leadership/portal/driver-qualification",
+      "element": "FL(<FieldLeadershipDriverQualification />)"
+    },
+    {
+      "path": "/field-leadership/portal/forecasting",
+      "element": "FL(<FieldLeadershipForecasting />)"
+    },
+    {
+      "path": "/field-leadership/portal/login",
+      "element": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "path": "/field/calculators",
+      "element": "<MaterialCalculators />"
+    },
+    {
+      "path": "/fl",
+      "element": "<Navigate to=\"/leadership\" replace />"
+    },
+    {
+      "path": "/fleet",
+      "element": "<Navigate to=\"/dispatch-portal\" replace />"
+    },
+    {
+      "path": "/fleet/dvir/new",
+      "element": "<NewFleetDVIR />"
+    },
+    {
+      "path": "/fleet/dvir/submit",
+      "element": "<NewFleetDVIR />"
+    },
+    {
+      "path": "/fleet/dvir/submitted/:id",
+      "element": "<FleetDVIRConfirmation />"
+    },
+    {
+      "path": "/fleet/unit/:unit_number",
+      "element": "S(<FleetUnitThread />)"
+    },
+    {
+      "path": "/fleet/weekly-emergency/new",
+      "element": "<NewFleetDVIR kind=\"weekly_emergency\" />"
+    },
+    {
+      "path": "/fleet/weekly-lead/new",
+      "element": "<NewFleetDVIR kind=\"weekly_lead\" />"
+    },
+    {
+      "path": "/guidance",
+      "element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "path": "/guidance/:articleId",
+      "element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "path": "/guidance/section/:sectionId",
+      "element": "<OperationalGuidanceCenter />"
+    },
+    {
+      "path": "/hr",
+      "element": "H(<HrHubV2 />)"
+    },
+    {
+      "path": "/hr/change-password",
+      "element": "H(<HrChangePassword />)"
+    },
+    {
+      "path": "/hr/daily-reports",
+      "element": "H(<HrDailyReports />)"
+    },
+    {
+      "path": "/hr/daily-reports/:id",
+      "element": "H(<ViewDailyReport />)"
+    },
+    {
+      "path": "/hr/driver-qualification",
+      "element": "H(<HrDriverQualificationDashboard />)"
+    },
+    {
+      "path": "/hr/driver-qualification/import",
+      "element": "H(<HrDriverQualificationImport />)"
+    },
+    {
+      "path": "/hr/driver/:driverKey",
+      "element": "H(<HrDriverProfile />)"
+    },
+    {
+      "path": "/hr/employee-accountability",
+      "element": "H(<HrEmployeeAccountability />)"
+    },
+    {
+      "path": "/hr/employee-requests",
+      "element": "H(<HrEmployeeRequestsQueue />)"
+    },
+    {
+      "path": "/hr/employees",
+      "element": "H(<HrEmployees />)"
+    },
+    {
+      "path": "/hr/employees/:empId/profile",
+      "element": "H(<EmployeeProfile />)"
+    },
+    {
+      "path": "/hr/employees/:id/accountability",
+      "element": "H(<HrEmployeeAccountabilityTimeline />)"
+    },
+    {
+      "path": "/hr/employees/:id/thread",
+      "element": "H(<HrEmployeeThread />)"
+    },
+    {
+      "path": "/hr/field-leadership",
+      "element": "H(<HrFieldLeadership />)"
+    },
+    {
+      "path": "/hr/field-leadership-users",
+      "element": "H(<HrFieldLeadershipUsers />)"
+    },
+    {
+      "path": "/hr/forgot",
+      "element": "<HrForgotPassword />"
+    },
+    {
+      "path": "/hr/historical-records/batches",
+      "element": "H(<HistoricalRecordsBatches />)"
+    },
+    {
+      "path": "/hr/historical-records/batches/:batchId",
+      "element": "H(<HistoricalRecordsBatchDetail />)"
+    },
+    {
+      "path": "/hr/historical-records/intake",
+      "element": "H(<HistoricalRecordsIntake />)"
+    },
+    {
+      "path": "/hr/historical-records/queue",
+      "element": "H(<HistoricalRecordsQueue />)"
+    },
+    {
+      "path": "/hr/hub_legacy",
+      "element": "H(<HrHub />)"
+    },
+    {
+      "path": "/hr/hub_v2",
+      "element": "H(<HrHubV2 />)"
+    },
+    {
+      "path": "/hr/incidents",
+      "element": "H(<HrIncidents />)"
+    },
+    {
+      "path": "/hr/login",
+      "element": "<HrLogin />"
+    },
+    {
+      "path": "/hr/motive-drivers",
+      "element": "H(<HrMotiveDrivers />)"
+    },
+    {
+      "path": "/hr/payroll-variance",
+      "element": "H(<HrPayrollVariance />)"
+    },
+    {
+      "path": "/hr/qualifications",
+      "element": "H(<EmployeeLifecycleQualifications />)"
+    },
+    {
+      "path": "/hr/reset/:token",
+      "element": "<HrResetPassword />"
+    },
+    {
+      "path": "/hr/safety-records",
+      "element": "H(<HrSafetyRecords />)"
+    },
+    {
+      "path": "/hr/time-off",
+      "element": "H(<HrTimeOff />)"
+    },
+    {
+      "path": "/hr/time-verification",
+      "element": "H(<HrTimeVerification />)"
+    },
+    {
+      "path": "/hr/training-records",
+      "element": "H(<HrTrainingRecords />)"
+    },
+    {
+      "path": "/incidents",
+      "element": "<Navigate to=\"/admin/incidents\" replace />"
+    },
+    {
+      "path": "/incidents/:id",
+      "element": "<RedirectWithId base=\"/admin/incidents\" />"
+    },
+    {
+      "path": "/incidents/new",
+      "element": "<Navigate to=\"/incidents/report\" replace />"
+    },
+    {
+      "path": "/incidents/report",
+      "element": "<IncidentReport />"
+    },
+    {
+      "path": "/incidents/submit",
+      "element": "<Navigate to=\"/incidents/report\" replace />"
+    },
+    {
+      "path": "/inspect/:id",
+      "element": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "path": "/inspect/new",
+      "element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "path": "/inspections",
+      "element": "<Navigate to=\"/admin/inspections\" replace />"
+    },
+    {
+      "path": "/inspections/:id",
+      "element": "<RedirectWithId base=\"/admin/inspections\" />"
+    },
+    {
+      "path": "/inspections/new",
+      "element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "path": "/inspections/submit",
+      "element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "path": "/jha",
+      "element": "<JhaPlansHub />"
+    },
+    {
+      "path": "/jha/new",
+      "element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "path": "/jha/submit",
+      "element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "path": "/leadership",
+      "element": "<FieldLeadershipHub />"
+    },
+    {
+      "path": "/leadership/:kind/new",
+      "element": "<FieldLeadershipFormPage />"
+    },
+    {
+      "path": "/leadership/hub_v2",
+      "element": "<LeadershipHubV2 />"
+    },
+    {
+      "path": "/leadership/login",
+      "element": "<FieldLeadershipPortalLogin />"
+    },
+    {
+      "path": "/leadership/records",
+      "element": "<FieldLeadershipRecords />"
+    },
+    {
+      "path": "/leadership/records/:id",
+      "element": "<FieldLeadershipView />"
+    },
+    {
+      "path": "/legal/privacy",
+      "element": "<PrivacyPolicy />"
+    },
+    {
+      "path": "/legal/terms",
+      "element": "<TermsOfService />"
+    },
+    {
+      "path": "/meetings",
+      "element": "<Navigate to=\"/admin/meetings\" replace />"
+    },
+    {
+      "path": "/meetings/:id",
+      "element": "<RedirectWithId base=\"/admin/meetings\" />"
+    },
+    {
+      "path": "/meetings/new",
+      "element": "<NewMeeting />"
+    },
+    {
+      "path": "/meetings/submit",
+      "element": "<NewMeeting publicMode />"
+    },
+    {
+      "path": "/near-miss",
+      "element": "<NearMissKiosk />"
+    },
+    {
+      "path": "/notifications",
+      "element": "<NotificationsDigest />"
+    },
+    {
+      "path": "/odr/:id",
+      "element": "<OdrDetail />"
+    },
+    {
+      "path": "/odr/:id/done",
+      "element": "<OdrDone />"
+    },
+    {
+      "path": "/odr/center",
+      "element": "<OdrCenter />"
+    },
+    {
+      "path": "/odr/new",
+      "element": "<OdrNew />"
+    },
+    {
+      "path": "/odr/public/:doc_id",
+      "element": "<OdrPublicViewer />"
+    },
+    {
+      "path": "/operational-records",
+      "element": "<OperationalRecords />"
+    },
+    {
+      "path": "/operations-actions",
+      "element": "<OperationsActions />"
+    },
+    {
+      "path": "/operations-actions/:id",
+      "element": "<OperationsActionDetail />"
+    },
+    {
+      "path": "/operations-actions/new",
+      "element": "<OperationsActionNew />"
+    },
+    {
+      "path": "/operations-center",
+      "element": "A(<OperationsCenterCommand />)"
+    },
+    {
+      "path": "/operations-control/cases",
+      "element": "A(<OperationsControlCasesRoute />)"
+    },
+    {
+      "path": "/operations-control/cases/:caseId",
+      "element": "A(<OperationsControlCaseDetail />)"
+    },
+    {
+      "path": "/operations-map",
+      "element": "A(<OperationsMapPage />)"
+    },
+    {
+      "path": "/ops-training",
+      "element": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "path": "/ops-training/:slug",
+      "element": "<Navigate to=\"/guidance\" replace />"
+    },
+    {
+      "path": "/pm",
+      "element": "P(<PmHomeRedirect />)"
+    },
+    {
+      "path": "/pm/change-password",
+      "element": "P(<PmChangePassword />)"
+    },
+    {
+      "path": "/pm/command-center",
+      "element": "P(<PmCommandCenter />)"
+    },
+    {
+      "path": "/pm/crew-compliance",
+      "element": "P(<PmCrewCompliance />)"
+    },
+    {
+      "path": "/pm/daily",
+      "element": "AP(<DailyReportsDashboard />)"
+    },
+    {
+      "path": "/pm/daily/:id",
+      "element": "AP(<ViewDailyReport />)"
+    },
+    {
+      "path": "/pm/due-today",
+      "element": "AP(<PmDueTodayV2 />)"
+    },
+    {
+      "path": "/pm/equipment",
+      "element": "AP(<EquipmentDashboard />)"
+    },
+    {
+      "path": "/pm/equipment/:id",
+      "element": "AP(<ViewEquipmentInspection context=\"admin\" />)"
+    },
+    {
+      "path": "/pm/field-leadership",
+      "element": "P(<PmFieldLeadership />)"
+    },
+    {
+      "path": "/pm/fleet",
+      "element": "P(<PmFleet />)"
+    },
+    {
+      "path": "/pm/holds",
+      "element": "AP(<PmHoldsV2 />)"
+    },
+    {
+      "path": "/pm/hub",
+      "element": "P(<PmHubV2 />)"
+    },
+    {
+      "path": "/pm/hub_legacy",
+      "element": "P(<PmHub />)"
+    },
+    {
+      "path": "/pm/hub_v2",
+      "element": "P(<PmHubV2 />)"
+    },
+    {
+      "path": "/pm/incidents",
+      "element": "AP(<IncidentsDashboard />)"
+    },
+    {
+      "path": "/pm/incidents/:id",
+      "element": "AP(<ViewIncident />)"
+    },
+    {
+      "path": "/pm/inspections",
+      "element": "AP(<Dashboard />)"
+    },
+    {
+      "path": "/pm/inspections/:id",
+      "element": "AP(<ViewInspection />)"
+    },
+    {
+      "path": "/pm/jha-plans",
+      "element": "AP(<JhaPlansAdmin />)"
+    },
+    {
+      "path": "/pm/job/:projectNumber/team",
+      "element": "P(<PmJobTeam />)"
+    },
+    {
+      "path": "/pm/jobs",
+      "element": "P(<PmJobs />)"
+    },
+    {
+      "path": "/pm/login",
+      "element": "<PmLogin />"
+    },
+    {
+      "path": "/pm/meetings",
+      "element": "AP(<MeetingsDashboard />)"
+    },
+    {
+      "path": "/pm/meetings/:id",
+      "element": "AP(<ViewMeeting />)"
+    },
+    {
+      "path": "/pm/monday-review",
+      "element": "P(<PmMondayReviewWorkspace />)"
+    },
+    {
+      "path": "/pm/odr",
+      "element": "P(<OdrPmPanel />)"
+    },
+    {
+      "path": "/pm/operational-intelligence",
+      "element": "P(<PmOperationalIntelligence />)"
+    },
+    {
+      "path": "/pm/people",
+      "element": "P(<PmPeople />)"
+    },
+    {
+      "path": "/pm/photos",
+      "element": "P(<JobPhotosLibrary portalKey=\"pm\" />)"
+    },
+    {
+      "path": "/pm/portfolio-intelligence",
+      "element": "P(<PmPortfolioIntelligence />)"
+    },
+    {
+      "path": "/pm/posters",
+      "element": "P(<PmPosters />)"
+    },
+    {
+      "path": "/pm/project-controls",
+      "element": "P(<PmProjectControlsAuthority />)"
+    },
+    {
+      "path": "/pm/project-controls/budget",
+      "element": "P(<PmProjectBudgetAuthority />)"
+    },
+    {
+      "path": "/pm/project-controls/earned-value",
+      "element": "P(<PmEarnedValueEngine />)"
+    },
+    {
+      "path": "/pm/project-controls/forecasting",
+      "element": "P(<PmForecastingCommitments />)"
+    },
+    {
+      "path": "/pm/project-controls/schedule",
+      "element": "P(<PmProjectSchedule />)"
+    },
+    {
+      "path": "/pm/project-health",
+      "element": "P(<ProjectHealth />)"
+    },
+    {
+      "path": "/pm/project-schedule",
+      "element": "P(<PmProjectSchedule />)"
+    },
+    {
+      "path": "/pm/project-staffing",
+      "element": "P(<PmProjectStaffing />)"
+    },
+    {
+      "path": "/pm/project/:projectNumber",
+      "element": "P(<PmProjectDetail />)"
+    },
+    {
+      "path": "/pm/project/:projectNumber/thread",
+      "element": "P(<PmProjectThread />)"
+    },
+    {
+      "path": "/pm/projects-legacy/:projectNumber",
+      "element": "P(<PmProjectDetail />)"
+    },
+    {
+      "path": "/pm/projects/:projectNumber",
+      "element": "P(<PmProjectRedirect />)"
+    },
+    {
+      "path": "/pm/qaqc",
+      "element": "P(<PmQaqcList />)"
+    },
+    {
+      "path": "/pm/reset/:token",
+      "element": "<PmResetPassword />"
+    },
+    {
+      "path": "/pm/schedule",
+      "element": "<Navigate to=\"/pm/project-schedule\" replace />"
+    },
+    {
+      "path": "/pm/suppliers",
+      "element": "P(<PmSuppliers />)"
+    },
+    {
+      "path": "/pm/trench-boxes",
+      "element": "AP(<TrenchBoxesAdmin />)"
+    },
+    {
+      "path": "/pm/trench-safety",
+      "element": "AP(<TrenchSafetyHub />)"
+    },
+    {
+      "path": "/pm/trench-safety/assets",
+      "element": "AP(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "path": "/pm/trench-safety/assets/:assetId",
+      "element": "AP(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "path": "/pm/trench-safety/excavations",
+      "element": "AP(<ExcavationOversight />)"
+    },
+    {
+      "path": "/pm/trench-safety/reports",
+      "element": "AP(<TrenchSafetyReports />)"
+    },
+    {
+      "path": "/pm/trench-safety/tabulated-data",
+      "element": "AP(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "path": "/po-requests",
+      "element": "<PoRequests />"
+    },
+    {
+      "path": "/project-health",
+      "element": "<ProjectHealth />"
+    },
+    {
+      "path": "/qa-qc",
+      "element": "<Navigate to=\"/qaqc\" replace />"
+    },
+    {
+      "path": "/qaqc",
+      "element": "<QaqcSection />"
+    },
+    {
+      "path": "/qaqc/:id",
+      "element": "<ViewQaqcInspection />"
+    },
+    {
+      "path": "/qaqc/:slug/new",
+      "element": "<NewQaqcInspection />"
+    },
+    {
+      "path": "/reports/daily/new",
+      "element": "<Navigate to=\"/daily/submit\" replace />"
+    },
+    {
+      "path": "/revise/:token",
+      "element": "<Revise />"
+    },
+    {
+      "path": "/safety",
+      "element": "<SafetySection />"
+    },
+    {
+      "path": "/safety-portal",
+      "element": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "path": "/safety-portal/audits",
+      "element": "SF(<SafetyAudits />)"
+    },
+    {
+      "path": "/safety-portal/change-password",
+      "element": "SF(<SafetyChangePassword />)"
+    },
+    {
+      "path": "/safety-portal/corrective-actions",
+      "element": "SF(<SafetyCorrectiveActions />)"
+    },
+    {
+      "path": "/safety-portal/digest",
+      "element": "SF(<SafetyDigest />)"
+    },
+    {
+      "path": "/safety-portal/documents",
+      "element": "SF(<SafetyDocuments />)"
+    },
+    {
+      "path": "/safety-portal/driver/:driverKey",
+      "element": "SF(<SafetyDriverProfile />)"
+    },
+    {
+      "path": "/safety-portal/employees",
+      "element": "SF(<SafetyEmployeeProfiles />)"
+    },
+    {
+      "path": "/safety-portal/fire-extinguishers",
+      "element": "SF(<SafetyFireExtinguishers />)"
+    },
+    {
+      "path": "/safety-portal/fire-extinguishers/import",
+      "element": "SF(<SafetyFireExtImport />)"
+    },
+    {
+      "path": "/safety-portal/fleet",
+      "element": "SF(<FleetVisibility scope=\"safety\" />)"
+    },
+    {
+      "path": "/safety-portal/forgot-password",
+      "element": "<SafetyForgotPassword />"
+    },
+    {
+      "path": "/safety-portal/forms-records",
+      "element": "SF(<SafetyFormsRecords />)"
+    },
+    {
+      "path": "/safety-portal/hub_legacy",
+      "element": "SF(<SafetyHub />)"
+    },
+    {
+      "path": "/safety-portal/hub_v2",
+      "element": "SF(<SafetyHubV2 />)"
+    },
+    {
+      "path": "/safety-portal/incidents",
+      "element": "SF(<SafetyIncidents />)"
+    },
+    {
+      "path": "/safety-portal/incidents/:id",
+      "element": "SF(<ViewIncident />)"
+    },
+    {
+      "path": "/safety-portal/inspections",
+      "element": "SF(<Dashboard />)"
+    },
+    {
+      "path": "/safety-portal/inspections/:id",
+      "element": "SF(<ViewInspection />)"
+    },
+    {
+      "path": "/safety-portal/jha-plans",
+      "element": "SF(<JhaPlansAdmin />)"
+    },
+    {
+      "path": "/safety-portal/library",
+      "element": "SF(<SafetyTopicLibrary />)"
+    },
+    {
+      "path": "/safety-portal/login",
+      "element": "<SafetyLogin />"
+    },
+    {
+      "path": "/safety-portal/meetings",
+      "element": "SF(<MeetingsDashboard />)"
+    },
+    {
+      "path": "/safety-portal/meetings/:id",
+      "element": "SF(<ViewMeeting />)"
+    },
+    {
+      "path": "/safety-portal/reports",
+      "element": "SF(<SafetyReports />)"
+    },
+    {
+      "path": "/safety-portal/reset/:token",
+      "element": "<SafetyResetPassword />"
+    },
+    {
+      "path": "/safety-portal/training",
+      "element": "SF(<SafetyTrainingRecords />)"
+    },
+    {
+      "path": "/safety-portal/trench-safety",
+      "element": "<Navigate to=\"/safety/trench-safety\" replace />"
+    },
+    {
+      "path": "/safety-portal/trench-safety/assets",
+      "element": "<Navigate to=\"/safety/trench-safety/assets\" replace />"
+    },
+    {
+      "path": "/safety-portal/trench-safety/tabulated-data",
+      "element": "<Navigate to=\"/safety/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "path": "/safety/cards",
+      "element": "<FieldSafetyCards />"
+    },
+    {
+      "path": "/safety/cases/:caseId",
+      "element": "<SafetyCaseWorkspace />"
+    },
+    {
+      "path": "/safety/cases/:caseId/executive-report",
+      "element": "<ExecutiveCaseReport />"
+    },
+    {
+      "path": "/safety/cases/:caseId/reports/:reportType",
+      "element": "<IncidentReportViewer />"
+    },
+    {
+      "path": "/safety/executive-intelligence",
+      "element": "<ExecutiveIntelligence />"
+    },
+    {
+      "path": "/safety/forms",
+      "element": "<SafetyFormsHub />"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/:id",
+      "element": "<ViewSafetyForm kind=\"issuance\" />"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/:id/return",
+      "element": "<ReturnEquipment />"
+    },
+    {
+      "path": "/safety/forms/equipment-issuance/new",
+      "element": "<NewSafetyEquipmentIssuance />"
+    },
+    {
+      "path": "/safety/forms/equipment-training/:id",
+      "element": "<ViewSafetyForm kind=\"training\" />"
+    },
+    {
+      "path": "/safety/forms/equipment-training/new",
+      "element": "<NewSafetyEquipmentTraining />"
+    },
+    {
+      "path": "/safety/forms/login",
+      "element": "<Navigate to=\"/safety/forms\" replace />"
+    },
+    {
+      "path": "/safety/incidents/:caseId/thread",
+      "element": "<SafetyIncidentThread />"
+    },
+    {
+      "path": "/safety/inspections/new",
+      "element": "<NewInspection publicMode />"
+    },
+    {
+      "path": "/safety/jha",
+      "element": "<Navigate to=\"/jha\" replace />"
+    },
+    {
+      "path": "/safety/trench-boxes",
+      "element": "<Navigate to=\"/trench-boxes\" replace />"
+    },
+    {
+      "path": "/safety/trench-safety",
+      "element": "SF(<TrenchSafetyHub />)"
+    },
+    {
+      "path": "/safety/trench-safety/assets",
+      "element": "SF(<TrenchSafetyAssetsList />)"
+    },
+    {
+      "path": "/safety/trench-safety/assets/:assetId",
+      "element": "SF(<TrenchSafetyAssetDetail />)"
+    },
+    {
+      "path": "/safety/trench-safety/excavations",
+      "element": "SF(<ExcavationOversight />)"
+    },
+    {
+      "path": "/safety/trench-safety/field-reports",
+      "element": "SF(<TrenchSafetyFieldReportsPage />)"
+    },
+    {
+      "path": "/safety/trench-safety/repair-review",
+      "element": "SF(<TrenchSafetyRepairReviewPage />)"
+    },
+    {
+      "path": "/safety/trench-safety/reports",
+      "element": "SF(<TrenchSafetyReports />)"
+    },
+    {
+      "path": "/safety/trench-safety/tabulated-data",
+      "element": "SF(<TrenchSafetyTabulatedData />)"
+    },
+    {
+      "path": "/shift",
+      "element": "<ShiftStart />"
+    },
+    {
+      "path": "/shop",
+      "element": "S(<ShopHubV2 />)"
+    },
+    {
+      "path": "/shop/asset-care",
+      "element": "S(<ShopAssetCare />)"
+    },
+    {
+      "path": "/shop/change-password",
+      "element": "S(<ShopChangePassword />)"
+    },
+    {
+      "path": "/shop/equipment",
+      "element": "S(<EquipmentDashboard />)"
+    },
+    {
+      "path": "/shop/equipment/:id",
+      "element": "S(<ViewEquipmentInspection context=\"shop\" />)"
+    },
+    {
+      "path": "/shop/fleet",
+      "element": "S(<FleetVisibility scope=\"shop\" />)"
+    },
+    {
+      "path": "/shop/fuel-lube",
+      "element": "S(<FuelLubeVisitRecords />)"
+    },
+    {
+      "path": "/shop/fuel-lube/:visitId",
+      "element": "S(<FuelLubeVisitDetail />)"
+    },
+    {
+      "path": "/shop/fuel-lube/new",
+      "element": "S(<FuelLubeVisitForm />)"
+    },
+    {
+      "path": "/shop/hub_legacy",
+      "element": "S(<ShopHub />)"
+    },
+    {
+      "path": "/shop/hub_v2",
+      "element": "S(<ShopHubV2 />)"
+    },
+    {
+      "path": "/shop/login",
+      "element": "<ShopLogin />"
+    },
+    {
+      "path": "/shop/manager/queue",
+      "element": "S(<ShopManagerQueue />)"
+    },
+    {
+      "path": "/shop/me",
+      "element": "S(<ShopMyAssignments />)"
+    },
+    {
+      "path": "/shop/pm",
+      "element": "S(<PmDashboard />)"
+    },
+    {
+      "path": "/shop/pm/schedules",
+      "element": "S(<PmSchedules />)"
+    },
+    {
+      "path": "/shop/pm/templates",
+      "element": "S(<PmTemplates />)"
+    },
+    {
+      "path": "/shop/pm/work-orders",
+      "element": "S(<PmWorkOrders />)"
+    },
+    {
+      "path": "/shop/pm/work-orders/:id",
+      "element": "S(<PmWorkOrders />)"
+    },
+    {
+      "path": "/shop/reset/:token",
+      "element": "<ShopResetPassword />"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation",
+      "element": "S(<ServiceTruckReconciliationRecords />)"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation/:recId",
+      "element": "S(<ServiceTruckReconciliationDetail />)"
+    },
+    {
+      "path": "/shop/service-truck-reconciliation/new",
+      "element": "S(<ServiceTruckReconciliationForm />)"
+    },
+    {
+      "path": "/shop/trench-safety-repairs",
+      "element": "S(<ShopTrenchSafetyRepairs />)"
+    },
+    {
+      "path": "/shop/units",
+      "element": "<Navigate to=\"/shop/units/history\" replace />"
+    },
+    {
+      "path": "/shop/units/:unitNumber/history",
+      "element": "S(<UnitHistoryTimeline />)"
+    },
+    {
+      "path": "/shop/units/history",
+      "element": "S(<UnitHistoryLanding />)"
+    },
+    {
+      "path": "/sign-in",
+      "element": "<SignIn />"
+    },
+    {
+      "path": "/submit",
+      "element": "<InspectionLegacyRedirect />"
+    },
+    {
+      "path": "/tasks",
+      "element": "<Tasks />"
+    },
+    {
+      "path": "/thank-you",
+      "element": "<ThankYou />"
+    },
+    {
+      "path": "/time-off/public/:token",
+      "element": "<PublicTimeOff />"
+    },
+    {
+      "path": "/training",
+      "element": "<TrainingHub />"
+    },
+    {
+      "path": "/training-hub",
+      "element": "<Navigate to=\"/training\" replace />"
+    },
+    {
+      "path": "/training/:track",
+      "element": "<TrainingTrack />"
+    },
+    {
+      "path": "/training/:track/packet",
+      "element": "<TrainingPacketDownload />"
+    },
+    {
+      "path": "/training/:track/poster",
+      "element": "<TrainingQrPoster />"
+    },
+    {
+      "path": "/transport-invite/:token",
+      "element": "<ExternalCarrierInvite />"
+    },
+    {
+      "path": "/transport-verify/:cnum",
+      "element": "<CertificateVerify />"
+    },
+    {
+      "path": "/transportation-operations/*",
+      "element": "TX(<AdminTransportation />)"
+    },
+    {
+      "path": "/trench-boxes",
+      "element": "<Navigate to=\"/trench-safety/tabulated-data\" replace />"
+    },
+    {
+      "path": "/trench-safety",
+      "element": "<PublicTrenchSafetyDashboard />"
+    },
+    {
+      "path": "/trench-safety/assets/:assetId",
+      "element": "<TrenchSafetyQrLanding />"
+    },
+    {
+      "path": "/trench-safety/excavation/new",
+      "element": "<PublicExcavationForm />"
+    },
+    {
+      "path": "/trench-safety/references",
+      "element": "<PublicTrenchSafetyReferences />"
+    },
+    {
+      "path": "/trench-safety/report",
+      "element": "<PublicTrenchSafetyReport />"
+    },
+    {
+      "path": "/trench-safety/tabulated-data",
+      "element": "<PublicTrenchSafetyTabulatedData />"
+    }
+  ]
+}

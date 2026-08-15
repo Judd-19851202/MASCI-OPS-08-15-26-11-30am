@@ -125,6 +125,9 @@ export function TrenchSafetyPulseCard({ allowSend = true }) {
         <Stat label={t("Inspections Due")} value={al.inspections_due ?? 0}    testId="pulse-stat-inspdue" />
         <Stat label={t("Recent · 7d")}    value={snap.activity_7d_total ?? 0} testId="pulse-stat-recent" />
       </div>
+      <div className="mt-2 text-[10px] text-slate-500 leading-snug" data-testid="pulse-card-scope-note">
+        {t("Point-in-time figures captured when this weekly pulse was generated (see \"Last generated\" above) — not the live dashboard totals.")}
+      </div>
 
       <div className="mt-3 flex flex-wrap gap-2">
         <Button size="sm" variant="outline" onClick={() => setViewOpen(true)} data-testid="pulse-view-btn">

@@ -755,7 +755,7 @@ export function AppRoutes() {
             <Route path="/admin/platform-configuration" element={A(<AdminPlatformConfiguration />)} />
             <Route path="/admin/diagnostics" element={A(<AdminDiagnostics />)} />
             <Route path="/admin/maintenance" element={A(<AdminMaintenance />)} />
-            <Route path="/admin/platform-overview" element={<AdminPlatformOverview />} />
+            <Route path="/admin/platform-overview" element={A(<AdminPlatformOverview />)} />
             <Route path="/admin/recovery-stream" element={A(LB("/admin/recovery-stream", <AdminRecoveryStream />))} />
             <Route path="/admin/jha-acknowledgements" element={A(<AdminJhaAcknowledgements />)} />
             <Route path="/admin/command-center" element={A(<AdminCommandCenter />)} />
@@ -1387,7 +1387,7 @@ export function AppRoutes() {
             <Route path="/daily/v3" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/daily-report/v1" element={<Navigate to="/daily/submit" replace />} />
             <Route path="/daily-report/v3" element={<Navigate to="/daily/submit" replace />} />
-            <Route path="/pm/operational-intelligence" element={<PmOperationalIntelligence />} />
+            <Route path="/pm/operational-intelligence" element={P(<PmOperationalIntelligence />)} />
             {/* DR-UNIFY-002 · orphaned duplicate collapsed into canonical Admin OI. */}
             <Route path="/admin/ods-intelligence" element={<Navigate to="/admin/operational-intelligence" replace />} />
             {/* DR-UNIFY-002 · speculative Executive surface — no real Executive Portal exists.

@@ -1439,3 +1439,14 @@ BP-0069 SignatureSubmitSection repointed to the live /daily/submit signoff surfa
 - KNOWN PRE-EXISTING (not from this session, confirmed via git stash): test_nav_drift_guard 9 assertions read stale frontend/src/App.js (routes refactored into app/routing/AppRoutes.jsx) + a Feb-2026 route-inventory snapshot; routes verified to exist. Documented TD-0053; full re-sync is separate test-infra scope.
 
 **Release state:** deployable content fingerprint `dcf-dfbd7ab0639fd3cf52c76ab7b3b9d0e16e42ad774c126ac4b38334735bc0f46f` computed twice, identical. AUTHORIZED_RELEASE.json untouched. Preview serves HTTP 200 as UNATTESTED candidate (deploy_authorized=false). Production business-data writes this session: 0 (all QA read-only). Save=NO · Deploy=NO.
+
+---
+
+## 2026-06 · TD-0052 + TD-0053 CLOSED · SOURCE FROZEN · READY FOR OWNER SAVE
+
+- **TD-0053 CLOSED** (nav-drift guard): repointed to canonical `app/routing/AppRoutes.jsx`, regenerated `TRACK_14_0_PLATFORM_ROUTE_INVENTORY.json` deterministically (467 routes), closed two genuine route-level guard gaps (`/admin/platform-overview`→A(), `/pm/operational-intelligence`→P()), rewrote two obsolete assertions to current canonical impls with evidence (wp16/wp17 shell surface; `buildPortalAuthHeaders`→getAdminToken+getHrToken both-tier). 24/24 assertions PASS, none skipped.
+- **TD-0052 CLOSED** (trench ops-summary variance): blocks are GOVERNED DISTINCT scopes; Executive summary aligned to the in-service scope (backend `counts_by_status_active` sums to `total_active_assets` by construction; Available 10 + Assigned 0 + On Hold 11 = 21) and every distinct scope explicitly labeled (in-service caption, all-lifecycle Count-by-Status caption, "Recent Events · 7d", Out-of-Service composition tooltip, weekly Pulse point-in-time as-of note); backend ships a `scopes` contract. BP-0081 browser PASS. No unexplained residual variance.
+- Browser proofs: **82/82 provable PASS** (85 canonical rows = 82 PASS + 3 governed-retired: BP-0002, BP-0033, BP-0034).
+- Regression: frontend **412/412**; backend GD/parity/guard suites green; Independent Acceptance **12/12**; report/export + cross-surface parity PASS; population guard 0; truth-surface guard 0; canonical surface scanner OPEN 0. Only documented PRE-EXISTING non-blocker: 22 trench phase2/phase8b integration-test SETUP errors caused by the deprecated `/api/admin/login` (HTTP 410) in their fixtures — confirmed not introduced by this session and unrelated to TD-0052/TD-0053 → 0 unexpected failures.
+- **FINAL FROZEN deployable fingerprint: `dcf-f8efa44935b8b074ad173c215826b98bc2a22cb87a04a4a74ef9dab1155893e0`** (computed twice, identical).
+- AUTHORIZED_RELEASE.json untouched · Preview HTTP 200 UNATTESTED (deploy_authorized=false) · Production business-data writes = 0 · Save=NO · Deploy=NO.
