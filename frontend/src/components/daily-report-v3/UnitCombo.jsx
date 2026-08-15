@@ -13,6 +13,7 @@ import {
 } from "@/components/ui/command";
 import { cn } from "@/lib/utils";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { preventAutoFocusOnTouch } from "@/lib/pickerTouchFocus";
 
 export const DEFAULT_MATERIAL_UNITS = [
   { code: "EA", label: "Each", category: "Count", search: ["EA", "Each"] },
@@ -126,6 +127,7 @@ export function UnitCombo({
         className="w-[var(--radix-popover-trigger-width)] p-0"
         align="start"
         data-testid={`${testId}-content`}
+        onOpenAutoFocus={preventAutoFocusOnTouch}
       >
         <Command filter={(itemValue, search) => (itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0)}>
           <CommandInput
@@ -133,7 +135,7 @@ export function UnitCombo({
             className="h-12 text-[0.95rem]"
             data-testid={`${testId}-search`}
           />
-          <CommandList className="max-h-[50vh]">
+          <CommandList className="masci-selector-scroll max-h-[50vh]">
             <CommandEmpty>{t("No unit matches that search.")}</CommandEmpty>
             {groupedUnits.map((group) => (
               <CommandGroup key={group.category} heading={t(group.category)}>

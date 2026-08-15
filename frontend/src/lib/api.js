@@ -366,6 +366,19 @@ api.interceptors.response.use(
         }
       }
     }
+    // A per-endpoint 403 that reaches here (the PASSWORD_CHANGE_REQUIRED
+    // flow-gate 403 already returned early above) means the caller's role
+    // is not permitted for THIS specific endpoint — NOT that the whole
+    // session is invalid. Absorb it like a portal-scoped 401 so a
+    // peripheral/section authorization gap (e.g. a PM hitting a cost-code
+    // assignments read on the Daily Report form) can no longer mount the
+    // global "Access Restricted" overlay over an otherwise-working
+    // workflow. The calling component still receives the rejected promise
+    // and renders its own inline notice. Authorization is unchanged — we
+    // only stop the GLOBAL modal from hijacking the page.
+    if (err?.response?.status === 403) {
+      _namespacedHandled = true;
+    }
     // TRUST-DIAGNOSTICS-001 · Publish the classified failure to the
     // global session-status bus. The overlay component renders ONE
     // modal regardless of how many parallel loaders fail.

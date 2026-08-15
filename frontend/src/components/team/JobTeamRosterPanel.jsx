@@ -23,6 +23,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter, DialogD
 import { Popover, PopoverTrigger, PopoverContent } from "@/components/ui/popover";
 import { Command, CommandEmpty, CommandGroup, CommandInput, CommandItem, CommandList } from "@/components/ui/command";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { preventAutoFocusOnTouch } from "@/lib/pickerTouchFocus";
 import { sanitizeOperatorReference } from "@/lib/operatorLanguage";
 import { UserPlus, Users, History, AlertTriangle, X, Star, ArrowRightLeft, ShieldCheck, ShieldAlert, Clock, ShieldOff, HelpCircle, Search, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
@@ -604,7 +605,7 @@ export default function JobTeamRosterPanel({ projectNumber, scope = "admin" }) {
                       <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                     </Button>
                   </PopoverTrigger>
-                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start">
+                  <PopoverContent className="w-[var(--radix-popover-trigger-width)] p-0" align="start" onOpenAutoFocus={preventAutoFocusOnTouch}>
                     <Command>
                       <CommandInput
                         placeholder="Type a name or email…"

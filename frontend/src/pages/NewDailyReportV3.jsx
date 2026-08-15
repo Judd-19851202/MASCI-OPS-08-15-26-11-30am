@@ -179,6 +179,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
   const [costCodes, setCostCodes] = useState([]);
   const [projectCostAssignments, setProjectCostAssignments] = useState([]);
   const [projectCostProgress, setProjectCostProgress] = useState(null);
+  const [costAssignmentsDenied, setCostAssignmentsDenied] = useState(false);
   const [reportNumberPreview, setReportNumberPreview] = useState("");
   const [crewSetupOffer, setCrewSetupOffer] = useState(null);
   const [smartPrefillOffer, setSmartPrefillOffer] = useState(null);
@@ -529,6 +530,7 @@ export default function NewDailyReportV3({ publicMode = false }) {
       .get(`/cost-codes/projects/${encodeURIComponent(data.project_number)}/assignments`)
       .then(({ data: res }) => {
         if (cancelled) return;
+        setCostAssignmentsDenied(false);
         const assignments = Array.isArray(res?.assignments) ? res.assignments : [];
         setProjectCostAssignments(assignments);
         setProjectCostProgress(res?.progress || null);
@@ -556,10 +558,15 @@ export default function NewDailyReportV3({ publicMode = false }) {
           return { ...prev, cost_code_quantities: nextRows };
         });
       })
-      .catch(() => {
+      .catch((err) => {
         if (cancelled) return;
         setProjectCostAssignments([]);
         setProjectCostProgress(null);
+        // A 403 here means this account is not granted the project's
+        // cost-code assignments. Surface it inline (the global overlay is
+        // suppressed) so the operator understands why no governed codes
+        // appear, instead of silently showing an empty section.
+        setCostAssignmentsDenied(err?.response?.status === 403);
       });
     return () => {
       cancelled = true;
@@ -1266,6 +1273,14 @@ export default function NewDailyReportV3({ publicMode = false }) {
             reportNumberPreview={reportNumberPreview}
           />
           <SectionCrewEquipment data={data} patch={patch} costCodes={costCodes} />
+          {costAssignmentsDenied && (
+            <div
+              className="rounded-xl border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900"
+              data-testid="dr-v3-cost-assignments-denied"
+            >
+              Governed cost-code assignments for this project aren't available to your account, so no pre-loaded work blocks appear. You can still complete the report — ask your PM or an admin if you need the project's assigned cost codes.
+            </div>
+          )}
           <SectionWorkProduction
             data={data}
             patch={patch}

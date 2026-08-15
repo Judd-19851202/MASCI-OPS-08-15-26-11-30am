@@ -26,10 +26,20 @@ from lib.wp17a_kpi_governance import standardize_prediction_metadata
 
 
 _BACKEND_INTERNAL_BASE = os.environ.get("OCC_HEALTH_INTERNAL_BASE", "http://127.0.0.1:8001").rstrip("/")
-_PROBE_TIMEOUT_S = 30.0
+# Track PQ-v4 · OH-perf. The operational-health module aggregates many
+# self-probes plus a subprocess scanner ON EVERY request. Previously the
+# platform_truth_integrity probe was allowed 75s, which — combined with the
+# blocking scanner run sequentially after the probe fan-out — pushed the total
+# request past the 60s ingress/axios budget, so the dashboard 502'd and
+# rendered every card as em-dash. We now bound every source WELL under 60s and
+# run the scanner concurrently with the probes. Any source that exceeds its
+# bound degrades to a governed UNKNOWN card (never a false green), exactly like
+# the Command Center per-card degradation contract.
+_PROBE_TIMEOUT_S = 18.0
 _PROBE_TIMEOUT_OVERRIDES = {
-    "platform_truth_integrity": 75.0,
+    "platform_truth_integrity": 22.0,
 }
+_SCANNER_TIMEOUT_S = 22.0
 _WORKSPACE = Path("/app")
 _SCANNER_PATH = _WORKSPACE / "backend/tools/wp15_governance_convergence_scan.py"
 _CI_ASSERT_PATH = _WORKSPACE / "scripts/assert_wp15_governance_convergence.py"
@@ -156,6 +166,69 @@ async def _probe_json(client: httpx.AsyncClient, path: str, headers: Dict[str, s
         return {"ok": False, "path": path, "status_code": 0, "error": f"{type(exc).__name__}: {exc}", "body": None, "refreshed_at": None}
 
 
+# ── platform_truth_integrity cache ──────────────────────────────────
+# The truth-integrity scanner endpoint legitimately takes ~70s, which is
+# longer than the 60s ingress/axios budget for the operational-health request.
+# Probing it synchronously made the whole dashboard 502. Instead we serve the
+# most recent COMPLETED scan from an in-process cache and refresh it in the
+# background. Truth is preserved: cards read real evidence (with an explicit
+# "as of" freshness), and when no completed scan exists yet the card degrades
+# to a governed UNKNOWN ("evidence refreshing") — never a false green.
+_TRUTH_INTEGRITY_CACHE: Dict[str, Any] = {"probe": None, "refreshing": False}
+_TRUTH_INTEGRITY_TTL_S = 900.0
+_TRUTH_INTEGRITY_REFRESH_TIMEOUT_S = 95.0
+_TRUTH_INTEGRITY_KEY = "platform_truth_integrity"
+
+
+def _cache_age_seconds(probe: Optional[Dict[str, Any]]) -> Optional[float]:
+    if not probe or not probe.get("refreshed_at"):
+        return None
+    try:
+        ts = datetime.fromisoformat(str(probe["refreshed_at"]).replace("Z", "+00:00"))
+        now = datetime.now(ts.tzinfo) if ts.tzinfo else datetime.utcnow()
+        return (now - ts).total_seconds()
+    except Exception:  # noqa: BLE001
+        return None
+
+
+async def _refresh_truth_integrity(headers: Dict[str, str]) -> None:
+    """Background refresh of the slow truth-integrity probe."""
+    path = _PROBE_PATHS[_TRUTH_INTEGRITY_KEY]
+    try:
+        async with httpx.AsyncClient(timeout=_TRUTH_INTEGRITY_REFRESH_TIMEOUT_S) as client:
+            result = await _probe_json(client, path, headers, _TRUTH_INTEGRITY_REFRESH_TIMEOUT_S)
+        if result.get("ok"):
+            _TRUTH_INTEGRITY_CACHE["probe"] = result
+    finally:
+        _TRUTH_INTEGRITY_CACHE["refreshing"] = False
+
+
+async def _get_truth_integrity_probe(headers: Dict[str, str]) -> Dict[str, Any]:
+    """Return the cached truth-integrity probe, kicking off a background
+    refresh when the cache is missing or stale. Never blocks the request on
+    the 70s scan."""
+    cached = _TRUTH_INTEGRITY_CACHE.get("probe")
+    age = _cache_age_seconds(cached)
+    is_stale = cached is None or age is None or age > _TRUTH_INTEGRITY_TTL_S
+    if is_stale and not _TRUTH_INTEGRITY_CACHE.get("refreshing"):
+        _TRUTH_INTEGRITY_CACHE["refreshing"] = True
+        asyncio.create_task(_refresh_truth_integrity(dict(headers)))
+    if cached is not None:
+        enriched = dict(cached)
+        enriched["cache_age_seconds"] = age
+        enriched["stale"] = bool(is_stale)
+        return enriched
+    return {
+        "ok": False,
+        "path": _PROBE_PATHS[_TRUTH_INTEGRITY_KEY],
+        "status_code": 0,
+        "error": "Truth-integrity evidence is refreshing in the background (first scan since restart). This card will populate on the next load.",
+        "body": None,
+        "refreshed_at": None,
+        "refreshing": True,
+    }
+
+
 def _status_rank(status: str) -> int:
     return {"red": 3, "yellow": 2, "unknown": 1, "green": 0}.get(normalize_operational_status(status), 1)
 
@@ -251,8 +324,13 @@ def _parse_certification_history_entries(text: str) -> int:
 
 def _run_scanner() -> Dict[str, Any]:
     try:
-        raw = subprocess.check_output(["python3", str(_SCANNER_PATH)], text=True, cwd=str(_WORKSPACE))
+        raw = subprocess.check_output(
+            ["python3", str(_SCANNER_PATH)], text=True, cwd=str(_WORKSPACE),
+            timeout=_SCANNER_TIMEOUT_S,
+        )
         return {"ok": True, "body": json.loads(raw), "error": None, "refreshed_at": _now_iso()}
+    except subprocess.TimeoutExpired:
+        return {"ok": False, "body": None, "error": f"TimeoutExpired: governance scanner exceeded {_SCANNER_TIMEOUT_S:.0f}s budget", "refreshed_at": None}
     except Exception as exc:  # noqa: BLE001
         return {"ok": False, "body": None, "error": f"{type(exc).__name__}: {exc}", "refreshed_at": None}
 
@@ -825,14 +903,27 @@ def make_router(db, require_admin_only_dep) -> APIRouter:
         runtime_db = _runtime_db(request, db)
         generated_at = _now_iso()
         headers = _forward_headers(request)
+        # Run the fast self-probes AND the subprocess scanner concurrently,
+        # each bounded, so the whole aggregation finishes well under the 60s
+        # budget. The slow (~70s) platform_truth_integrity scan is served from
+        # a background-refreshed cache instead of blocking this request.
+        fast_probe_paths = {k: v for k, v in _PROBE_PATHS.items() if k != _TRUTH_INTEGRITY_KEY}
         async with httpx.AsyncClient(timeout=_PROBE_TIMEOUT_S) as client:
             probe_tasks = {
                 key: _probe_json(client, path, headers, _PROBE_TIMEOUT_OVERRIDES.get(key))
-                for key, path in _PROBE_PATHS.items()
+                for key, path in fast_probe_paths.items()
             }
+            scanner_task = asyncio.create_task(asyncio.to_thread(_run_scanner))
+            truth_task = asyncio.create_task(_get_truth_integrity_probe(headers))
             probe_results = await asyncio.gather(*probe_tasks.values())
+            truth_probe = await truth_task
+            try:
+                scanner = await asyncio.wait_for(scanner_task, timeout=_SCANNER_TIMEOUT_S + 3)
+            except asyncio.TimeoutError:
+                scanner_task.cancel()
+                scanner = {"ok": False, "body": None, "error": f"TimeoutExpired: governance scanner exceeded {_SCANNER_TIMEOUT_S:.0f}s budget", "refreshed_at": None}
         probes = {key: value for key, value in zip(probe_tasks.keys(), probe_results)}
-        scanner = await asyncio.to_thread(_run_scanner)
+        probes[_TRUTH_INTEGRITY_KEY] = truth_probe
         docs = _build_document_evidence()
         workflow_evidence = _workflow_gate_evidence()
         route_evidence = _route_registration_evidence()

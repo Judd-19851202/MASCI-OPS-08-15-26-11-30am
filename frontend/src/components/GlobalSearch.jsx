@@ -206,9 +206,12 @@ export default function GlobalSearch({
         className={`inline-flex items-center gap-2 h-9 px-3 rounded-md border-2 text-sm font-medium transition-colors ${triggerBase} ${className}`}
         data-testid="global-search-trigger"
         title={t("Search platform (Cmd+K)")}
+        aria-label={t("Search")}
       >
-        <Search className="w-4 h-4 shrink-0" />
-        <span className="hidden md:inline text-xs uppercase font-mono tracking-[0.16em]">{t("Search")}</span>
+        <span className="inline-flex items-center gap-2 min-w-0">
+          <Search className="w-4 h-4 shrink-0" />
+          <span className="text-xs uppercase font-mono tracking-[0.16em]">{t("Search")}</span>
+        </span>
         <span className="hidden md:inline ml-1 text-[10px] font-mono opacity-70 border rounded px-1 py-0.5">
           ⌘K
         </span>

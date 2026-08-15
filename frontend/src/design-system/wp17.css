@@ -242,6 +242,26 @@
   backdrop-filter: blur(14px);
 }
 
+/*
+ * Shared mobile/touch scroll contract for EVERY searchable selector's open
+ * results list (Jobs, Employees, Equipment, Suppliers, Vendors, Drivers, …).
+ * Single source of truth — do not re-implement per selector.
+ *  - overflow-y:auto + a bounded max-height => a scrollable viewport.
+ *  - overscroll-behavior:contain => vertical panning scrolls the LIST, not the
+ *    page/modal/body behind it, and does not chain out at the ends.
+ *  - touch-action:pan-y => the browser owns vertical finger panning; option
+ *    tap handlers can no longer cancel the scroll gesture.
+ *  - -webkit-overflow-scrolling:touch => iOS momentum scrolling.
+ *  - overflow-x:hidden => never introduce accidental horizontal scroll.
+ */
+.masci-selector-scroll {
+  overflow-y: auto;
+  overflow-x: hidden;
+  overscroll-behavior: contain;
+  touch-action: pan-y;
+  -webkit-overflow-scrolling: touch;
+}
+
 .wp17-picker-toolbar {
   border-bottom: 1px solid rgba(148, 163, 184, 0.2);
   background: linear-gradient(180deg, rgba(248, 250, 252, 0.96), rgba(241, 245, 249, 0.9));

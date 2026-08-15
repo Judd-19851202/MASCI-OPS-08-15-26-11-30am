@@ -18,6 +18,7 @@ import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { TOPIC_LIBRARY_ES } from "@/lib/topics/index.es";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { preventAutoFocusOnTouch } from "@/lib/pickerTouchFocus";
 
 // Domain chip labels (EN + ES). Keep this list short and operational.
 // `key` matches the `domain` field on each topic in meetingTopicLibrary.js.
@@ -169,6 +170,7 @@ export function TopicPicker({
         className="p-0 w-[var(--radix-popover-trigger-width)] max-w-none"
         align="start"
         data-testid="topic-picker-content"
+        onOpenAutoFocus={preventAutoFocusOnTouch}
       >
         {/* Domain filter chip row */}
         <div
@@ -220,7 +222,7 @@ export function TopicPicker({
             className="h-12 text-base"
             data-testid="topic-picker-search"
           />
-          <CommandList className="max-h-[55vh]">
+          <CommandList className="masci-selector-scroll max-h-[55vh]">
             <CommandEmpty>{t("No topic matches that search.")}</CommandEmpty>
 
             <CommandGroup heading={t("Custom")}>

@@ -186,7 +186,7 @@ export default function MasterLookupCombobox({
 
       {open && !disabled && (
         <div
-          className="wp17-picker-panel absolute z-30 left-0 right-0 mt-2 max-h-72 overflow-y-auto p-1.5"
+          className="wp17-picker-panel masci-selector-scroll absolute z-40 left-0 right-0 mt-2 max-h-72 p-1.5"
           data-testid={`${testIdPrefix}-dropdown`}
         >
           {loading && (

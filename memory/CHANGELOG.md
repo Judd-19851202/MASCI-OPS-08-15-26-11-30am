@@ -1450,3 +1450,26 @@ BP-0069 SignatureSubmitSection repointed to the live /daily/submit signoff surfa
 - Regression: frontend **412/412**; backend GD/parity/guard suites green; Independent Acceptance **12/12**; report/export + cross-surface parity PASS; population guard 0; truth-surface guard 0; canonical surface scanner OPEN 0. Only documented PRE-EXISTING non-blocker: 22 trench phase2/phase8b integration-test SETUP errors caused by the deprecated `/api/admin/login` (HTTP 410) in their fixtures — confirmed not introduced by this session and unrelated to TD-0052/TD-0053 → 0 unexpected failures.
 - **FINAL FROZEN deployable fingerprint: `dcf-f8efa44935b8b074ad173c215826b98bc2a22cb87a04a4a74ef9dab1155893e0`** (computed twice, identical).
 - AUTHORIZED_RELEASE.json untouched · Preview HTTP 200 UNATTESTED (deploy_authorized=false) · Production business-data writes = 0 · Save=NO · Deploy=NO.
+
+---
+## 2026-06 · PQ v4 Repair Candidate + Zero-Stale-Client Core (post-deploy, PREVIEW)
+Production `mascidocs.com` (SHA ed11c251, dcf-f8efa449...) PQ v4 exposed real defects. All fixed in PREVIEW (owner must Save/Deploy). Iterations 44–49.
+
+**PQ v4 findings CLOSED (all severities), browser-verified:**
+- HIGH Admin Compliance Findings first-page-as-total → governed totals + severity aggregation (iter45).
+- MEDIUM Executive CPI false-zero `0.000` → `buildMetricPresentation.available`; unavailable CPI/TCPI (<=0) renders `—`, costBand→needs_information (iter46/48).
+- CRITICAL /admin/governance 502@60s → platform_truth_integrity (70s) now background-cached (`_get_truth_integrity_probe`) + scanner bounded + concurrent; endpoint ~7-9s; explicit loading/error-retry panels; UNKNOWN never false-green (iter47/48).
+- HIGH per-endpoint 403 → global "Access Restricted" modal → api.js absorbs 403 (`_namespacedHandled`), no global overlay; DR cost-code 403 shows inline `dr-v3-cost-assignments-denied` notice (iter48/49).
+- DR-staleness 34 vs 5 labeled as governed-distinct (CC "last 36 working hours" / Exec "reported within 7d but no DR in 3d").
+- Jobs "Total 34"/include_archived → dynamic counts + real `include_archived` param (items+counts); AdminJobMasterPanel caption current/active/inactive/archived/all-states; archive read-only review panel. Employees 297 vs 240 → MasterListPanel scope caption reconciled to rendered list.
+- P&L native date inputs → shadcn calendar; requested-vs-evidence range caption.
+- @390 search rail label; P0 platform-wide mobile TOUCH-SCROLL → shared `.masci-selector-scroll` (overflow-y/overscroll-contain/touch-action:pan-y/-webkit-overflow-scrolling) across Employee/Equipment/Supplier/MasterLookup/Searchable/AsyncSearchable; JOBS browse-first (`preventAutoFocusOnTouch` on all cmdk-Popover pickers so iOS keyboard no longer covers the list); EmployeeCombo 200-cap → grow-on-scroll to full roster; equipment/supplier row truncation + opaque sticky header; combo panels z-40 above sticky footer.
+
+**Job Master lifecycle contract** proven in PREVIEW via synthetic active→archive→cleanup (create appears in /jobs & /public/jobs-lookup; archive leaves operational selectors but stays in /admin/jobs/archive & include_archived with identity preserved; fixture purged). Nothing hard-coded to today's counts. Production writes = 0.
+
+**Zero-Stale-Client Release Delivery (AUDIT-FIRST, reused canonical owners):**
+- Audit: `/api/version` (no-store, canonical release identity via `deployable_release_provenance.build_deployable_fingerprint`/`frontend_build_source_hash`) already exists; draft/dirty owned by `lib/resiliency/useFormDraft`; only SW `sw-thumbs.js` is narrow (left untouched). GAP: no client update-detection.
+- Built (no duplicate systems): `lib/dirtyWork.js` (shared dirty registry fed by useFormDraft), `lib/releaseUpdate.js` (state machine CURRENT/UPDATE_AVAILABLE/UPDATE_PENDING_DIRTY_WORK/UPDATING/UPDATE_REQUIRED/OFFLINE/UPDATE_FAILED/UNKNOWN; triggers startup/visibility/focus/online/pageshow/periodic-5min; BroadcastChannel multi-tab; reload-loop guard→UPDATE_FAILED; fail-safe UNKNOWN; auto-reload ONLY when clean, defers on dirty and applies at safe boundary), `components/ReleaseUpdateBanner.jsx` (non-blocking, no SHA/cache jargon), wired in App.js.
+- Verified: 6/6 controller unit tests (boot anchor, clean auto-reload, dirty-defer+safe-boundary, offline no-reload, loop-guard cap, endpoint-fail→UNKNOWN); browser: silent in steady state, no reload loop, no console errors. NOT YET PROVEN (needs real A→B deploy): live auto-reload, offline reconnect, multi-tab convergence, deployed cache-header audit, SW update-lifecycle participation, backend UPDATE_REQUIRED contract.
+
+**Gates:** frontend 68 suites/432 tests PASS; Independent Acceptance 12/12; release-identity verifier ok=true, truth_population_gate 0, truth_surface_gate 0; deterministic fingerprint ×2 = `03e86f3850fd65d3a7cd8a9568a013911bfb023256cdcce448de164603fc6b11`; current deployable_content_fingerprint = `dcf-aef80538a472c2f3f31c5dbfacb46ee0657ad032671c9d9f86feea90c64ded53`. Preview = UNATTESTED CANDIDATE (deploy_authorized=false). Save=NO · Deploy=NO · Production writes=0.

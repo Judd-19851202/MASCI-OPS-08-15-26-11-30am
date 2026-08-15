@@ -286,6 +286,18 @@ export default function MasterListPanel({
   }, [items, filter, fields]);
 
   const total = status?.count ?? items.length;
+  const archivedOnFile = typeof status?.archived === "number" ? status.archived : archive.length;
+  // Reconcile the caption against what the user actually sees in the Active
+  // list (items.length) rather than a second server-side "active" definition,
+  // so the breakdown can never contradict the rendered list.
+  const activeShown = items.length;
+  const notShownOnFile = typeof status?.count === "number"
+    ? Math.max(0, status.count - activeShown - archivedOnFile)
+    : null;
+  const showScopeBreakdown = typeof status?.count === "number"
+    && notShownOnFile !== null
+    && status.count !== activeShown
+    && (notShownOnFile > 0 || archivedOnFile > 0);
   const lastUpdated = status?.last_updated
     ? new Date(status.last_updated)
     : null;
@@ -377,6 +389,15 @@ export default function MasterListPanel({
             </span>
           )}
         </div>
+
+        {showScopeBreakdown && (
+          <div
+            className="mt-2 text-[11px] font-mono uppercase tracking-[0.15em] text-slate-500"
+            data-testid={`${testIdPrefix}-scope-breakdown`}
+          >
+            {activeShown} active (shown) · {notShownOnFile} not shown (on file · offboarded/inactive) · {archivedOnFile} archived · {total} on file
+          </div>
+        )}
 
         <form onSubmit={addOne} className="mt-4" hidden={!writeAllowed}>
           <div

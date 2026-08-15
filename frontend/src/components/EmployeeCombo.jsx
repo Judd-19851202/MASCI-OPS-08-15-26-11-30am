@@ -141,7 +141,7 @@ export const EmployeeCombo = ({
   const filtered = useMemo(() => {
     const q = (value || "").trim().toLowerCase();
     const items = data.items || [];
-    if (!q) return items.slice(0, 200); // first page when empty (page size, not a population cap)
+    if (!q) return items; // full population — browse path is paged via visibleCount
     const predicate = (it) => {
       const hay = [it.name, it.employee_id, it.role, it.trade, it.crew, it.email]
         .filter(Boolean).join(" ").toLowerCase();
@@ -157,8 +157,23 @@ export const EmployeeCombo = ({
       const key = it.id || it.employee_id || it.name;
       if (!seen.has(key)) { seen.add(key); merged.push(it); }
     }
-    return merged.slice(0, 200); // display page size on RESULTS (full population already searched)
+    return merged;
   }, [data, value, serverResults]);
+
+  // Incremental "grow on scroll" paging so the WHOLE roster is reachable by
+  // browsing (no 200-row hard cap). Search still queries the full population;
+  // this only controls how many rows are painted at once.
+  const PAGE = 100;
+  const [visibleCount, setVisibleCount] = useState(PAGE);
+  useEffect(() => { setVisibleCount(PAGE); }, [value, open]);
+  const visible = useMemo(() => filtered.slice(0, visibleCount), [filtered, visibleCount]);
+  const hasMore = filtered.length > visible.length;
+  const onPanelScroll = (e) => {
+    const el = e.currentTarget;
+    if (el.scrollTop + el.clientHeight >= el.scrollHeight - 48) {
+      setVisibleCount((c) => (c < filtered.length ? c + PAGE : c));
+    }
+  };
 
   const pick = (it) => {
     const label = it.name || "";
@@ -307,8 +322,9 @@ export const EmployeeCombo = ({
 
       {open && (
         <div
-          className="wp17-picker-panel absolute z-30 mt-2 w-full max-h-72 overflow-auto p-1.5"
+          className="wp17-picker-panel masci-selector-scroll absolute z-40 mt-2 w-full max-h-72 p-1.5"
           data-testid={`${testId}-panel`}
+          onScroll={onPanelScroll}
         >
           {filtered.length === 0 ? (
             <div className="p-3 text-sm text-slate-700">
@@ -360,7 +376,7 @@ export const EmployeeCombo = ({
                   </button>
                 </div>
               )}
-              {filtered.map((it, idx) => {
+              {visible.map((it, idx) => {
                 const selected = value && value === it.name;
                 return (
                   <button
@@ -389,6 +405,14 @@ export const EmployeeCombo = ({
                   </button>
                 );
               })}
+              {hasMore && (
+                <div
+                  className="px-3 py-2 text-center text-[11px] font-mono uppercase tracking-[0.15em] text-slate-400"
+                  data-testid={`${testId}-more-hint`}
+                >
+                  {t("Scroll for more")} · {visible.length}/{filtered.length}
+                </div>
+              )}
             </>
           )}
         </div>

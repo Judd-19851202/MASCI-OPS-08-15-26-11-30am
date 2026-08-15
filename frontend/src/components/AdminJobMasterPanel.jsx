@@ -11,6 +11,7 @@ import {
   CheckCircle2,
   XCircle,
   Users,
+  Eye,
   X as XIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -55,6 +56,7 @@ export default function AdminJobMasterPanel() {
   const [retainDays, setRetainDays] = useState(14);
   const [showArchive, setShowArchive] = useState(false);
   const [restoringId, setRestoringId] = useState(null);
+  const [reviewArchiveId, setReviewArchiveId] = useState(null);
   const [exporting, setExporting] = useState(false);
   const [pms, setPms] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -282,6 +284,9 @@ export default function AdminJobMasterPanel() {
 
   const total = jobs.length;
   const activeCount = jobs.filter((j) => j.active).length;
+  const inactiveCount = total - activeCount;
+  const archivedCount = archive.length;
+  const allStatesTotal = total + archivedCount;
 
   return (
     <section
@@ -299,11 +304,11 @@ export default function AdminJobMasterPanel() {
           <h2 className="font-display text-xl sm:text-2xl font-black text-slate-900 leading-none mt-1">
             Active Jobs Master
           </h2>
-          <p className="text-sm text-slate-600 mt-2">
+          <p className="text-sm text-slate-600 mt-2" data-testid="job-master-population-caption">
             Add, edit, deactivate, or bulk-replace the MASCI job list. Active jobs
             show up in the JobPicker on every form. Inactive jobs are hidden from
-            the field but kept on file. Total: <strong>{total}</strong> ({activeCount}{" "}
-            active).
+            the field but kept on file. Current on file: <strong>{total}</strong> ({activeCount}{" "}
+            active{inactiveCount > 0 ? `, ${inactiveCount} inactive` : ""}) · <strong>{archivedCount}</strong> archived · <strong>{allStatesTotal}</strong> across all states.
           </p>
         </div>
         <div className="flex items-center gap-2 flex-wrap">
@@ -491,7 +496,7 @@ export default function AdminJobMasterPanel() {
                 </tr>
               </thead>
               <tbody>
-                {archive.map((j) => (
+                {archive.map((j) => ([
                   <tr
                     key={j.id}
                     className="border-t border-slate-100 bg-slate-50/40"
@@ -507,24 +512,56 @@ export default function AdminJobMasterPanel() {
                       {j.deleted_at ? formatPlatformTime(j.deleted_at) : "—"}
                     </td>
                     <td className="px-3 py-2 text-right">
-                      <Button
-                        size="icon"
-                        variant="outline"
-                        onClick={() => restoreJob(j)}
-                        disabled={restoringId === j.id}
-                        className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
-                        data-testid={`job-restore-${j.id}`}
-                        title="Restore to active list"
-                      >
-                        {restoringId === j.id ? (
-                          <Loader2 className="w-3.5 h-3.5 animate-spin" />
-                        ) : (
-                          "⟲"
-                        )}
-                      </Button>
+                      <div className="inline-flex items-center gap-1.5">
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => setReviewArchiveId(reviewArchiveId === j.id ? null : j.id)}
+                          className="h-8 w-8 border-2 border-slate-300 text-slate-700 hover:bg-slate-100"
+                          data-testid={`job-archive-review-${j.id}`}
+                          title="Review preserved record (read-only)"
+                        >
+                          <Eye className="w-3.5 h-3.5" />
+                        </Button>
+                        <Button
+                          size="icon"
+                          variant="outline"
+                          onClick={() => restoreJob(j)}
+                          disabled={restoringId === j.id}
+                          className="h-8 w-8 border-2 border-emerald-400 text-emerald-700 hover:bg-emerald-50"
+                          data-testid={`job-restore-${j.id}`}
+                          title="Restore to active list"
+                        >
+                          {restoringId === j.id ? (
+                            <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                          ) : (
+                            "⟲"
+                          )}
+                        </Button>
+                      </div>
                     </td>
                   </tr>
-                ))}
+                  ,
+                  reviewArchiveId === j.id && (
+                    <tr key={`${j.id}-review`} className="bg-slate-50" data-testid={`job-archive-review-panel-${j.id}`}>
+                      <td colSpan={6} className="px-4 py-3">
+                        <div className="rounded-md border border-slate-200 bg-white p-3 text-xs text-slate-700">
+                          <div className="font-mono uppercase tracking-[0.15em] text-slate-500 mb-2">Preserved record (read-only) · archived ≠ deleted</div>
+                          <div className="grid grid-cols-1 sm:grid-cols-2 gap-x-6 gap-y-1">
+                            <div><span className="font-semibold">Project #:</span> {j.project_number}</div>
+                            <div><span className="font-semibold">Name:</span> {j.project_name}</div>
+                            <div><span className="font-semibold">Location:</span> {j.location || "—"}</div>
+                            <div><span className="font-semibold">Client:</span> {j.client || "—"}</div>
+                            <div><span className="font-semibold">PM:</span> {j.project_manager || j.pm_email || "—"}</div>
+                            <div><span className="font-semibold">Created:</span> {j.created_at ? formatPlatformTime(j.created_at) : "—"}</div>
+                            <div><span className="font-semibold">Archived:</span> {j.deleted_at ? formatPlatformTime(j.deleted_at) : "—"}</div>
+                          </div>
+                          <div className="mt-2 text-slate-500">Historical daily reports, forms and records linked to <span className="font-mono">{j.project_number}</span> remain preserved and continue to resolve this project's identity. Restore it to make it selectable for new operational records again.</div>
+                        </div>
+                      </td>
+                    </tr>
+                  )
+                ]))}
               </tbody>
             </table>
           )}

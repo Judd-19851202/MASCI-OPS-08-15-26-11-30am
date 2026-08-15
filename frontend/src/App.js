@@ -16,6 +16,7 @@ import SplashOverlay from "@/components/SplashOverlay";
 import QueueStatusPill from "@/components/QueueStatusPill";
 import QueueRecoveryNotice from "@/components/QueueRecoveryNotice";
 import OfflineBanner from "@/components/OfflineBanner";
+import ReleaseUpdateBanner from "@/components/ReleaseUpdateBanner";
 import EnforcePortalScope from "@/components/EnforcePortalScope";
 import MultiPortalHydrator from "@/components/MultiPortalHydrator";
 import IdleTimeout from "@/components/IdleTimeout";
@@ -48,6 +49,11 @@ function App() {
     // Fire-and-forget, never blocks app render.
     import("@/lib/resiliency").then(({ purgeStaleDrafts }) => {
       purgeStaleDrafts();
+    }).catch(() => { /* silent */ });
+    // Zero-Stale-Client · start release watch (detect a newer authorized
+    // release on startup/visibility/reconnect and converge safely).
+    import("@/lib/releaseUpdate").then(({ startReleaseWatch }) => {
+      startReleaseWatch();
     }).catch(() => { /* silent */ });
     return () => {
       mounted = false;
@@ -83,6 +89,7 @@ function App() {
          auto-dismisses on reconnect. Pairs with QueueStatusPill: the
          pill shows what is queued, the banner shows why. */}
       <OfflineBanner />
+      <ReleaseUpdateBanner />
       <GlobalKeepalive />
       <BackendStatusBanner />
       <EnvBanner />

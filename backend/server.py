@@ -5489,18 +5489,39 @@ async def jobs_recent_context(
 
 
 @api_router.get("/admin/jobs")
-async def admin_list_jobs(actor=Depends(require_admin)):
+async def admin_list_jobs(include_archived: bool = False, actor=Depends(require_admin)):
     """List jobs. Admin sees all; per-PM sees only jobs they're primary
     or co-PM on (matches the data-scoping rules applied to safety
-    records). Legacy shared-PM tokens see all (the office bypass)."""
-    from jobs_master import list_jobs
+    records). Legacy shared-PM tokens see all (the office bypass).
+
+    `include_archived=true` appends soft-deleted (archived) jobs, each
+    flagged `archived: true`, so the advertised parameter genuinely
+    changes the population instead of being a dead query string.
+    """
+    from jobs_master import list_jobs, list_archived_jobs
     from pm_auth import compute_pm_scope
     items = await list_jobs(db, only_active=False)
     scope = await compute_pm_scope(db, actor)
     if not scope.is_admin:
         nums = scope.project_numbers or set()
         items = [j for j in items if (j.get("project_number") or "") in nums]
-    return {"items": items}
+    archived_items: List[Dict[str, Any]] = []
+    if include_archived:
+        archived_items = await list_archived_jobs(db)
+        if not scope.is_admin:
+            nums = scope.project_numbers or set()
+            archived_items = [j for j in archived_items if (j.get("project_number") or "") in nums]
+        for j in archived_items:
+            j["archived"] = True
+    active_count = sum(1 for j in items if j.get("active"))
+    counts = {
+        "current": len(items),
+        "active": active_count,
+        "inactive": len(items) - active_count,
+        "archived": len(archived_items),
+        "all_states": len(items) + len(archived_items),
+    }
+    return {"items": items + archived_items, "counts": counts}
 
 
 @api_router.post("/admin/jobs")

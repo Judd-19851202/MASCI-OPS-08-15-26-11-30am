@@ -291,6 +291,18 @@ function describeTcpi(value, lang = "en") {
   };
 }
 
+function isMetricAvailable(key, value) {
+  if (value == null || value === "") return false;
+  if (!isFiniteNumber(value)) return false;
+  const numeric = Number(value);
+  // Ratio indices are only meaningful above zero (a 0/negative CPI or TCPI
+  // means there is no comparable earned-value/target denominator yet — it must
+  // read as unavailable, never as a real 0.000 score).
+  if (key === "cpi" || key === "tcpi") return numeric > 0;
+  if (key === "spi") return numeric >= 0;
+  return true;
+}
+
 export function buildMetricPresentation(metricKey, value, { confidence, status } = {}, lang = "en") {
   const key = normalizeMetricKey(metricKey);
   const meta = METRIC_META[key] || {
@@ -298,11 +310,14 @@ export function buildMetricPresentation(metricKey, value, { confidence, status }
     technicalLabel: { en: String(metricKey || "Measure"), es: String(metricKey || "Medida") },
     kind: "text",
   };
-  const technicalValue = meta.kind === "currency"
-    ? formatMoney(value)
-    : meta.kind === "percent"
-      ? formatPercent(value)
-      : formatRatio(value);
+  const available = isMetricAvailable(key, value);
+  const technicalValue = !available
+    ? "—"
+    : meta.kind === "currency"
+      ? formatMoney(value)
+      : meta.kind === "percent"
+        ? formatPercent(value)
+        : formatRatio(value);
 
   let summary = {
     primaryValue: technicalValue,
@@ -337,6 +352,7 @@ export function buildMetricPresentation(metricKey, value, { confidence, status }
 
   return {
     metricKey: key,
+    available,
     primaryLabel: meta.primaryLabel[lang] || meta.primaryLabel.en,
     technicalLabel: meta.technicalLabel[lang] || meta.technicalLabel.en,
     technicalValue,

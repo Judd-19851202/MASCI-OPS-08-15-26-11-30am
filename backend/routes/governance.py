@@ -1402,6 +1402,7 @@ def build_governance_router(db, require_admin_strict, require_admin_read=None):
         entity_kind: Optional[str] = Query(default=None),
         q: Optional[str] = Query(default=None),
         limit: int = Query(default=200, ge=1, le=1000),
+        offset: int = Query(default=0, ge=0),
     ):
         flt: Dict[str, Any] = {}
         if status:
@@ -1427,7 +1428,7 @@ def build_governance_router(db, require_admin_strict, require_admin_read=None):
         items: List[Dict[str, Any]] = []
         cursor = db[COLLECTION].find(flt, {"_id": 0}).sort(
             [("severity", 1), ("last_detected_at", -1)]
-        ).limit(limit)
+        ).skip(offset).limit(limit)
         async for row in cursor:
             items.append(row)
         # Sort severity correctly (lexical mongo sort doesn't respect our rank).
@@ -1436,7 +1437,26 @@ def build_governance_router(db, require_admin_strict, require_admin_read=None):
                                   r.get("last_detected_at") or ""))
         items.reverse()  # most recent within rank first
         items.sort(key=lambda r: SEVERITY_RANK.get(r.get("severity", "info"), 99))
-        return {"ok": True, "items": items, "count": len(items)}
+        # Governed totals over the FULL filtered population (not the page),
+        # so consumers never render a first-page count as the total.
+        total = await db[COLLECTION].count_documents(flt)
+        severity_totals: Dict[str, int] = {}
+        async for grp in db[COLLECTION].aggregate([
+            {"$match": flt},
+            {"$group": {"_id": "$severity", "n": {"$sum": 1}}},
+        ]):
+            severity_totals[grp.get("_id") or "info"] = grp.get("n", 0)
+        return {
+            "ok": True,
+            "items": items,
+            "count": len(items),          # page length (kept for back-compat)
+            "returned": len(items),
+            "total": total,               # governed total over the filter
+            "severity_totals": severity_totals,
+            "limit": limit,
+            "offset": offset,
+            "truncated": total > (offset + len(items)),
+        }
 
     @router.get("/api/admin/compliance/findings.csv",
                 dependencies=[Depends(require_admin_strict)])

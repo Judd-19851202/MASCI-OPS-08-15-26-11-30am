@@ -15,6 +15,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Calendar as CalendarPicker } from "@/components/ui/calendar";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { format, parseISO, isValid } from "date-fns";
 import { PortalShell } from "@/design-system";
 import PmSideNavV2 from "@/components/pm/sidebar/SideNavV2";
 
@@ -24,6 +27,54 @@ const fmtCurrency = (n) =>
   );
 
 const fmtHours = (n) => (Number(n) || 0).toFixed(2);
+
+const parseIsoDate = (value) => {
+  if (!value) return undefined;
+  const d = parseISO(value);
+  return isValid(d) ? d : undefined;
+};
+
+function PnlDatePicker({ value, onChange, testId, ariaLabel }) {
+  const selected = parseIsoDate(value);
+  return (
+    <Popover>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          aria-label={ariaLabel}
+          className="h-11 w-full justify-start border-2 border-slate-300 mt-1 font-normal text-sm"
+          data-testid={testId}
+        >
+          <Calendar className="w-4 h-4 mr-2 text-slate-500" />
+          {selected ? format(selected, "MMM d, yyyy") : <span className="text-slate-400">Pick a date</span>}
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-auto p-0" align="start">
+        <CalendarPicker
+          mode="single"
+          selected={selected}
+          onSelect={(d) => onChange(d && isValid(d) ? format(d, "yyyy-MM-dd") : "")}
+          initialFocus
+        />
+        {selected && (
+          <div className="border-t border-slate-200 p-2">
+            <Button
+              type="button"
+              variant="ghost"
+              size="sm"
+              className="w-full text-xs"
+              onClick={() => onChange("")}
+              data-testid={`${testId}-clear`}
+            >
+              Clear
+            </Button>
+          </div>
+        )}
+      </PopoverContent>
+    </Popover>
+  );
+}
 
 export default function ProjectPnlPage() {
   const [projects, setProjects] = useState([]);
@@ -163,24 +214,22 @@ export default function ProjectPnlPage() {
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
               <Calendar className="w-3 h-3" /> From
             </Label>
-            <Input
-              type="date"
+            <PnlDatePicker
               value={dateFrom}
-              onChange={(e) => setDateFrom(e.target.value)}
-              className="h-11 border-2 border-slate-300 mt-1"
-              data-testid="pnl-date-from"
+              onChange={setDateFrom}
+              testId="pnl-date-from"
+              ariaLabel="From date"
             />
           </div>
           <div>
             <Label className="font-mono text-[10px] uppercase tracking-[0.2em] text-slate-700 flex items-center gap-1">
               <Calendar className="w-3 h-3" /> To
             </Label>
-            <Input
-              type="date"
+            <PnlDatePicker
               value={dateTo}
-              onChange={(e) => setDateTo(e.target.value)}
-              className="h-11 border-2 border-slate-300 mt-1"
-              data-testid="pnl-date-to"
+              onChange={setDateTo}
+              testId="pnl-date-to"
+              ariaLabel="To date"
             />
           </div>
           <div>
@@ -240,7 +289,9 @@ export default function ProjectPnlPage() {
                 value={String(data.report_count || 0)}
                 sub={
                   data.report_count
-                    ? `${data.date_from || ""} → ${data.date_to || ""}`
+                    ? (dateFrom || dateTo
+                        ? `Requested ${dateFrom || "start"} → ${dateTo || "today"} · evidence ${data.date_from || "—"} → ${data.date_to || "—"}`
+                        : `Evidence ${data.date_from || ""} → ${data.date_to || ""}`)
                     : "No reports in range"
                 }
               />

@@ -19,6 +19,7 @@ import { JOB_LIBRARY as STATIC_LIBRARY, CUSTOM_JOB_KEY } from "@/lib/jobLibrary"
 import { api } from "@/lib/api";
 import { useT } from "@/lib/i18n";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { preventAutoFocusOnTouch } from "@/lib/pickerTouchFocus";
 
 // TRACK 24.8 · Touch-select vs scroll disambiguation, refactored
 // in Track 24.9 Phase B into the shared `useCmdkTouchGuard` hook
@@ -190,6 +191,7 @@ export function JobPicker({
         className="wp17-picker-panel w-[var(--radix-popover-trigger-width)] max-w-none overflow-hidden p-0 touch-pan-y"
         align="start"
         data-testid="job-picker-content"
+        onOpenAutoFocus={preventAutoFocusOnTouch}
       >
         <Command
           className="bg-transparent"
@@ -204,7 +206,10 @@ export function JobPicker({
             value={search}
             onValueChange={setSearch}
           />
-          <CommandList className="max-h-[62vh] overscroll-contain p-1.5 touch-pan-y" style={{ WebkitOverflowScrolling: "touch" }}>
+          <CommandList
+            className="masci-selector-scroll max-h-[62svh] p-1.5"
+            style={{ WebkitOverflowScrolling: "touch", maxHeight: "min(62vh, 460px)" }}
+          >
             <CommandEmpty className="wp17-picker-empty">
               {allowCustom
                 ? t("No job matches that search.")

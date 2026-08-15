@@ -119,8 +119,9 @@ function metricBand(value, thresholds) {
 }
 
 function costBand(financial = {}) {
-  if (financial?.cpi == null) return "needs_information";
-  const cpi = Number(financial.cpi);
+  if (financial?.status !== "ready") return "needs_information";
+  const cpi = Number(financial?.cpi);
+  if (!Number.isFinite(cpi) || cpi <= 0) return "needs_information";
   if (cpi < 0.9) return "critical";
   if (cpi < 1) return "needs_attention";
   return "on_track";
@@ -483,10 +484,12 @@ export const PortfolioIntelligenceWorkspace = ({
             <MetricCard
               icon={TrendingDown}
               label={t("Cost performance")}
-              value={financial?.status === "ready" ? costPresentation.shortValue : t("Need more records")}
-              note={financial?.status === "ready"
+              value={financial?.status === "ready" && costPresentation.available ? costPresentation.shortValue : t("Need more records")}
+              note={financial?.status === "ready" && costPresentation.available
                 ? `${t("Coverage")}: ${fmtWhole(financial?.coverage?.comparable_projects)} / ${fmtWhole(financial?.coverage?.total_projects)} · ${costPresentation.technicalLabel}: ${costPresentation.technicalValue}`
-                : t("Comparable cost records are not ready yet, so this page will not show a fake green score.")}
+                : financial?.status === "ready"
+                  ? t("Cost records are present but do not yet resolve to a comparable cost-performance reading, so this page will not show a fake score.")
+                  : t("Comparable cost records are not ready yet, so this page will not show a fake green score.")}
               severity={costBand(financial)}
               testId="portfolio-summary-cost-performance"
             />

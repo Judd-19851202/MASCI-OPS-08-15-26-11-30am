@@ -65,6 +65,8 @@ export default function AdminComplianceFindings() {
   const navigate = useNavigate();
 
   const [items, setItems] = useState([]);
+  const [total, setTotal] = useState(0);
+  const [sevTotals, setSevTotals] = useState({});
   const [loading, setLoading] = useState(true);
   const [err, setErr] = useState("");
 
@@ -92,8 +94,11 @@ export default function AdminComplianceFindings() {
     setLoading(true); setErr("");
     try {
       const qStr = buildQuery();
-      const { data } = await api.get(`/admin/compliance/findings${qStr ? "?" + qStr : ""}`);
+      const sep = qStr ? "?" + qStr + "&" : "?";
+      const { data } = await api.get(`/admin/compliance/findings${sep}limit=1000`);
       setItems(data?.items || []);
+      setTotal(typeof data?.total === "number" ? data.total : (data?.items || []).length);
+      setSevTotals(data?.severity_totals || {});
     } catch (e) {
       setErr(operationalError(e, "Could not load findings."));
     } finally {
@@ -248,7 +253,7 @@ export default function AdminComplianceFindings() {
               </Button>
             )}
             <div className="ml-auto text-xs text-slate-600 font-mono">
-              {loading ? "Loading…" : `${items.length} finding${items.length === 1 ? "" : "s"}`}
+              {loading ? "Loading…" : `${total} finding${total === 1 ? "" : "s"}`}
             </div>
           </div>
         </div>
@@ -276,7 +281,7 @@ export default function AdminComplianceFindings() {
               <header className="px-3 py-2 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
                 <div className="flex items-center gap-2">
                   <SeverityBadge severity={sev} />
-                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">{group.length} findings</span>
+                  <span className="font-mono text-[10px] uppercase tracking-[0.18em] text-slate-500 font-bold">{sevTotals[sev] ?? group.length} findings{(sevTotals[sev] ?? group.length) > group.length ? ` · showing ${group.length}` : ""}</span>
                 </div>
               </header>
               <ul className="divide-y divide-slate-100">

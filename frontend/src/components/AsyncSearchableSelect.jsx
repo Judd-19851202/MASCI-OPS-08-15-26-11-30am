@@ -157,8 +157,7 @@ export function AsyncSearchableSelect({
           {open ? (
             <div
               data-testid={`${testId}-panel`}
-              className="wp17-picker-panel mt-2 max-h-60 overflow-y-auto overscroll-contain touch-pan-y p-1.5"
-              style={{ WebkitOverflowScrolling: "touch" }}
+              className="wp17-picker-panel masci-selector-scroll mt-2 max-h-60 p-1.5"
             >
               {loading ? (
                 <div className="wp17-picker-empty" data-testid={`${testId}-loading`}>

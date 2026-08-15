@@ -53,6 +53,7 @@ import {
 import { emitDraftEvent } from "./draftTelemetry";
 import { estimateQuota } from "./quotaProbe";
 import { markPriorUsage } from "./priorUsage";
+import { markDirty, markClean } from "@/lib/dirtyWork";
 
 const DEBOUNCE_MS = 800;
 const MAX_INTERVAL_MS = 10_000;
@@ -92,6 +93,17 @@ export function useFormDraft(_formKeyBase, data, actorId, options = {}) {
   const dataRef = useRef(data);
   const idleTimerRef = useRef(null);
   const hasLoadedScopeOnceRef = useRef(false);
+  // Zero-Stale-Client: feed the shared dirty-work registry so the release
+  // controller never auto-reloads over unsaved changes. Dirty === the in-memory
+  // form diverges from the last persisted snapshot, OR a save is in flight.
+  useEffect(() => {
+    if (!loaded) return undefined;
+    const serialized = JSON.stringify(data || {});
+    const dirty = serialized !== lastSavedKeyRef.current || draftStatus === "saving";
+    if (dirty) markDirty(formKey); else markClean(formKey);
+    return undefined;
+  }, [data, draftStatus, loaded, formKey]);
+  useEffect(() => () => markClean(formKey), [formKey]);
   // Keep a live ref to the current `data` so the lifecycle listeners
   // (which close over no dep array) always flush the latest state.
   useEffect(() => { dataRef.current = data; }, [data]);

@@ -138,9 +138,9 @@ export default function ExecutiveOverview() {
             />
             <ExecutiveTile
               id="overdue"
-              label={t("Overdue work")}
+              label={t("Overdue corrective actions")}
               value={overview.tiles.overdue?.overdue_corrective_actions ?? 0}
-              subline={`${overview.tiles.overdue?.stale_projects_no_dr_in_3d ?? 0} project(s) stale on daily reports`}
+              subline={`plus ${overview.tiles.overdue?.stale_projects_no_dr_in_3d ?? 0} project(s) that reported within 7 days but have no daily report in the last 3 days`}
               metadata={overview.tiles.overdue?.kpi_metadata}
             />
             <ExecutiveTile

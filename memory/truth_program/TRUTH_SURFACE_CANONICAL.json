@@ -1,12 +1,12 @@
 {
   "generated": "wave5_truth_surface_canonical",
-  "candidate_universe": 2942,
+  "candidate_universe": 2945,
   "included_truth_surfaces": 397,
-  "excluded_with_reason": 2545,
+  "excluded_with_reason": 2548,
   "open_needs_proof": 0,
   "invariant_holds": true,
   "by_disposition": {
-    "NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON": 2545,
+    "NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON": 2548,
     "CANONICAL_STATUS": 97,
     "DIRECT_FACT": 256,
     "CANONICAL_KPI": 39,

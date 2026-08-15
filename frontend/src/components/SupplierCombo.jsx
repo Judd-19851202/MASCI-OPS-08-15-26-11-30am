@@ -219,7 +219,7 @@ export const SupplierCombo = ({
 
       {open && (
         <div
-          className="absolute z-30 mt-2 w-full max-h-80 overflow-auto rounded-[1rem] border-2 border-slate-300 bg-white shadow-xl"
+          className="masci-selector-scroll absolute z-40 mt-2 w-full max-h-80 rounded-[1rem] border-2 border-slate-300 bg-white shadow-xl"
           data-testid={`${testIdBase}-panel`}
         >
           {filtered.length === 0 ? (
@@ -285,9 +285,9 @@ export const SupplierCombo = ({
                     }`}
                     data-testid={`${testIdBase}-item-${idx}`}
                   >
-                    <div className="flex items-center gap-2">
+                    <div className="flex items-center gap-2 min-w-0">
                       <Building2 className="w-3.5 h-3.5 text-slate-400 shrink-0" />
-                      <span className="font-bold text-slate-900">{it.name}</span>
+                      <span className="font-bold text-slate-900 truncate">{it.name}</span>
                     </div>
                   </button>
                 );

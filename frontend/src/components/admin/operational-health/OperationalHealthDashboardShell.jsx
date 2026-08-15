@@ -1,6 +1,6 @@
 import React, { useCallback, useEffect, useMemo, useState } from "react";
 import { Link } from "react-router-dom";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, AlertTriangle } from "lucide-react";
 
 import LegacyAdminModernShell from "@/components/admin/LegacyAdminModernShell";
 import { TruthOwnerPanel, HealthCard, EvidenceDrawer, TrustStatusPill, worstStatus, sortCardsByAttention, useEvidenceDrawer } from "@/components/admin/trust/TrustPrimitives";
@@ -45,6 +45,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
   const [error, setError] = useState("");
   const [query, setQuery] = useState("");
   const [statusFilter, setStatusFilter] = useState("all");
+  const [elapsed, setElapsed] = useState(0);
   const { card: drawerCard, open: drawerOpen, setOpen: setDrawerOpen, openWith } = useEvidenceDrawer();
 
   const load = useCallback(async () => {
@@ -64,6 +65,19 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
     load();
   }, [load]);
 
+  // Explicit elapsed-time counter so a slow aggregation reads as "working"
+  // rather than "broken / hung".
+  useEffect(() => {
+    if (!loading) {
+      setElapsed(0);
+      return undefined;
+    }
+    setElapsed(0);
+    const startedAt = Date.now();
+    const id = setInterval(() => setElapsed(Math.floor((Date.now() - startedAt) / 1000)), 1000);
+    return () => clearInterval(id);
+  }, [loading]);
+
   const sections = data?.sections || [];
   const counts = useMemo(() => data?.counts || countStatuses(sections), [data, sections]);
   const overallStatus = useMemo(() => data?.overall_status || worstStatus(sections.flatMap((section) => section.cards || [])), [data, sections]);
@@ -76,6 +90,8 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
       .filter(Boolean)
       .some((value) => String(value).toLowerCase().includes(q));
   }, [query, statusFilter]);
+
+  const initialLoading = loading && !data;
 
   return (
     <LegacyAdminModernShell
@@ -92,7 +108,7 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
           data-testid="operational-health-refresh"
         >
           <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
-          {loading ? t("Refreshing…") : t("Refresh")}
+          {loading ? `${t("Refreshing…")}${elapsed ? ` ${elapsed}s` : ""}` : t("Refresh")}
         </button>
       )}
     >
@@ -213,12 +229,66 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
           </div>
         </section>
 
-        {error ? (
+        {error && data ? (
           <div className="rounded-2xl border border-rose-200 bg-rose-50 px-4 py-3 text-sm text-rose-800" data-testid="operational-health-error-banner">
             {error}
           </div>
         ) : null}
 
+        {initialLoading ? (
+          <section
+            className="rounded-3xl border border-slate-200 bg-white p-6 shadow-sm"
+            data-testid="operational-health-loading-panel"
+            aria-busy="true"
+          >
+            <div className="flex items-center gap-3">
+              <RefreshCw className="h-5 w-5 animate-spin text-slate-500" />
+              <div className="text-sm font-black uppercase tracking-[0.2em] text-slate-700">
+                {t("Compiling live standards evidence…")}
+              </div>
+              <span className="ml-auto font-mono text-xs text-slate-500" data-testid="operational-health-loading-elapsed">{elapsed}s</span>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm text-slate-600">
+              {t("This dashboard reconciles governance, trust-spine, and golden-path evidence from the live record on every load, so it can take up to a minute. Nothing is cached or assumed — the page stays empty until every measure has a real reading.")}
+            </p>
+            <div className="mt-5 grid gap-3 md:grid-cols-2 xl:grid-cols-3" aria-hidden="true">
+              {Array.from({ length: 6 }).map((_, index) => (
+                <div key={index} className="animate-pulse rounded-2xl border border-slate-200 bg-slate-50 p-4">
+                  <div className="h-3 w-1/3 rounded bg-slate-200" />
+                  <div className="mt-3 h-2 w-2/3 rounded bg-slate-200" />
+                  <div className="mt-2 h-2 w-1/2 rounded bg-slate-200" />
+                </div>
+              ))}
+            </div>
+          </section>
+        ) : (error && !data) ? (
+          <section
+            className="rounded-3xl border border-rose-200 bg-rose-50 p-6 shadow-sm"
+            data-testid="operational-health-error-panel"
+          >
+            <div className="flex items-center gap-3">
+              <AlertTriangle className="h-5 w-5 text-rose-600" />
+              <div className="text-sm font-black uppercase tracking-[0.2em] text-rose-800">
+                {t("Evidence request did not complete")}
+              </div>
+            </div>
+            <p className="mt-3 max-w-2xl text-sm text-rose-800">
+              {t("The live standards-evidence request took longer than the platform allows (about a minute) and was stopped, so no measures were read. This page will not show placeholder values — retry when the platform is less busy.")}
+            </p>
+            <p className="mt-2 max-w-2xl text-xs text-rose-700" data-testid="operational-health-error-detail">{error}</p>
+            <button
+              type="button"
+              onClick={load}
+              disabled={loading}
+              className="mt-4 inline-flex items-center gap-2 rounded-full border border-rose-300 bg-white px-4 py-2 text-sm font-semibold text-rose-700 hover:bg-rose-100 disabled:opacity-60"
+              data-testid="operational-health-error-retry"
+            >
+              <RefreshCw className={`h-4 w-4 ${loading ? "animate-spin" : ""}`} />
+              {t("Retry evidence request")}
+            </button>
+          </section>
+        ) : (
+        <>
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-filter-panel">
           <div className="flex flex-wrap items-center justify-between gap-3">
             <input
@@ -244,12 +314,6 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
             </div>
           </div>
         </section>
-
-        {loading && !data ? (
-          <div className="rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600" data-testid="operational-health-loading-banner">
-            {t("Loading standards evidence…")}
-          </div>
-        ) : null}
 
         <section className="rounded-3xl border border-slate-200 bg-white p-5 shadow-sm" data-testid="operational-health-status-engine">
           <div className="text-[11px] uppercase tracking-[0.24em] text-slate-500">Status rules check</div>
@@ -388,6 +452,8 @@ export const OperationalHealthDashboardShell = ({ moduleId = "enterprise-governa
             );
           })}
         </div>
+        </>
+        )}
 
         <EvidenceDrawer card={drawerCard} open={drawerOpen} onOpenChange={setDrawerOpen} testidPrefix="operational-health-drawer" />
       </div>

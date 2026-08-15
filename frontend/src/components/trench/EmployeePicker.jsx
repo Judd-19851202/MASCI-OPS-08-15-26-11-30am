@@ -14,6 +14,7 @@ import { useT } from "@/lib/i18n";
 import { hasAnyPortalAuthToken } from "@/lib/authHeaders";
 import { fetchHrRoster, subscribeHrRoster } from "@/lib/hrRoster";
 import { useCmdkTouchGuard } from "@/lib/useCmdkTouchGuard";
+import { preventAutoFocusOnTouch } from "@/lib/pickerTouchFocus";
 
 // Competent-persons roster: separate Trench Safety endpoint backed by
 // `db.employees`. Less volatile than the main roster — short-lived
@@ -92,10 +93,11 @@ export default function EmployeePicker({ value, onSelect, placeholder = "Select�
         className="p-0 w-[var(--radix-popover-trigger-width)] max-w-none"
         align="start"
         data-testid={`${testId}-content`}
+        onOpenAutoFocus={preventAutoFocusOnTouch}
       >
         <Command filter={(itemValue, search) => itemValue.toLowerCase().includes(search.toLowerCase()) ? 1 : 0}>
           <CommandInput placeholder={t(isCpMode ? "Search designated CPs…" : "Search by name, role, or trade…")} className="h-11" data-testid={`${testId}-search`} />
-          <CommandList className="max-h-[55vh]">
+          <CommandList className="masci-selector-scroll max-h-[55vh]">
             <CommandEmpty>
               {isCpMode
                 ? t("No designated Competent Persons. Ask Admin to designate one.")

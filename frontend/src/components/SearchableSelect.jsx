@@ -131,7 +131,7 @@ export function SearchableSelect({
 
       {open && (
         <div
-          className="wp17-picker-panel absolute z-30 mt-2 w-full overflow-hidden"
+          className="wp17-picker-panel absolute z-40 mt-2 w-full overflow-hidden"
           data-testid={testId ? `${testId}-menu` : undefined}
         >
           <div className="wp17-picker-toolbar p-2.5">
@@ -159,7 +159,7 @@ export function SearchableSelect({
               )}
             </div>
           </div>
-          <ul className="max-h-64 overflow-y-auto overscroll-contain touch-pan-y p-1.5" role="listbox" style={{ WebkitOverflowScrolling: "touch" }}>
+          <ul className="masci-selector-scroll max-h-64 p-1.5" role="listbox">
             {filtered.length === 0 && (
               <li className="wp17-picker-empty italic">{t("No matches")}</li>
             )}
@@ -172,10 +172,8 @@ export function SearchableSelect({
                   role="option"
                   aria-selected={selected}
                   onMouseEnter={() => setActiveIdx(i)}
-                  onMouseDown={(e) => {
-                    e.preventDefault();
-                    choose(opt.value);
-                  }}
+                  onMouseDown={(e) => e.preventDefault()}
+                  onClick={() => choose(opt.value)}
                   className={`wp17-picker-option cursor-pointer text-[0.95rem] ${selected ? "font-semibold" : ""}`}
                   data-active={active ? "true" : "false"}
                   data-selected={selected ? "true" : "false"}

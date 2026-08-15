@@ -248,7 +248,7 @@ export const EquipmentCombo = ({
 
       {open && (
         <div
-          className="wp17-picker-panel absolute z-30 mt-2 w-full max-h-80 overflow-auto p-1.5"
+          className="wp17-picker-panel masci-selector-scroll absolute z-40 mt-2 w-full max-h-80 p-1.5"
           data-testid={`${testIdBase}-panel`}
         >
           {totalShown === 0 ? (
@@ -260,7 +260,7 @@ export const EquipmentCombo = ({
           ) : (
             Object.entries(grouped).map(([cat, list]) => (
               <div key={cat}>
-                <div className="sticky top-0 rounded-[0.85rem] border border-slate-200/80 bg-slate-100/95 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-700">
+                <div className="sticky top-0 z-10 rounded-[0.85rem] border border-slate-200 bg-slate-100 px-3 py-1.5 text-[10px] font-mono font-bold uppercase tracking-[0.2em] text-slate-700 shadow-sm">
                   {cat}
                   <span className="ml-2 text-slate-500 normal-case font-normal tracking-normal">
                     ({list.length})
@@ -279,23 +279,25 @@ export const EquipmentCombo = ({
                       data-selected={selected ? "true" : "false"}
                       data-testid={`${testIdBase}-item-${cat}-${idx}`}
                     >
-                      <div className="flex items-center gap-2">
-                        {selected && <Check className="w-3.5 h-3.5 text-red-700 shrink-0" />}
-                        <span className="font-bold text-slate-900">
-                          {it.unit_number || "—"}
-                        </span>
-                        <span className="text-slate-500">·</span>
-                        <span className="text-slate-700">
-                          {(it.year ? it.year + " " : "") + it.make_model}
-                        </span>
-                      </div>
-                      {(it.plate || it.vin_serial_number) && (
-                        <div className="text-[11px] text-slate-500 mt-0.5 truncate">
-                          {it.plate ? `Plate ${it.plate}` : ""}
-                          {it.plate && it.vin_serial_number ? " · " : ""}
-                          {it.vin_serial_number ? `VIN/SN ${it.vin_serial_number}` : ""}
+                      <div className="min-w-0 flex-1">
+                        <div className="flex items-center gap-2 min-w-0">
+                          {selected && <Check className="w-3.5 h-3.5 text-red-700 shrink-0" />}
+                          <span className="font-bold text-slate-900 shrink-0">
+                            {it.unit_number || "—"}
+                          </span>
+                          <span className="text-slate-500 shrink-0">·</span>
+                          <span className="text-slate-700 truncate">
+                            {(it.year ? it.year + " " : "") + it.make_model}
+                          </span>
                         </div>
-                      )}
+                        {(it.plate || it.vin_serial_number) && (
+                          <div className="text-[11px] text-slate-500 mt-0.5 truncate">
+                            {it.plate ? `Plate ${it.plate}` : ""}
+                            {it.plate && it.vin_serial_number ? " · " : ""}
+                            {it.vin_serial_number ? `VIN/SN ${it.vin_serial_number}` : ""}
+                          </div>
+                        )}
+                      </div>
                     </button>
                   );
                 })}

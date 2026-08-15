@@ -393,12 +393,12 @@ async def _build_jobs_card(db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
 
     if dr_missing_count >= r_dr["red"]:
         warnings.append({"kind": "JOBS-DR-MISSING", "severity": "red",
-                         "message": f"{dr_missing_count} active jobs without recent DR (RED ≥ {r_dr['red']})",
+                         "message": f"{dr_missing_count} active jobs without a daily report in the last {lookback_hours} working hours (RED ≥ {r_dr['red']})",
                          "item_count": dr_missing_count, "rule_id": "JOBS-DR-MISSING",
                          "owner": "pm", "drill_to": "/admin/jobs"})
     elif dr_missing_count >= r_dr["amber"]:
         warnings.append({"kind": "JOBS-DR-MISSING", "severity": "amber",
-                         "message": f"{dr_missing_count} active jobs without recent DR (AMBER ≥ {r_dr['amber']})",
+                         "message": f"{dr_missing_count} active jobs without a daily report in the last {lookback_hours} working hours (AMBER ≥ {r_dr['amber']})",
                          "item_count": dr_missing_count, "rule_id": "JOBS-DR-MISSING",
                          "owner": "pm", "drill_to": "/admin/jobs"})
     items.extend(dr_missing_examples)
