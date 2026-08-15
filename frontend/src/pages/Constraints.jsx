@@ -35,6 +35,8 @@ export default function Constraints() {
   const caps = React.useMemo(() => getConstraintCapabilities(), [portalReady]);
   const [rows, setRows] = React.useState(null);
   const [err, setErr] = React.useState("");
+  const [loading, setLoading] = React.useState(true);
+  const reqSeq = React.useRef(0);
 
   const project_id = params.get("project_id") || "";
   const doc_id = params.get("doc_id") || "";
@@ -42,8 +44,12 @@ export default function Constraints() {
   const discipline = params.get("discipline") || "";
 
   React.useEffect(() => {
-    let live = true;
-    setRows(null);
+    // Sequence guard: only the LATEST request may resolve the surface,
+    // and it ALWAYS clears `loading` on settle. The previous per-effect
+    // `live` flag could drop the final response under rapid re-runs /
+    // StrictMode double-invoke, pinning "Loading…" forever (BP-0026 @390).
+    const seq = ++reqSeq.current;
+    setLoading(true);
     setErr("");
     listConstraints({
       ...(doc_id ? { doc_id } : {}),
@@ -51,9 +57,16 @@ export default function Constraints() {
       ...(status ? { status } : {}),
       ...(discipline ? { discipline } : {}),
     })
-      .then((d) => { if (live) setRows(Array.isArray(d) ? d : []); })
-      .catch((e) => { if (live) setErr(e.message || "Could not load"); });
-    return () => { live = false; };
+      .then((d) => {
+        if (seq !== reqSeq.current) return;
+        setRows(Array.isArray(d) ? d : []);
+        setLoading(false);
+      })
+      .catch((e) => {
+        if (seq !== reqSeq.current) return;
+        setErr(e.message || "Could not load");
+        setLoading(false);
+      });
   }, [doc_id, project_id, status, discipline]);
 
   const setParam = (k, v) => {
@@ -166,11 +179,11 @@ export default function Constraints() {
         </div>
       )}
 
-      {rows === null ? (
+      {err ? null : loading ? (
         <div data-testid="constraints-loading" className="text-sm text-slate-500">
           Loading…
         </div>
-      ) : rows.length === 0 ? (
+      ) : rows && rows.length === 0 ? (
         <div data-testid="constraints-empty" className="text-sm text-slate-500 italic py-6 text-center border border-slate-200 rounded-md">
           No constraints recorded {project_id ? "for this project" : "yet"}.
         </div>

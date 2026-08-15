@@ -70,6 +70,24 @@ def _minutes_since(iso: Optional[str], reference: Optional[datetime] = None) -> 
     return max(0, int((ref - parsed).total_seconds() / 60))
 
 
+def _human_minutes(minutes: Optional[int]) -> str:
+    """Readability guard — render an elapsed magnitude as d/h/m instead
+    of a raw minute count ('113996 min' → '79d 3h'). Value unchanged;
+    the numeric field (minutes_in_state/…) still carries the raw truth."""
+    if minutes is None:
+        return "unknown"
+    m = max(0, int(minutes))
+    if m < 60:
+        return f"{m}m"
+    h = m // 60
+    if h < 24:
+        r = m % 60
+        return f"{h}h {r}m" if r else f"{h}h"
+    d = h // 24
+    rh = h % 24
+    return f"{d}d {rh}h" if rh else f"{d}d"
+
+
 # ════════════════════════════════════════════════════════════════════
 # Detectors
 # ════════════════════════════════════════════════════════════════════
@@ -109,7 +127,7 @@ async def _detect_assignment_stuck(
             "last_transition_at": a.get("last_transition_at"),
             "headline": (
                 f"{a.get('truck_id') or 'Truck'} stuck in {a.get('current_state')} "
-                f"for {mins} min"
+                f"for {_human_minutes(mins)} · {str(a['id'])[-6:]}"
             ),
         })
     findings.sort(key=lambda f: f.get("minutes_in_state") or 0, reverse=True)
@@ -149,7 +167,7 @@ async def _detect_wait_threshold(
             "last_transition_at": a.get("last_transition_at"),
             "headline": (
                 f"{a.get('truck_id') or 'Truck'} waiting on "
-                f"{reason.replace('_', ' ')} for {mins} min"
+                f"{reason.replace('_', ' ')} for {_human_minutes(mins)}"
             ),
         })
     findings.sort(key=lambda f: f.get("minutes_waiting") or 0, reverse=True)
@@ -184,7 +202,7 @@ async def _detect_breakdown_active(
             "last_transition_at": a.get("last_transition_at"),
             "headline": (
                 f"{a.get('truck_id') or 'Truck'} in BREAKDOWN "
-                f"({mins} min)"
+                f"({_human_minutes(mins)})"
             ),
         })
     findings.sort(key=lambda f: f.get("minutes_down") or 0, reverse=True)

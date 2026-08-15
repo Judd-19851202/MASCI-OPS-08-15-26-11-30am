@@ -109,7 +109,7 @@ export default function ServiceTruckReconciliationDetail() {
                 <div>Date: <strong>{doc.date}</strong></div>
                 <div>Truck: <strong>{doc.service_truck_unit}</strong></div>
                 <div>Tech: <strong>{sanitizeOperatorReference(doc.tech_name, "Tech record")}</strong>{doc.tech_id ? ` (${doc.tech_id})` : ""}</div>
-                <div>Status: <strong data-testid="strr-detail-status">{doc.status}</strong></div>
+                <div>Status: <strong data-testid="strr-detail-status">{doc.status ? doc.status.replace(/_/g, " ") : "—"}</strong></div>
                 <div>Variance status: <StatusChip status={doc.variance_status} /></div>
                 <div>Visits linked: <strong data-testid="strr-detail-visit-count">{doc.dispensed_quantities?.visit_count ?? 0}</strong></div>
                 <div>Start submitted: <strong>{doc.start_submitted_at ? formatPlatformTime(doc.start_submitted_at) : "—"}</strong></div>

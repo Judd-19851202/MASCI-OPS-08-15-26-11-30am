@@ -35,6 +35,7 @@ from fastapi import APIRouter, Depends
 from services.ai_gateway import get_gateway
 from services.ai_gateway.env import env_snapshot, has_key
 from services.ai_gateway.task_router import route
+from services.ai_gateway.registry import _provider_default_model
 
 
 logger = logging.getLogger(__name__)
@@ -64,9 +65,10 @@ async def _ping_provider(name: str) -> Dict[str, Any]:
         entry.update(status="no_key", reason="missing_api_key")
         return entry
 
-    # Route the health check through the same model the workflow will
-    # use for `operational_narrative` on this provider.
-    _, model = route("operational_narrative")
+    # Ping THIS provider with ITS OWN model — not the primary route's
+    # model. Using route("operational_narrative") here made every row
+    # (OpenAI, Google) report Anthropic's model/latency (truth defect).
+    model = _provider_default_model(name)
     system = (
         "You are a health probe. Reply with EXACTLY this JSON and nothing "
         'else: {"narrative":"ok","confidence":1,"evidence_refs":[],'

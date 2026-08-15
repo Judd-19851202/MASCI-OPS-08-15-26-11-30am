@@ -1403,3 +1403,39 @@ Gates: provenance matrix 23/23 pass; release-identity + release-gate regressions
 - Exact counters: truth surfaces 32/547 (13+19); KPI concepts 12 discovered / 4 fully reconciled; PC 84/84; expiring 50/50;
   utilization 45/45; shared-root repairs 5; executable guards 7; regression 123 passed + verifier ok + fingerprint ×2 stable.
 - Candidate fingerprint dcf-5fb407c3...1299f (deterministic ×2). Production writes 0 · Save NO · Deploy NO.
+
+---
+
+## 2026-06 · Pre-Save Browser-Proof Sweep COMPLETE (fork continuation) — Save NO · Deploy NO
+
+**Browser proof register: 82/82 provable rows PASS · 0 deferred · 3 formally retired (governed).**
+Canonical denominator reconciled 85 → 82 via canonical methodology (IDs + history preserved):
+- BP-0002 CloudArchivesPanel → RETIRED_NON_SURFACE_ORPHANED (mounted nowhere)
+- BP-0034 NewDailyReport.jsx → RETIRED_NON_SURFACE_ORPHANED (dead code; live surface is NewDailyReportV3 = BP-0035)
+- BP-0033 HrV2Preview → RETIRED_DEV_INTERNAL_NON_OPERATOR (RequireDev, DEV_ENDPOINTS_ENABLED=false; not operator-facing)
+BP-0069 SignatureSubmitSection repointed to the live /daily/submit signoff surface (dr-v3-section-signoff) and PASSED.
+
+**Defects fixed & retested (iterations 36–42):**
+- Auth: /constraints /timeline /photos/ /operational-links missing from portalAuthScope SHARED_API_PREFIXES → 401; fixed (no backend auth change). +regression test.
+- OperationsCenter zero-count KPI tiles wore rose alarm tone → gated SEV on count>0 (calm/Info at 0).
+- Constraints list stuck-loading @390 → explicit loading flag + reqSeq guard.
+- /thank-you false-green with blank Record # → submission-evidence gate → governed "no submission" state.
+- AutoEmailRoutingPanel vanished on error → governed unavailable panel.
+- Command Center 500 (Mongo read timeout, no isolation) → per-card asyncio.gather + _safe_card timeout+try/except → failing card degrades to UNKNOWN (ranked above GREEN in _worst_pill); frontend UNKNOWN pill (neutral, not green) + 30s client timeout + stale-notice.
+- SafetyCaseWorkspace 390/768 horizontal overflow → min-w-0 grid columns; CaseHealth/ExecutiveSnapshot completeness_pct em-dash guard.
+- Raw-minute readability → shared humanDuration.js (FE) + _human_minutes (dispatch_governance) + storage-recovery cards.
+- Unavailable-as-zero hardening: PmMondayReview readiness/prodEff/variance, AdminAssetMapping trust/confidence %, JHA totals, R2 orphan_pct.
+- WP-17D certification dashboard hardcoded claims → provenance banner ("manually-maintained snapshot, not a live reading") + neutralized false-green progress chip.
+- Transportation carriers/drivers/trucks list count = page-size-as-total → backend count_documents true total + FE limit=1000; drivers total chip added; compliance zero-count chips dimmed.
+- operatorLanguage global rewrite mangled canonical "Certification Hold" → negative lookahead preserves it.
+- TrenchSafetyPolish contradictory denominators → "Active Assets" label + "all lifecycle states, incl. retired" scope caption. (Residual smaller arithmetic/snapshot-vs-live nuance documented as known: TD-0052.)
+- AccessDenied empty portal tile filtered; ModalShell Escape-to-close; reconciliation enum humanized.
+
+**Regression / gates (all green except one pre-existing decayed guard):**
+- Frontend: 412 tests / 66 suites PASS.
+- Backend GD/parity/guard suites PASS (report-export parity GD-0029, cross-surface parity prec10, operator-language premerge guard, GD-0032/33/34, presave gate, compliance/health/variance/efficiency/freshness contracts, rc2 auth guardrail, prec10 schedule scope).
+- Independent Acceptance: 12/12 PASS (re-run after all repairs).
+- Truth population guard: 0 violations · Truth surface guard: 0 · Canonical surface scanner OPEN: 0 (invariant holds).
+- KNOWN PRE-EXISTING (not from this session, confirmed via git stash): test_nav_drift_guard 9 assertions read stale frontend/src/App.js (routes refactored into app/routing/AppRoutes.jsx) + a Feb-2026 route-inventory snapshot; routes verified to exist. Documented TD-0053; full re-sync is separate test-infra scope.
+
+**Release state:** deployable content fingerprint `dcf-dfbd7ab0639fd3cf52c76ab7b3b9d0e16e42ad774c126ac4b38334735bc0f46f` computed twice, identical. AUTHORIZED_RELEASE.json untouched. Preview serves HTTP 200 as UNATTESTED candidate (deploy_authorized=false). Production business-data writes this session: 0 (all QA read-only). Save=NO · Deploy=NO.

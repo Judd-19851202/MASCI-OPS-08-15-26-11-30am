@@ -28,6 +28,8 @@ Frozen-surface guarantee:
 
 from __future__ import annotations
 
+import asyncio
+import logging
 import time
 from datetime import datetime, timezone, timedelta
 from typing import Any, Dict, List, Optional, Tuple
@@ -45,6 +47,45 @@ from lib.synthetic_corrective_action_filter import apply_synthetic_corrective_ac
 # ─── In-memory cache (15 sec like recovery_dashboard) ────────────────
 _CACHE: Dict[str, Any] = {"computed_at": 0.0, "snapshot": None}
 _CACHE_TTL_SECONDS = 15.0
+
+logger = logging.getLogger("command_center")
+
+# Per-card wall budget. If a single aggregation (e.g. a slow Mongo read)
+# exceeds this, the card degrades to a governed UNKNOWN state instead of
+# hanging the whole single-glass surface or returning 500.
+_CARD_TIMEOUT_SECONDS = 12.0
+
+
+def _unknown_card(card_id: str, title: str, reason: str) -> Dict[str, Any]:
+    """Fail-closed card: the signal could not be computed. UNKNOWN is
+    explicitly NOT green — a degraded card must never read as healthy."""
+    return {
+        "card_id": card_id,
+        "title": title,
+        "pill": "UNKNOWN",
+        "degraded": True,
+        "unavailable_reason": reason,
+        "headline_counts": {},
+        "warnings": [],
+        "items": [],
+    }
+
+
+async def _safe_card(card_id: str, title: str, builder: Any, db: Any, rules: Dict[str, Any]) -> Dict[str, Any]:
+    """Isolate one card build: a timeout or exception degrades ONLY this
+    card to UNKNOWN, so one slow/failing data source cannot 500 the whole
+    command-center snapshot."""
+    try:
+        card = await asyncio.wait_for(builder(db, rules), timeout=_CARD_TIMEOUT_SECONDS)
+        if not isinstance(card, dict) or "pill" not in card:
+            return _unknown_card(card_id, title, "Card builder returned an unexpected shape.")
+        return card
+    except asyncio.TimeoutError:
+        logger.warning("command-center card '%s' timed out after %ss — degraded to UNKNOWN", card_id, _CARD_TIMEOUT_SECONDS)
+        return _unknown_card(card_id, title, "This signal timed out while loading (data source slow). Status is UNKNOWN — not GREEN.")
+    except Exception as exc:  # noqa: BLE001 — governed degrade, never 500 the surface
+        logger.warning("command-center card '%s' failed: %s — degraded to UNKNOWN", card_id, exc)
+        return _unknown_card(card_id, title, "This signal could not be computed right now (data source error). Status is UNKNOWN — not GREEN.")
 
 
 # ─── Default scoring config (operator-tunable via /thresholds) ───────
@@ -225,11 +266,15 @@ def _days_since(ts: Optional[datetime]) -> Optional[float]:
 
 
 def _worst_pill(*pills: str) -> str:
-    """Return the worst pill among inputs. RED > AMBER > GREEN."""
+    """Return the worst pill among inputs. RED > AMBER > UNKNOWN > GREEN.
+    UNKNOWN must rank above GREEN so a degraded/unavailable signal can
+    never let the overall surface read as healthy-green."""
     if "RED" in pills:
         return "RED"
     if "AMBER" in pills:
         return "AMBER"
+    if "UNKNOWN" in pills:
+        return "UNKNOWN"
     return "GREEN"
 
 
@@ -985,14 +1030,22 @@ def build_command_center_router(
         rules = await _load_thresholds(db)
         calendar = await _load_calendar(db)
 
-        jobs_card = await _build_jobs_card(db, rules)
-        safety_card = await _build_safety_card(db, rules)
-        equipment_card = await _build_equipment_card(db, rules)
-        accountability_card = await _build_accountability_card(db, rules)
-        approvals_card = await _build_approvals_card(db, rules)
+        # Build all five cards concurrently, each isolated: one slow/failing
+        # aggregation degrades to a governed UNKNOWN card instead of 500-ing
+        # the whole single-glass surface (root cause of BP-0056: a Mongo read
+        # timeout in one card killed the entire snapshot).
+        jobs_card, safety_card, equipment_card, accountability_card, approvals_card = await asyncio.gather(
+            _safe_card("jobs", "Jobs Today", _build_jobs_card, db, rules),
+            _safe_card("safety", "Safety", _build_safety_card, db, rules),
+            _safe_card("equipment", "Equipment", _build_equipment_card, db, rules),
+            _safe_card("accountability", "Accountability", _build_accountability_card, db, rules),
+            _safe_card("approvals", "Approvals", _build_approvals_card, db, rules),
+        )
 
         cards = [jobs_card, safety_card, equipment_card, accountability_card, approvals_card]
         overall_pill = _worst_pill(*(c["pill"] for c in cards))
+        degraded_cards = [c for c in cards if c.get("degraded")]
+        any_degraded = len(degraded_cards) > 0
 
         # Headline aggregate
         red_warn_total = sum(1 for c in cards for w in c["warnings"] if w["severity"] == "red")
@@ -1000,28 +1053,35 @@ def build_command_center_router(
         red_item_total = sum(1 for c in cards for it in c["items"] if it.get("severity") == "red")
         amber_item_total = sum(1 for c in cards for it in c["items"] if it.get("severity") == "amber")
 
+        if red_warn_total + amber_warn_total > 0:
+            headline = f"{red_warn_total} RED · {amber_warn_total} AMBER warnings"
+        elif any_degraded:
+            headline = f"{len(degraded_cards)} signal(s) UNKNOWN — could not be computed"
+        else:
+            headline = "All five operational signals GREEN"
+
         snapshot_doc = {
             "computed_at": datetime.now(timezone.utc).isoformat(),
             "pill": overall_pill,
+            "degraded": any_degraded,
             "pulse": {
                 "pill": overall_pill,
                 "red_warnings": red_warn_total,
                 "amber_warnings": amber_warn_total,
                 "red_items": red_item_total,
                 "amber_items": amber_item_total,
-                "headline": (
-                    f"{red_warn_total} RED · {amber_warn_total} AMBER warnings"
-                    if (red_warn_total + amber_warn_total) > 0
-                    else "All five operational signals GREEN"
-                ),
+                "headline": headline,
             },
             "cards": cards,
             "calendar": calendar,
             "cached": False,
         }
 
-        _CACHE["snapshot"] = snapshot_doc
-        _CACHE["computed_at"] = now_wall
+        # Only cache a fully-healthy snapshot; a degraded result must be
+        # retried on the next poll rather than pinned for the TTL window.
+        if not any_degraded:
+            _CACHE["snapshot"] = snapshot_doc
+            _CACHE["computed_at"] = now_wall
         return snapshot_doc
 
     @router.get("/admin/command-center/thresholds")

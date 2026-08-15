@@ -25,6 +25,7 @@ const PILL_STYLES = {
   GREEN: "bg-emerald-100 text-emerald-800 border-emerald-300",
   AMBER: "bg-amber-100 text-amber-800 border-amber-300",
   RED: "bg-rose-100 text-rose-800 border-rose-300",
+  UNKNOWN: "bg-slate-100 text-slate-700 border-slate-300",
 };
 
 function fmtTs(ts) {
@@ -33,7 +34,9 @@ function fmtTs(ts) {
 }
 
 function Pill({ status, size = "md", testid }) {
-  const cls = PILL_STYLES[status] || PILL_STYLES.GREEN;
+  // Fail-closed: an unrecognised/degraded status renders NEUTRAL, never
+  // green — a signal we cannot classify must not read as healthy.
+  const cls = PILL_STYLES[status] || PILL_STYLES.UNKNOWN;
   const sizeCls = size === "lg" ? "px-4 py-1.5 text-base" : "px-2.5 py-0.5 text-xs font-semibold";
   return (
     <span
@@ -46,10 +49,12 @@ function Pill({ status, size = "md", testid }) {
 }
 
 function CardShell({ card, onItemClick }) {
-  const pill = card.pill || "GREEN";
-  const headline = card.warnings && card.warnings[0]
-    ? card.warnings[0].message
-    : `All clear · ${card.title.toLowerCase()}`;
+  const pill = card.pill || "UNKNOWN";
+  const headline = card.degraded
+    ? (card.unavailable_reason || "This signal is UNKNOWN — could not be computed right now.")
+    : card.warnings && card.warnings[0]
+      ? card.warnings[0].message
+      : `All clear · ${card.title.toLowerCase()}`;
 
   return (
     <div
@@ -177,9 +182,15 @@ export default function AdminCommandCenter() {
   const [drilldown, setDrilldown] = useState({ open: false, item: null, cardId: null });
 
   const load = useCallback(async () => {
+    // Bounded client budget: never sit on the loading skeleton for the
+    // full 30s poll interval if the snapshot is slow — surface an honest
+    // error at 18s so the operator is never left staring at a spinner.
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 30000);
     try {
       const r = await fetch(`${API}/admin/command-center/snapshot`, {
         headers: buildScopedPortalAuthHeaders(["admin"]),
+        signal: ctrl.signal,
       });
       if (!r.ok) {
         setErr(`HTTP ${r.status}`);
@@ -189,8 +200,11 @@ export default function AdminCommandCenter() {
       setSnap(d);
       setErr(null);
     } catch (e) {
-      setErr(String(e?.message || e));
+      setErr(e?.name === "AbortError"
+        ? "Timed out loading the command center (data source slow). It will retry automatically."
+        : String(e?.message || e));
     } finally {
+      clearTimeout(timer);
       setLoading(false);
     }
   }, []);
@@ -221,12 +235,20 @@ export default function AdminCommandCenter() {
           Loading the latest command center view…
         </div>
       )}
-      {err && (
+      {err && !snap && (
         <div
           className="rounded-md bg-rose-50 border border-rose-200 text-rose-700 p-3 text-sm"
           data-testid="cc-error"
         >
           We could not load the command center right now. {err}
+        </div>
+      )}
+      {err && snap && (
+        <div
+          className="rounded-md bg-amber-50 border border-amber-200 text-amber-800 p-2.5 text-xs"
+          data-testid="cc-stale-notice"
+        >
+          Last refresh didn't complete ({err}) — showing the most recent view. Auto-retrying.
         </div>
       )}
       {snap && (

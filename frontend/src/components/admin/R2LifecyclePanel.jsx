@@ -19,6 +19,7 @@ import { toast } from "sonner";
 
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
 import { formatRelativeTime } from "@/lib/platformTime";
+import { humanDuration } from "@/lib/humanDuration";
 
 const API = process.env.REACT_APP_BACKEND_URL;
 
@@ -191,13 +192,13 @@ export default function R2LifecyclePanel() {
         <div className="grid grid-cols-3 gap-2 mt-3 text-xs text-slate-600">
           <div>Bucket: <strong>{health?.capacity?.gb?.toFixed(1) ?? "—"} GB</strong> (alert {health?.capacity?.alert_gb} GB)</div>
           <div>Objects: <strong>{objects.total ?? "—"}</strong></div>
-          <div>Orphans: <strong>{objects.verified_orphan ?? "—"}</strong> ({objects.orphan_pct ?? 0}%)</div>
+          <div>Orphans: <strong>{objects.verified_orphan ?? "—"}</strong> ({objects.orphan_pct != null ? `${objects.orphan_pct}%` : "—"})</div>
         </div>
         <div className="grid md:grid-cols-3 gap-2 mt-3 text-xs">
           <div className="rounded bg-white border border-slate-200 p-3" data-testid="r2-lifecycle-freshness-card">
             <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Inventory Freshness</div>
             <div className="font-black text-slate-900 text-sm mt-0.5">{freshness.inventory_state || "UNKNOWN"}</div>
-            <div className="text-slate-600 mt-1">Age {freshness.inventory_age_minutes != null ? `${Math.round(freshness.inventory_age_minutes)}m` : "unknown"}</div>
+            <div className="text-slate-600 mt-1">Age {freshness.inventory_age_minutes != null ? humanDuration(freshness.inventory_age_minutes) : "unknown"}</div>
           </div>
           <div className="rounded bg-white border border-slate-200 p-3" data-testid="r2-lifecycle-ownership-card">
             <div className="font-mono text-[9px] uppercase tracking-widest text-slate-500">Ownership Coverage</div>

@@ -284,7 +284,7 @@ export function OperationalSummaryPanel({ assetsBasePath = "/safety/trench-safet
     <section className="space-y-4" data-testid="ops-summary">
       {/* Executive summary — Total / Available / Assigned / On Hold / Repairs / Inspections / Recent activity */}
       <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-7 gap-2" data-testid="ops-summary-executive">
-        <Stat label={t("Total Assets")}         value={total}                       testId="ops-stat-total" />
+        <Stat label={t("Active Assets")}         value={total}                       testId="ops-stat-total" />
         <Stat label={t("Available")}            value={cs["Available"]   ?? 0} tone="ok"     testId="ops-stat-available" />
         <Stat label={t("Assigned")}             value={cs["Assigned"]    ?? 0} tone="info"   testId="ops-stat-assigned" />
         <Stat label={t("On Hold")}              value={al.on_hold        ?? 0} tone={(al.on_hold ?? 0) > 0 ? "danger" : "default"} testId="ops-stat-on-hold" />
@@ -296,7 +296,7 @@ export function OperationalSummaryPanel({ assetsBasePath = "/safety/trench-safet
       {/* Asset Count Command Cards — by status + type */}
       <div className="bg-white border border-slate-200 rounded-md p-4" data-testid="ops-summary-status-cards">
         <div className="flex items-center gap-2 font-mono text-[10px] uppercase tracking-[0.18em] text-cyan-700 font-bold mb-2">
-          <Boxes className="w-3.5 h-3.5" /> {t("Count by Status")}
+          <Boxes className="w-3.5 h-3.5" /> {t("Count by Status")} <span className="text-slate-400 normal-case tracking-normal font-normal">· {t("all lifecycle states, including retired")}</span>
         </div>
         <div className="grid grid-cols-2 sm:grid-cols-4 lg:grid-cols-8 gap-2" data-testid="ops-status-grid">
           {ALL_STATUSES.map((s) => (

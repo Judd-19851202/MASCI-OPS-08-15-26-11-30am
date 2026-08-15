@@ -26,7 +26,9 @@ export default function AccessDenied({ attemptedPortal }) {
   const home = homePortal();
   const reachable = reachablePortals();
   const assigned = assignedPortals();
-  const others = reachable.filter((p) => p !== home && p !== attemptedPortal);
+  const others = reachable.filter(
+    (p) => p && p !== home && p !== attemptedPortal && PORTAL_LABEL[p] && PORTAL_HOME[p],
+  );
   const assignedButUnavailable = assigned.filter((p) => !reachable.includes(p) && p !== attemptedPortal);
   const signedIn = isSignedInAnywhere();
   // attempted portal label — for the body copy

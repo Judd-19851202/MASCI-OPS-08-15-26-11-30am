@@ -96,7 +96,9 @@ const OPERATOR_TERM_REPLACEMENTS = [
   [/\bwp-?18[a-z0-9-]*\b/gi, ""],
   [/\becap\b/gi, "executive reporting"],
   [/\bcert\b/gi, ""],
-  [/\bcertification\b/gi, "readiness"],
+  // Do NOT rewrite the canonical lifecycle status name "Certification Hold"
+  // — it is a governed enum value used by the API and every trench surface.
+  [/\bcertification\b(?!\s+hold)/gi, "readiness"],
   [/\bcanonical\b/gi, "platform"],
   [/\bauthority contract\b/gi, "how this result is calculated"],
   [/\bread model\b/gi, "portfolio view"],

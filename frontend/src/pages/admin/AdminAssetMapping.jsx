@@ -15,6 +15,11 @@ const BAND = {
   UNKNOWN: "bg-slate-50 border-slate-200 text-slate-700",
 };
 
+// Unavailable-as-zero guard for percentage stats: a null/undefined score
+// reads as an em dash, never a hard "0%"/"null%"/"undefined%".
+const pctOr = (v) => (v != null && Number.isFinite(Number(v)) ? `${Number(v)}%` : "—");
+
+
 const READINESS = {
   READY_FOR_ACTIVATION: {
     label: "READY FOR ACTIVATION",
@@ -155,8 +160,8 @@ export default function AdminAssetMapping() {
             </div>
 
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-2" data-testid="am-impact-metrics">
-              <Stat l="Current Trust" v={`${impact.current.trust_score_pct}%`} testid="am-impact-current-trust" />
-              <Stat l="Potential Trust" v={`${impact.potential.trust_score_pct}%`} testid="am-impact-potential-trust" />
+              <Stat l="Current Trust" v={pctOr(impact.current.trust_score_pct)} testid="am-impact-current-trust" />
+              <Stat l="Potential Trust" v={pctOr(impact.potential.trust_score_pct)} testid="am-impact-potential-trust" />
               <Stat l="HIGH Matches Waiting" v={impact.actions.high_confidence_waiting} testid="am-impact-high-waiting" />
               <Stat l="Est. Dispatches Impacted" v={impact.actions.estimated_dispatches_impacted} testid="am-impact-dispatches" />
               <Stat l="Est. Assets Confirmed" v={impact.actions.estimated_assets_confirmed} testid="am-impact-assets-confirmed" />
@@ -175,7 +180,7 @@ export default function AdminAssetMapping() {
                   <div className="font-mono text-[10px] uppercase tracking-wider text-slate-600 font-bold mb-1">Current State</div>
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <KV l="Coverage" v={`${impact.current.coverage_pct}%`} />
-                    <KV l="Trust" v={`${impact.current.trust_score_pct}%`} />
+                    <KV l="Trust" v={pctOr(impact.current.trust_score_pct)} />
                     <KV l="Mapped" v={impact.current.mapped_assets} />
                   </div>
                 </div>
@@ -183,7 +188,7 @@ export default function AdminAssetMapping() {
                   <div className="font-mono text-[10px] uppercase tracking-wider text-emerald-800 font-bold mb-1">Projected State</div>
                   <div className="grid grid-cols-3 gap-2 text-sm">
                     <KV l="Coverage" v={`${impact.potential.coverage_pct}%`} accent />
-                    <KV l="Trust" v={`${impact.potential.trust_score_pct}%`} accent />
+                    <KV l="Trust" v={pctOr(impact.potential.trust_score_pct)} accent />
                     <KV l="Mapped" v={impact.potential.mapped_assets} accent />
                   </div>
                 </div>
@@ -236,8 +241,8 @@ export default function AdminAssetMapping() {
                 ["Mapped", coverage.mapped_assets],
                 ["Unmapped", coverage.unmapped_assets],
                 ["Coverage %", `${coverage.coverage_pct}%`],
-                ["Trust Score", `${exec.trust_score_pct}%`],
-                ["Potential", `${exec.potential_trust_score_pct}%`],
+                ["Trust Score", pctOr(exec.trust_score_pct)],
+                ["Potential", pctOr(exec.potential_trust_score_pct)],
               ].map(([l, v]) => (
                 <div key={l} className="px-3 py-2 rounded bg-slate-50 border border-slate-200">
                   <div className="font-mono text-[10px] uppercase tracking-wider text-slate-700">{l}</div>
@@ -326,7 +331,7 @@ export default function AdminAssetMapping() {
                       <td className="px-2 py-1 text-slate-700">{r.motive_label || "—"}</td>
                       <td className="px-2 py-1">
                         <span className={`px-1.5 py-0.5 rounded border font-mono text-[10px] font-bold ${BAND[r.confidence_band] || BAND.UNKNOWN}`}>
-                          {r.confidence_band} {((r.confidence_score || 0) * 100).toFixed(0)}%
+                          {r.confidence_band} {r.confidence_score != null ? `${(Number(r.confidence_score) * 100).toFixed(0)}%` : "—"}
                         </span>
                       </td>
                       <td className="px-2 py-1 font-mono text-[10px] text-slate-600">{r.match_signal?.kind || "—"}</td>
@@ -365,8 +370,8 @@ export default function AdminAssetMapping() {
               <Stat l="Projects Pending" v={exec.projects_pending} />
               <Stat l="Mapped Assets" v={exec.mapped_assets} />
               <Stat l="Unmapped Assets" v={exec.unmapped_assets} />
-              <Stat l="Trust Score" v={`${exec.trust_score_pct}%`} />
-              <Stat l="Potential Trust" v={`${exec.potential_trust_score_pct}%`} />
+              <Stat l="Trust Score" v={pctOr(exec.trust_score_pct)} />
+              <Stat l="Potential Trust" v={pctOr(exec.potential_trust_score_pct)} />
               <Stat l="Coverage" v={`${exec.coverage_pct}%`} />
               <Stat l="Top Risk" v={(exec.highest_risk_gaps || [])[0]?.truck_id || "—"} />
             </div>

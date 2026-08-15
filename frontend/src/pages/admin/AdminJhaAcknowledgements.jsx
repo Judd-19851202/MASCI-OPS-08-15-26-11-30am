@@ -122,8 +122,8 @@ export default function AdminJhaAcknowledgements() {
             </span>
             {summary && (
               <span className="ml-auto font-mono text-[10px] uppercase tracking-[0.2em] text-slate-500">
-                {summary.totals?.projects ?? 0} projects · {summary.totals?.files ?? 0} files ·{" "}
-                {summary.totals?.acknowledgements ?? 0} acks
+                {summary.totals?.projects ?? "—"} projects · {summary.totals?.files ?? "—"} files ·{" "}
+                {summary.totals?.acknowledgements ?? "—"} acks
               </span>
             )}
           </div>

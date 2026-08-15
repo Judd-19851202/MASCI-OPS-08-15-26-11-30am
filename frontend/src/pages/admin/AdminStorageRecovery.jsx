@@ -36,6 +36,7 @@ import { BackupIntegrityJobPanel } from "@/components/admin/BackupIntegrityJobPa
 import R2LifecyclePanel from "@/components/admin/R2LifecyclePanel";
 import { api } from "@/lib/api";
 import { formatPlatformTime, formatRelativeTime } from "@/lib/platformTime";
+import { humanDuration } from "@/lib/humanDuration";
 import {
   HealthCard,
   EvidenceDrawer,
@@ -198,7 +199,7 @@ function bBackupFreshness(recovery) {
   const lb = recovery.body?.last_backup || {};
   const source = lb.source || "unknown";
   const summary = age >= 0
-    ? `Backup age ${age.toFixed(1)}m · target ≤ ${target}m · source=${source}`
+    ? `Backup age ${humanDuration(age)} · target ≤ ${humanDuration(target)} · source=${source}`
     : "No backup age reported.";
   const action = status === "red"
     ? "Investigate backup scheduler + R2 sync now."
@@ -272,8 +273,8 @@ function bRpoRto(recovery) {
     ? (rpoStatus === "red" || rtoStatus === "red" ? "red" : "yellow")
     : (rpoStatus === "green" && rtoStatus === "green" ? "green" : "unknown");
   const summary =
-    `RPO ${rpo.actual_min ?? "?"}m / target ≤ ${rpo.target_min ?? "?"}m · ` +
-    `RTO drill ${rto.last_drill_min ?? "?"}m / target ≤ ${rto.target_min ?? "?"}m`;
+    `RPO ${rpo.actual_min != null ? humanDuration(rpo.actual_min) : "?"} / target ≤ ${rpo.target_min != null ? humanDuration(rpo.target_min) : "?"} · ` +
+    `RTO drill ${rto.last_drill_min != null ? humanDuration(rto.last_drill_min) : "?"} / target ≤ ${rto.target_min != null ? humanDuration(rto.target_min) : "?"}`;
   const action = status === "red"
     ? "Run a fresh backup + restore drill to restore RPO/RTO posture."
     : "";
@@ -313,7 +314,7 @@ function bRestoreDrill(recovery) {
   const status = outcome === "ok" ? "green"
     : outcome === "warning" ? "yellow"
     : outcome === "" ? "unknown" : "red";
-  const summary = `Last drill ${outcome || "unknown outcome"} · ${drill.records || 0} records · ${drill.duration_min || "?"}m`;
+  const summary = `Last drill ${outcome || "unknown outcome"} · ${drill.records || 0} records · ${drill.duration_min != null ? humanDuration(drill.duration_min) : "?"}`;
   return {
     id: "restore-drill",
     title: "Restore Drill",

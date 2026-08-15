@@ -101,7 +101,7 @@ export function CarriersList() {
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { limit: 1000 };
       if (status) params.status = status;
       if (q) params.q = q;
       const r = await txGet("/admin/transportation/carriers", params);
@@ -203,18 +203,20 @@ export function DriversList() {
   const [q, setQ] = useState("");
   const [showLink, setShowLink] = useState(false);
   const [showAddLeased, setShowAddLeased] = useState(false);
+  const [total, setTotal] = useState(0);
   const { status } = useStateFilter();
 
   const load = useCallback(async () => {
     setLoading(true);
     try {
-      const params = {};
+      const params = { limit: 1000 };
       if (status) params.status = status;
       if (q) params.q = q;
       const r = await txGet("/admin/transportation/persons", params);
-      if (isTxRestricted(r)) { setRestricted(true); setRows([]); return; }
+      if (isTxRestricted(r)) { setRestricted(true); setRows([]); setTotal(0); return; }
       setRestricted(false);
       setRows(r.data.items || []);
+      setTotal(typeof r.data.total === "number" ? r.data.total : (r.data.items || []).length);
     } finally {
       setLoading(false);
     }
@@ -232,6 +234,14 @@ export function DriversList() {
       } />
       {restricted ? <TxOpsRestrictedData testid="tx-drivers-list-restricted" /> : (
         <>
+      <div className="flex flex-wrap items-center gap-2 text-xs" data-testid="tx-drivers-summary">
+        <span className="px-2 py-1 rounded bg-slate-50 border border-slate-200" data-testid="tx-drivers-summary-total">
+          <strong className="text-slate-900">{total}</strong> <span className="text-slate-500">total</span>
+        </span>
+        <span className="px-2 py-1 rounded bg-emerald-50 border border-emerald-200 text-emerald-800">
+          <strong>{rows.filter((d) => d.status === "active").length}</strong> active
+        </span>
+      </div>
       <div className="flex items-center gap-2">
         <div className="relative">
           <Search className="h-4 w-4 absolute left-2 top-2.5 text-slate-400" />

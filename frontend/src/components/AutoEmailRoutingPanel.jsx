@@ -8,15 +8,18 @@ export default function AutoEmailRoutingPanel() {
   const [data, setData] = useState(null);
   const [openPm, setOpenPm] = useState(null);
   const [loading, setLoading] = useState(true);
+  const [failed, setFailed] = useState(false);
 
   useEffect(() => {
     let alive = true;
     (async () => {
       try {
         const r = await api.get("/auto-email/routing-table", { headers: buildWave3AdminHeaders() });
-        if (alive) setData(r.data);
+        if (alive) { setData(r.data); setFailed(false); }
       } catch {
-        /* silently fail — admin sees the standard load state */
+        // Never vanish silently — a failed load must show a governed
+        // unavailable state, not disappear as if there were no routing.
+        if (alive) setFailed(true);
       } finally {
         if (alive) setLoading(false);
       }
@@ -24,7 +27,38 @@ export default function AutoEmailRoutingPanel() {
     return () => { alive = false; };
   }, []);
 
-  if (loading || !data) return null;
+  if (loading) return null;
+
+  if (failed || !data) {
+    return (
+      <section
+        className="bg-white border border-amber-300 rounded-md p-5 sm:p-6 mb-8"
+        data-testid="auto-email-routing-panel"
+      >
+        <div className="flex items-center gap-3">
+          <div className="inline-flex items-center justify-center w-10 h-10 rounded-md bg-amber-100 text-amber-800">
+            <AlertCircle className="w-5 h-5" />
+          </div>
+          <div>
+            <h2 className="font-display text-lg sm:text-xl font-black tracking-tight text-slate-900">
+              Auto-Email Routing
+            </h2>
+            <p
+              className="font-mono text-[10px] uppercase tracking-[0.2em] text-amber-800 mt-0.5"
+              data-testid="auto-email-routing-unavailable"
+            >
+              Routing table unavailable — could not load
+            </p>
+          </div>
+        </div>
+        <p className="text-xs text-slate-600 mt-3 leading-relaxed">
+          The auto-email routing configuration could not be loaded right now.
+          This is a load state, not a confirmation that routing is empty. Retry
+          shortly or check integration health.
+        </p>
+      </section>
+    );
+  }
 
   const enabled = !!data.auto_email_enabled;
 

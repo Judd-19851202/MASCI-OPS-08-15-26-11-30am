@@ -7,6 +7,11 @@ import { DataTable } from "@/design-system";
 import { useT } from "@/lib/i18n";
 
 const INVENTORY_TOTAL = 1190;
+// PROVENANCE: this board is a MANUALLY-MAINTAINED UI-review snapshot for the
+// WP-17D experience-standardization workstream. The counts/route statuses
+// below are recorded by hand at each review cycle — they are NOT a live
+// system reading. `AS_OF` must be updated whenever the figures are edited.
+const AS_OF = "2026-08-01 16:26 UTC";
 const SURVIVOR_COUNTS = [
   { key: "workflow-reviews", label: "Open workflow reviews", count: 102, detail: "Screens still awaiting the latest navigation and layout standard." },
   { key: "navigation", label: "Navigation reviews", count: 62, detail: "Back / home / workflow hierarchy items still being reconciled." },
@@ -168,7 +173,7 @@ export default function Wp17dCertificationDashboard() {
             actions={(
               <>
                 <span className="inline-flex items-center gap-1.5 rounded-full border border-red-200 bg-red-50 px-3 py-1 text-xs font-bold text-red-900" data-testid="wp17d-readiness-chip"><ShieldAlert className="h-3.5 w-3.5" /> {readinessVerdict}</span>
-                <span className="inline-flex items-center gap-1.5 rounded-full border border-emerald-200 bg-emerald-50 px-3 py-1 text-xs font-bold text-emerald-900" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {t("{pct}% aligned").replace("{pct}", completionPct)}</span>
+                <span className="inline-flex items-center gap-1.5 rounded-full border border-slate-300 bg-slate-100 px-3 py-1 text-xs font-bold text-slate-700" data-testid="wp17d-progress-chip"><BarChart3 className="h-3.5 w-3.5" /> {t("{pct}% aligned").replace("{pct}", completionPct)}</span>
               </>
             )}
             toolbar={(
@@ -178,6 +183,10 @@ export default function Wp17dCertificationDashboard() {
             )}
             testId="wp17d-certification-hero"
           />
+
+          <div className="rounded-md border border-amber-300 bg-amber-50 px-4 py-3 text-xs text-amber-900" data-testid="wp17d-provenance-banner">
+            <span className="font-bold uppercase tracking-[0.14em]">Manually-maintained snapshot</span> — the counts, route statuses, and completion figure on this board are recorded by hand during each WP-17D UI-review cycle. They are <span className="font-bold">not a live system reading</span>. As of <span className="font-mono">{AS_OF}</span>.
+          </div>
 
           <section className="grid gap-4 sm:grid-cols-2 xl:grid-cols-3" data-testid="wp17d-survivor-counts-grid">
             {SURVIVOR_COUNTS.map((item) => (

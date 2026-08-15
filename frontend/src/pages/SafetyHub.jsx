@@ -42,7 +42,6 @@ import GovernanceHealthChip from "@/components/GovernanceHealthChip";
 import ExpirationsSummary from "@/components/ExpirationsSummary";
 import OperationsActionsTile from "@/components/oa/OperationsActionsTile";
 import { buildScopedPortalAuthHeaders } from "@/lib/authHeaders";
-import { PortalShell } from "@/design-system/PortalShell";
 import { KpiInlineHelp } from "@/components/KpiInlineHelp";
 
 const API = `${process.env.REACT_APP_BACKEND_URL}/api`;
@@ -207,18 +206,9 @@ export default function SafetyHub() {
   }
 
   return (
-    <PortalShell
-      portalName="MASCI"
-      portalRole="Safety"
-      homeHref="/safety-portal"
-      showSearch={false}
-      showNotifications={false}
-      showPortalSwitcher={false}
-      showSignOut={false}
-    >
-      <SafetyShell title="Safety Operations Dashboard" kicker="SAFETY PORTAL">
-        <div className="-mt-4 mb-6">
-          <GovernanceHealthChip portal="safety" />
+    <SafetyShell title="Safety Operations Dashboard" kicker="SAFETY PORTAL">
+      <div className="-mt-4 mb-6">
+        <GovernanceHealthChip portal="safety" />
         </div>
       {/* iter429 · Phase 28 · Optional device sign-in enrollment ·
           self-gated · dismissible · single-card · NEVER nags */}
@@ -516,7 +506,6 @@ export default function SafetyHub() {
           />
         </div>
       </section>
-      </SafetyShell>
-    </PortalShell>
+    </SafetyShell>
   );
 }

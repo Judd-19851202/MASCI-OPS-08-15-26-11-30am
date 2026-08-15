@@ -314,17 +314,20 @@ function ComplianceColumn({ title, testid, buckets, link }) {
         <span className="text-xs text-slate-500">{total} total</span>
       </div>
       <div className="space-y-2">
-        {order.map((state) => (
-          <Link
-            key={state}
-            to={`${link}?state=${state}`}
-            className="flex items-center justify-between hover:bg-slate-50 rounded px-2 py-1.5"
-            data-testid={`${testid}-row-${state}`}
-          >
-            <Chip value={state} />
-            <span className="text-sm font-medium text-slate-700">{buckets[state] || 0}</span>
-          </Link>
-        ))}
+        {order.map((state) => {
+          const n = buckets[state] || 0;
+          return (
+            <Link
+              key={state}
+              to={`${link}?state=${state}`}
+              className={`flex items-center justify-between hover:bg-slate-50 rounded px-2 py-1.5 ${n === 0 ? "opacity-45" : ""}`}
+              data-testid={`${testid}-row-${state}`}
+            >
+              <Chip value={state} />
+              <span className="text-sm font-medium text-slate-700">{n}</span>
+            </Link>
+          );
+        })}
       </div>
     </div>
   );

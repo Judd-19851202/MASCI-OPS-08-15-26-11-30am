@@ -41,6 +41,22 @@ describe("portal auth scoping", () => {
     expect(inferPortalsForApiPath("/api/photo-assets", "pm")).toEqual([]);
   });
 
+  // TD-0026 regression: the Phase V-Prelude substrate routers all mount the
+  // SAME _require_any_portal_token gate. They were missing from every scope
+  // list -> no token attached -> 401 "Portal authentication required"
+  // (observed live on BP-0025 constraint detail + BP-0026 constraints list).
+  // The active portal token MUST attach; bare /photos stays unscoped.
+  test("operational substrate routes inherit the active portal token", () => {
+    expect(inferPortalsForApiPath("/api/constraints", "admin")).toEqual(["admin"]);
+    expect(inferPortalsForApiPath("/api/constraints?status=open", "pm")).toEqual(["pm"]);
+    expect(inferPortalsForApiPath("/api/constraints/abc-123", "pm")).toEqual(["pm"]);
+    expect(inferPortalsForApiPath("/api/operational-links", "safety")).toEqual(["safety"]);
+    expect(inferPortalsForApiPath("/api/timeline?project_id=42", "pm")).toEqual(["pm"]);
+    expect(inferPortalsForApiPath("/api/photos/photo-1/governance", "admin")).toEqual(["admin"]);
+    // bare /photos has no endpoint and must NOT be broadened
+    expect(inferPortalsForApiPath("/api/photos", "pm")).toEqual([]);
+  });
+
   test("dispatch cleanup endpoints keep dispatch auth even under /admin namespace", () => {
     expect(
       inferPortalsForApiPath(

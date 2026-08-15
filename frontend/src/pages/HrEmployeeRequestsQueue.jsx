@@ -246,12 +246,12 @@ export default function HrEmployeeRequestsQueue() {
             <ArrowLeft className="w-4 h-4" />
             <span className="text-sm">Back to HR Hub</span>
           </Link>
-          <div className="flex items-center gap-2 text-white ml-auto">
+          <div className="flex items-center flex-wrap gap-2 text-white ml-auto justify-end">
             <ClipboardList className="w-5 h-5 text-emerald-400" />
             <span className="font-display text-lg font-black tracking-tight">
               Employee Requests Queue
             </span>
-            <Pill cls="bg-emerald-100 text-emerald-900 border-emerald-400"
+            <Pill cls="bg-emerald-100 text-emerald-900 border-emerald-400 whitespace-nowrap"
                   testId="hr-requests-pending-badge">
               {pendingCount} pending
             </Pill>
@@ -323,7 +323,7 @@ export default function HrEmployeeRequestsQueue() {
                       id={`hr-request-${req.id}`}
                       className={`p-4 bg-white border-2 ${deepLinkRequestId === req.id ? "border-amber-500 ring-4 ring-amber-200" : "border-slate-200 hover:border-slate-300"}`}
                       data-testid="hr-requests-row">
-                  <div className="flex items-start gap-3 flex-wrap">
+                  <div className="flex flex-col sm:flex-row sm:items-start gap-3">
                     <div className="flex flex-col gap-1 min-w-0 flex-1">
                       <div className="flex items-center gap-2 flex-wrap">
                         <Pill cls={KIND_PILL[req.kind] || "bg-slate-100 text-slate-800 border-slate-300"}
@@ -334,7 +334,7 @@ export default function HrEmployeeRequestsQueue() {
                               testId={`hr-requests-status-pill-${req.status}`}>
                           {STATUS_LABEL[req.status] || req.status}
                         </Pill>
-                        <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider">
+                        <span className="font-mono text-[10px] text-slate-500 uppercase tracking-wider whitespace-nowrap">
                           {formatPlatformTime(req.requested_at)}
                         </span>
                       </div>

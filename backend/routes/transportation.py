@@ -419,7 +419,9 @@ def register_transportation_routes(
             ]
         cur = db.carriers.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
-        return {"count": len(items), "items": items}
+        total = await db.carriers.count_documents(query)
+        return {"count": len(items), "total": total, "returned": len(items),
+                "truncated": total > len(items), "items": items}
 
     @router.post("/admin/transportation/carriers")
     async def create_carrier(
@@ -541,7 +543,9 @@ def register_transportation_routes(
             ]
         cur = db.transport_persons.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
-        return {"count": len(items), "items": items}
+        total = await db.transport_persons.count_documents(query)
+        return {"count": len(items), "total": total, "returned": len(items),
+                "truncated": total > len(items), "items": items}
 
     @router.post("/admin/transportation/persons")
     async def create_person(body: PersonCreate, request: Request,
@@ -845,7 +849,9 @@ def register_transportation_routes(
             ]
         cur = db.transport_trucks.find(query).sort("created_at", -1).limit(limit)
         items = [_project_doc(d) for d in await cur.to_list(limit)]
-        return {"count": len(items), "items": items}
+        total = await db.transport_trucks.count_documents(query)
+        return {"count": len(items), "total": total, "returned": len(items),
+                "truncated": total > len(items), "items": items}
 
     @router.post("/admin/transportation/trucks")
     async def create_truck(body: TruckCreate, request: Request,

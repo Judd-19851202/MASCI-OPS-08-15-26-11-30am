@@ -71,6 +71,18 @@ const SHARED_API_PREFIXES = [
   "/bilingual-records",
   "/field-memory",
   "/field-memory/",
+  // Phase V-Prelude substrate — all four routers mount the SAME
+  // `_require_any_portal_token` gate (server.py:16096-16117), i.e. ANY
+  // valid portal token is accepted. They were MISSING from every scope
+  // list, so `api.get("/constraints")` / `/timeline` / `/photos/*` /
+  // `/operational-links` attached NO portal token -> guaranteed 401
+  // "Portal authentication required" (observed on BP-0025/BP-0026:
+  // Constraints list + detail rendered nothing). Scoping the active
+  // portal token here — no backend auth change, no bypass.
+  "/constraints",
+  "/operational-links",
+  "/timeline",
+  "/photos/",
 ];
 
 const ADMIN_SHARED_CROSS_PORTAL_PREFIXES = [

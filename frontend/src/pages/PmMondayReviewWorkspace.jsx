@@ -62,7 +62,7 @@ function ActivityReviewCard({ activity, causes, controllability, draft, onChange
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={`pm-monday-review-planned-qty-${activity.code}`}>Planned Qty: {activity.planned_quantity}</div>
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={`pm-monday-review-actual-qty-${activity.code}`}>Actual Qty: {activity.actual_quantity}</div>
         <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={`pm-monday-review-labor-${activity.code}`}>Labor Hrs: {activity.actual_labor_hours}</div>
-        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={`pm-monday-review-productivity-${activity.code}`}>Prod Eff: {activity.production_efficiency_percent}%</div>
+        <div className="rounded-2xl border border-slate-200 bg-slate-50 px-3 py-2" data-testid={`pm-monday-review-productivity-${activity.code}`}>Prod Eff: {activity.production_efficiency_percent != null ? `${activity.production_efficiency_percent}%` : "—"}</div>
       </div>
       <div className="mt-4 rounded-2xl border border-slate-200 bg-slate-50 px-4 py-3 text-xs text-slate-600" data-testid={`pm-monday-review-timeline-${activity.code}`}>
         <div>Timeline entries: {activity.timeline?.length || 0}</div>
@@ -340,7 +340,7 @@ export default function PmMondayReviewWorkspace() {
     { key: "health", label: "Project Health", value: health.status || "—" },
     { key: "production", label: "Actual Qty", value: workspace?.production_summary?.actual_quantity ?? "—" },
     { key: "payroll", label: "Payroll Status", value: workspace?.payroll_summary?.lifecycle_state || "—" },
-    { key: "readiness", label: "Monday Readiness", value: `${readiness.completion_percent || 0}%` },
+    { key: "readiness", label: "Monday Readiness", value: (readiness.completion_percent != null && Number.isFinite(Number(readiness.completion_percent))) ? `${Number(readiness.completion_percent)}%` : "—" },
   ]), [health, workspace, readiness]);
 
   return (
@@ -480,7 +480,7 @@ export default function PmMondayReviewWorkspace() {
                               }
                               title={`Governed direction: ${variance.favorable || "unknown"} (per ${variance.variance_type} concept)`}
                             >
-                              {variance.variance_percent}%{variance.favorable && variance.favorable !== "unknown" ? ` · ${variance.favorable}` : ""}
+                              {variance.variance_percent != null ? `${variance.variance_percent}%` : "—"}{variance.favorable && variance.favorable !== "unknown" ? ` · ${variance.favorable}` : ""}
                             </div>
                             <div>{variance.primary_cause || "unknown"}</div>
                           </div>

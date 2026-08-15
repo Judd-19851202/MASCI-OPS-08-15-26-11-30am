@@ -152,16 +152,19 @@ function CaseHeader({ caseDoc, health, onJumpToBlocker }) {
 function CaseHealth({ health, onJumpToBlocker }) {
   const { t } = useT();
   if (!health) return null;
-  const pct = health.completeness_pct || 0;
-  const barColor = pct >= 80 ? "bg-emerald-600" : pct >= 50 ? "bg-amber-500" : "bg-red-600";
+  // Unavailable-as-zero guard: a missing completeness metric must read as
+  // unknown (—, neutral bar), never a red 0%.
+  const hasPct = health.completeness_pct != null && Number.isFinite(Number(health.completeness_pct));
+  const pct = hasPct ? Number(health.completeness_pct) : null;
+  const barColor = pct == null ? "bg-slate-300" : pct >= 80 ? "bg-emerald-600" : pct >= 50 ? "bg-amber-500" : "bg-red-600";
   return (
     <div className="rounded-xl border-2 border-slate-300 bg-white p-4" data-testid="case-health">
       <div className="flex items-center justify-between">
         <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-500">{t("Case health")}</div>
-        <div className="font-display text-lg font-black text-slate-900" data-testid="case-health-pct">{pct}%</div>
+        <div className="font-display text-lg font-black text-slate-900" data-testid="case-health-pct">{pct == null ? "—" : `${pct}%`}</div>
       </div>
       <div className="mt-2 h-2 rounded-full bg-slate-200 overflow-hidden" aria-hidden>
-        <div className={`h-full ${barColor}`} style={{ width: `${pct}%` }} />
+        <div className={`h-full ${barColor}`} style={{ width: `${pct == null ? 0 : pct}%` }} />
       </div>
       {health.blockers && health.blockers.length > 0 && (
         <ul className="mt-3 space-y-1 text-sm" data-testid="case-health-blockers">
@@ -204,13 +207,15 @@ function ExecutiveSnapshot({ snap }) {
   const { t } = useT();
   if (!snap) return null;
   // Track 19.18 · Operational Confidence · single one-liner headline first.
-  const pct = snap.readiness?.completeness_pct || 0;
-  const readinessLabel = pct >= 80 ? t("Ready for closeout") : pct >= 50 ? t("Under investigation") : t("Early — evidence gathering");
+  // Unavailable-as-zero guard: unknown readiness reads as unknown, not 0%.
+  const hasPct = snap.readiness?.completeness_pct != null && Number.isFinite(Number(snap.readiness.completeness_pct));
+  const pct = hasPct ? Number(snap.readiness.completeness_pct) : null;
+  const readinessLabel = pct == null ? t("Readiness unknown") : pct >= 80 ? t("Ready for closeout") : pct >= 50 ? t("Under investigation") : t("Early — evidence gathering");
   return (
     <div className="rounded-xl border-2 border-slate-900 bg-slate-900 text-white p-4" data-testid="case-exec-snapshot">
       <div className="font-mono text-[10px] uppercase tracking-[0.22em] text-slate-400">{t("Executive update")}</div>
       <div className="mt-1 font-display text-base font-black leading-snug" data-testid="case-exec-snapshot-headline">
-        {readinessLabel} · {pct}%
+        {readinessLabel}{pct == null ? "" : ` · ${pct}%`}
       </div>
       <div className="mt-3 grid gap-1.5 text-sm">
         <div><span className="text-slate-400">{t("Incident")}: </span><span className="font-semibold">{snap.incident_type?.replace(/_/g, " ")}</span></div>
@@ -470,7 +475,7 @@ export default function SafetyCaseWorkspace() {
       </header>
 
       <main className="max-w-7xl mx-auto p-4 sm:p-6 grid gap-4 lg:grid-cols-[minmax(0,1fr)_320px]">
-        <div className="space-y-4">
+        <div className="space-y-4 min-w-0">
           <CaseHeader caseDoc={caseDoc} health={health} onJumpToBlocker={jumpToBlocker} />
           <div className="rounded-xl border border-slate-200 bg-white overflow-x-auto">
             <div className="flex" role="tablist" aria-label={t("Case sections")}>
@@ -629,7 +634,7 @@ export default function SafetyCaseWorkspace() {
             </div>
           </div>
         </div>
-        <aside className="space-y-4">
+        <aside className="space-y-4 min-w-0">
           <ExecutiveSnapshot snap={snap} />
           <CaseHealth health={health} onJumpToBlocker={jumpToBlocker} />
         </aside>

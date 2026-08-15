@@ -38,6 +38,10 @@ const SEV_TEXT = {
 function CardTile({ card, onOpen, pulse = false }) {
   const sev = card.severity || "Info";
   const isCount = "count" in card;
+  // A zero-count card must never wear an alarm tone. A real "0" is not
+  // a Critical/Warning condition — gate the ring/text severity on a
+  // non-zero value so 0-count tiles render calm (Info) instead of rose.
+  const displaySev = isCount && Number(card.count) === 0 ? "Info" : sev;
   // PulseDot — subtle, only when prop is true (compact-mode only).
   const PulseDot = pulse ? (
     <span
@@ -49,7 +53,7 @@ function CardTile({ card, onOpen, pulse = false }) {
       <span className="relative inline-flex rounded-full h-2 w-2 bg-amber-500" />
     </span>
   ) : null;
-  const wrapClass = `relative text-left rounded-md border-2 ${SEV_RING[sev]} p-3 hover:shadow-sm transition-shadow w-full`;
+  const wrapClass = `relative text-left rounded-md border-2 ${SEV_RING[displaySev]} p-3 hover:shadow-sm transition-shadow w-full`;
   // value cards (integration_health / audit_coverage) render as compact strips
   if (!isCount && card.key === "integration_health") {
     const v = card.value || {};
@@ -62,7 +66,7 @@ function CardTile({ card, onOpen, pulse = false }) {
       >
         {PulseDot}
         <div className="flex items-center justify-between mb-1">
-          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
+          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[displaySev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
         </div>
         <div className="text-sm font-bold text-slate-900 capitalize">{v.status || "unknown"}</div>
@@ -84,7 +88,7 @@ function CardTile({ card, onOpen, pulse = false }) {
       >
         {PulseDot}
         <div className="flex items-center justify-between mb-1">
-          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
+          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[displaySev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
         </div>
         <div className="text-2xl font-bold text-slate-900 leading-tight">{v.coverage_pct ?? 0}%</div>
@@ -123,7 +127,7 @@ function CardTile({ card, onOpen, pulse = false }) {
       >
         {PulseDot}
         <div className="flex items-center justify-between mb-1">
-          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
+          <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[displaySev]}`}>{card.label}</div>
           <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
         </div>
         <div className="text-2xl font-bold leading-tight text-slate-900">{v.display || "No signal yet"}</div>
@@ -146,7 +150,7 @@ function CardTile({ card, onOpen, pulse = false }) {
     >
       {PulseDot}
       <div className="flex items-center justify-between mb-1">
-        <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[sev]}`}>{card.label}</div>
+        <div className={`text-[10px] font-mono uppercase tracking-[0.16em] font-bold ${SEV_TEXT[displaySev]}`}>{card.label}</div>
         <ChevronRight className="w-3.5 h-3.5 text-slate-400" />
       </div>
       <div className="text-3xl font-bold leading-none text-slate-900">{card.count}</div>

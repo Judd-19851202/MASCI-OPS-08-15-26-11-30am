@@ -88,8 +88,8 @@ frontend/src/components/AttendeeBulkAddDialog.jsx:185,AttendeeBulkAddDialog,atte
 frontend/src/components/AttendeeBulkAddDialog.jsx:225,AttendeeBulkAddDialog,attendee-bulk-add-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/AttendeeBulkAddDialog.jsx:282,AttendeeBulkAddDialog,attendee-bulk-add-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/AttendeeBulkAddDialog.jsx:291,AttendeeBulkAddDialog,attendee-bulk-add-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/AutoEmailRoutingPanel.jsx:34,AutoEmailRoutingPanel,auto-email-routing-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/AutoEmailRoutingPanel.jsx:56,AutoEmailRoutingPanel,auto-email-status-badge,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/components/AutoEmailRoutingPanel.jsx:36,AutoEmailRoutingPanel,auto-email-routing-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/AutoEmailRoutingPanel.jsx:90,AutoEmailRoutingPanel,auto-email-status-badge,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/components/BackendStatusBanner.jsx:124,BackendStatusBanner,backend-status-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/BackendVersionBadge.jsx:50,BackendVersionBadge,backend-version-badge-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/BackupHeroPanel.jsx:109,BackupHeroPanel,backup-hero-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -297,9 +297,9 @@ frontend/src/components/NotificationBell.jsx:454,NotificationBell,notification-m
 frontend/src/components/NotificationBell.jsx:463,NotificationBell,notification-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/NotificationBell.jsx:559,NotificationBell,notification-tasks-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OfflineBanner.jsx:58,OfflineBanner,offline-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/OperationsCenter.jsx:210,OperationsCenter,ops-center-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/OperationsCenter.jsx:217,OperationsCenter,ops-center-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/OperationsCenter.jsx:246,OperationsCenter,ops-center-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/OperationsCenter.jsx:214,OperationsCenter,ops-center-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/OperationsCenter.jsx:221,OperationsCenter,ops-center-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/OperationsCenter.jsx:250,OperationsCenter,ops-center-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OperationsTrustCenter.jsx:395,OperationsTrustCenter,otc-action-panel-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OperationsTrustCenter.jsx:412,OperationsTrustCenter,otc-action-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/OperationsTrustCenter.jsx:722,OperationsTrustCenter,otc-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -482,10 +482,10 @@ frontend/src/components/admin/OperationalSignalsPanel.jsx:138,OperationalSignals
 frontend/src/components/admin/OperationalSignalsPanel.jsx:203,OperationalSignalsPanel,"<Stat label=""n"" value={ct.count} />",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
 frontend/src/components/admin/OperationalSignalsPanel.jsx:204,OperationalSignalsPanel,"<Stat label=""avg"" value={ct.count ? formatMs(ct.avg_ms) : ""—""} />",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
 frontend/src/components/admin/OperationalSignalsPanel.jsx:205,OperationalSignalsPanel,"<Stat label=""p90"" value={ct.count ? formatMs(ct.p90_ms) : ""—""} />",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
-frontend/src/components/admin/R2LifecyclePanel.jsx:124,R2LifecyclePanel,r2-lifecycle-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/admin/R2LifecyclePanel.jsx:139,R2LifecyclePanel,r2-lifecycle-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/admin/R2LifecyclePanel.jsx:179,R2LifecyclePanel,r2-lifecycle-health-band,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/components/admin/R2LifecyclePanel.jsx:287,R2LifecyclePanel,r2-lifecycle-retention-generated-at,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/admin/R2LifecyclePanel.jsx:125,R2LifecyclePanel,r2-lifecycle-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/admin/R2LifecyclePanel.jsx:140,R2LifecyclePanel,r2-lifecycle-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/admin/R2LifecyclePanel.jsx:180,R2LifecyclePanel,r2-lifecycle-health-band,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/components/admin/R2LifecyclePanel.jsx:288,R2LifecyclePanel,r2-lifecycle-retention-generated-at,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/admin/StorageObservabilityCard.jsx:29,StorageObservabilityCard,storage-sparkline-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/admin/StorageObservabilityCard.jsx:182,StorageObservabilityCard,storage-card-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/admin/StorageObservabilityCard.jsx:190,StorageObservabilityCard,storage-card-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -760,7 +760,7 @@ frontend/src/design-system/PortalShell.jsx:283,PortalShell,ds-portal-shell,NON_T
 frontend/src/design-system/PortalShell.jsx:315,PortalShell,ds-portal-shell-page-header,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/design-system/PortalShell.jsx:359,PortalShell,ds-portal-shell-footer,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/design-system/PublicShell.jsx:15,PublicShell,ds-public-shell,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/AccessDenied.jsx:38,AccessDenied,access-denied-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/AccessDenied.jsx:40,AccessDenied,access-denied-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/AdminAssetThread.jsx:642,AdminAssetThread,admin-asset-thread-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/AdminAssetThread.jsx:647,AdminAssetThread,admin-asset-thread-header,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/AdminAssetThread.jsx:659,AdminAssetThread,admin-asset-thread-safety-fire-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -872,12 +872,12 @@ frontend/src/pages/ConstraintDetail.jsx:267,ConstraintDetail,constraint-resolve-
 frontend/src/pages/ConstraintDetail.jsx:283,ConstraintDetail,constraint-resolve-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/ConstraintDetail.jsx:295,ConstraintDetail,constraint-resolve-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/ConstraintDetail.jsx:314,ConstraintDetail,constraint-detail-action-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/Constraints.jsx:79,Constraints,constraints-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/Constraints.jsx:95,Constraints,constraint-new-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/Constraints.jsx:135,Constraints,filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/Constraints.jsx:162,Constraints,constraints-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/Constraints.jsx:170,Constraints,constraints-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/Constraints.jsx:174,Constraints,constraints-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/Constraints.jsx:92,Constraints,constraints-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/Constraints.jsx:108,Constraints,constraint-new-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/Constraints.jsx:148,Constraints,filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/Constraints.jsx:175,Constraints,constraints-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/Constraints.jsx:183,Constraints,constraints-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/Constraints.jsx:187,Constraints,constraints-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/DailyReportsDashboard.jsx:65,DailyReportsDashboard,new-daily-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/DailyReportsDashboard.jsx:169,DailyReportsDashboard,daily-reports-page-actions,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/DailyReportsDashboard.jsx:206,DailyReportsDashboard,daily-report-count-label,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -1644,11 +1644,11 @@ frontend/src/pages/SafetyAudits.jsx:119,SafetyAudits,audits-status,CANONICAL_STA
 frontend/src/pages/SafetyAudits.jsx:135,SafetyAudits,audits-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyCaseWorkspace.jsx:101,SafetyCaseWorkspace,case-header,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyCaseWorkspace.jsx:141,SafetyCaseWorkspace,case-header-next-action,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyCaseWorkspace.jsx:245,SafetyCaseWorkspace,case-timeline-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyCaseWorkspace.jsx:367,SafetyCaseWorkspace,case-rca-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyCaseWorkspace.jsx:433,SafetyCaseWorkspace,safety-case-workspace-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyCaseWorkspace.jsx:466,SafetyCaseWorkspace,safety-case-open-thread-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyCaseWorkspace.jsx:623,SafetyCaseWorkspace,case-closeout-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/SafetyCaseWorkspace.jsx:250,SafetyCaseWorkspace,case-timeline-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/SafetyCaseWorkspace.jsx:372,SafetyCaseWorkspace,case-rca-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/SafetyCaseWorkspace.jsx:438,SafetyCaseWorkspace,safety-case-workspace-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/SafetyCaseWorkspace.jsx:471,SafetyCaseWorkspace,safety-case-open-thread-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/SafetyCaseWorkspace.jsx:628,SafetyCaseWorkspace,case-closeout-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/pages/SafetyChangePassword.jsx:110,SafetyChangePassword,safety-change-pw-title,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyChangePassword.jsx:122,SafetyChangePassword,safety-change-pw-form,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyChangePassword.jsx:167,SafetyChangePassword,safety-change-pw-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -1694,8 +1694,8 @@ frontend/src/pages/SafetyFormsRecords.jsx:182,SafetyFormsRecords,new-training-bt
 frontend/src/pages/SafetyFormsRecords.jsx:238,SafetyFormsRecords,forms-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyFormsRecords.jsx:246,SafetyFormsRecords,forms-employee-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyFormsRecords.jsx:271,SafetyFormsRecords,forms-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyHub.jsx:241,SafetyHub,safety-expirations-section,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/SafetyHub.jsx:327,SafetyHub,safety-group-compliance,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
+frontend/src/pages/SafetyHub.jsx:231,SafetyHub,safety-expirations-section,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/SafetyHub.jsx:317,SafetyHub,safety-group-compliance,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
 frontend/src/pages/SafetyHubV2.jsx:176,SafetyHubV2,safety-hub-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyHubV2.jsx:194,SafetyHubV2,safety-hub-v2-mission-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/SafetyHubV2.jsx:265,SafetyHubV2,safety-hub-v2-section-compliance,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
@@ -1939,36 +1939,36 @@ frontend/src/pages/admin/AdminAssetAdmin.jsx:628,AdminAssetAdmin,aa-templates-em
 frontend/src/pages/admin/AdminAssetAdmin.jsx:706,AdminAssetAdmin,aa-docs-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAssetAdmin.jsx:789,AdminAssetAdmin,aa-missing-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAssetAdmin.jsx:836,AdminAssetAdmin,aa-recent-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:117,AdminAssetMapping,asset-mapping-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:129,AdminAssetMapping,am-scan-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:148,AdminAssetMapping,am-readiness-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:158,AdminAssetMapping,"<Stat l=""Current Trust"" v={`${impact.current.trust_score_pct}%`} testi",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:159,AdminAssetMapping,"<Stat l=""Potential Trust"" v={`${impact.potential.trust_score_pct}%`} t",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:160,AdminAssetMapping,"<Stat l=""HIGH Matches Waiting"" v={impact.actions.high_confidence_waiti",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:161,AdminAssetMapping,"<Stat l=""Est. Dispatches Impacted"" v={impact.actions.estimated_dispatc",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:162,AdminAssetMapping,"<Stat l=""Est. Assets Confirmed"" v={impact.actions.estimated_assets_con",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:163,AdminAssetMapping,"<Stat l=""Coverage %"" v={`${impact.current.coverage_pct}%`} testid=""am-",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
-frontend/src/pages/admin/AdminAssetMapping.jsx:164,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={impact.current.mapped_assets} testid=""am-im",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:165,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={impact.current.unmapped_assets} testid=""a",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:177,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.current.coverage_pct}%`} />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
-frontend/src/pages/admin/AdminAssetMapping.jsx:178,AdminAssetMapping,"<KV l=""Trust"" v={`${impact.current.trust_score_pct}%`} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:179,AdminAssetMapping,"<KV l=""Mapped"" v={impact.current.mapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:185,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.potential.coverage_pct}%`} accent />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
-frontend/src/pages/admin/AdminAssetMapping.jsx:186,AdminAssetMapping,"<KV l=""Trust"" v={`${impact.potential.trust_score_pct}%`} accent />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:187,AdminAssetMapping,"<KV l=""Mapped"" v={impact.potential.mapped_assets} accent />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:203,AdminAssetMapping,am-review-high-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:215,AdminAssetMapping,am-runbook-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:221,AdminAssetMapping,am-not-ready-hint,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:291,AdminAssetMapping,am-bulk-high-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:296,AdminAssetMapping,am-queue-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminAssetMapping.jsx:364,AdminAssetMapping,"<Stat l=""Projects Verified"" v={exec.projects_verified} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:365,AdminAssetMapping,"<Stat l=""Projects Pending"" v={exec.projects_pending} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:366,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={exec.mapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:367,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={exec.unmapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
-frontend/src/pages/admin/AdminAssetMapping.jsx:368,AdminAssetMapping,"<Stat l=""Trust Score"" v={`${exec.trust_score_pct}%`} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:369,AdminAssetMapping,"<Stat l=""Potential Trust"" v={`${exec.potential_trust_score_pct}%`} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
-frontend/src/pages/admin/AdminAssetMapping.jsx:370,AdminAssetMapping,"<Stat l=""Coverage"" v={`${exec.coverage_pct}%`} />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
-frontend/src/pages/admin/AdminAssetMapping.jsx:371,AdminAssetMapping,"<Stat l=""Top Risk"" v={(exec.highest_risk_gaps || [])[0]?.truck_id || """,DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:122,AdminAssetMapping,asset-mapping-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:134,AdminAssetMapping,am-scan-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:153,AdminAssetMapping,am-readiness-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:163,AdminAssetMapping,"<Stat l=""Current Trust"" v={pctOr(impact.current.trust_score_pct)} test",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:164,AdminAssetMapping,"<Stat l=""Potential Trust"" v={pctOr(impact.potential.trust_score_pct)} ",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:165,AdminAssetMapping,"<Stat l=""HIGH Matches Waiting"" v={impact.actions.high_confidence_waiti",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:166,AdminAssetMapping,"<Stat l=""Est. Dispatches Impacted"" v={impact.actions.estimated_dispatc",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:167,AdminAssetMapping,"<Stat l=""Est. Assets Confirmed"" v={impact.actions.estimated_assets_con",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:168,AdminAssetMapping,"<Stat l=""Coverage %"" v={`${impact.current.coverage_pct}%`} testid=""am-",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
+frontend/src/pages/admin/AdminAssetMapping.jsx:169,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={impact.current.mapped_assets} testid=""am-im",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:170,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={impact.current.unmapped_assets} testid=""a",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:182,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.current.coverage_pct}%`} />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
+frontend/src/pages/admin/AdminAssetMapping.jsx:183,AdminAssetMapping,"<KV l=""Trust"" v={pctOr(impact.current.trust_score_pct)} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:184,AdminAssetMapping,"<KV l=""Mapped"" v={impact.current.mapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:190,AdminAssetMapping,"<KV l=""Coverage"" v={`${impact.potential.coverage_pct}%`} accent />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
+frontend/src/pages/admin/AdminAssetMapping.jsx:191,AdminAssetMapping,"<KV l=""Trust"" v={pctOr(impact.potential.trust_score_pct)} accent />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:192,AdminAssetMapping,"<KV l=""Mapped"" v={impact.potential.mapped_assets} accent />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:208,AdminAssetMapping,am-review-high-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:220,AdminAssetMapping,am-runbook-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:226,AdminAssetMapping,am-not-ready-hint,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:296,AdminAssetMapping,am-bulk-high-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:301,AdminAssetMapping,am-queue-filter,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminAssetMapping.jsx:369,AdminAssetMapping,"<Stat l=""Projects Verified"" v={exec.projects_verified} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:370,AdminAssetMapping,"<Stat l=""Projects Pending"" v={exec.projects_pending} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:371,AdminAssetMapping,"<Stat l=""Mapped Assets"" v={exec.mapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:372,AdminAssetMapping,"<Stat l=""Unmapped Assets"" v={exec.unmapped_assets} />",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
+frontend/src/pages/admin/AdminAssetMapping.jsx:373,AdminAssetMapping,"<Stat l=""Trust Score"" v={pctOr(exec.trust_score_pct)} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:374,AdminAssetMapping,"<Stat l=""Potential Trust"" v={pctOr(exec.potential_trust_score_pct)} />",CANONICAL_KPI,health_score,lib.trust_score(+distinct)
+frontend/src/pages/admin/AdminAssetMapping.jsx:375,AdminAssetMapping,"<Stat l=""Coverage"" v={`${exec.coverage_pct}%`} />",CANONICAL_KPI,percent_complete,lib.kpi_percent_complete
+frontend/src/pages/admin/AdminAssetMapping.jsx:376,AdminAssetMapping,"<Stat l=""Top Risk"" v={(exec.highest_risk_gaps || [])[0]?.truck_id || """,DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
 frontend/src/pages/admin/AdminAssetSpineHealth.jsx:136,AdminAssetSpineHealth,asset-spine-scan-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAssetSpineHealth.jsx:143,AdminAssetSpineHealth,asset-spine-health-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAssetSpineHealth.jsx:177,AdminAssetSpineHealth,<Stat,DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
@@ -1977,15 +1977,15 @@ frontend/src/pages/admin/AdminAuditLog.jsx:109,AdminAuditLog,audit-action,NON_TR
 frontend/src/pages/admin/AdminAuditLog.jsx:133,AdminAuditLog,audit-prev,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAuditLog.jsx:134,AdminAuditLog,audit-next,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminAuditLog.jsx:143,AdminAuditLog,audit-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:119,AdminCommandCenter,cc-drilldown-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:144,AdminCommandCenter,cc-drill-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/admin/AdminCommandCenter.jsx:158,AdminCommandCenter,cc-drill-open-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:163,AdminCommandCenter,cc-drill-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:220,AdminCommandCenter,cc-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:227,AdminCommandCenter,cc-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:236,AdminCommandCenter,cc-portfolio-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:270,AdminCommandCenter,cc-refresh-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminCommandCenter.jsx:289,AdminCommandCenter,cc-admin-settings-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:124,AdminCommandCenter,cc-drilldown-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:149,AdminCommandCenter,cc-drill-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/admin/AdminCommandCenter.jsx:163,AdminCommandCenter,cc-drill-open-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:168,AdminCommandCenter,cc-drill-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:234,AdminCommandCenter,cc-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:241,AdminCommandCenter,cc-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:258,AdminCommandCenter,cc-portfolio-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:292,AdminCommandCenter,cc-refresh-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminCommandCenter.jsx:311,AdminCommandCenter,cc-admin-settings-note,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminComplianceFindings.jsx:159,AdminComplianceFindings,admin-compliance-findings,CANONICAL_KPI,compliance_rate,kpi_percent_complete.compliance_rate
 frontend/src/pages/admin/AdminComplianceFindings.jsx:200,AdminComplianceFindings,findings-filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/pages/admin/AdminComplianceFindings.jsx:237,AdminComplianceFindings,findings-filter-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2320,16 +2320,16 @@ frontend/src/pages/admin/AdminRecoveryStream.jsx:136,AdminRecoveryStream,admin-r
 frontend/src/pages/admin/AdminSessions.jsx:117,AdminSessions,admin-sessions-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminSessions.jsx:160,AdminSessions,admin-sessions-refresh-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminSessions.jsx:185,AdminSessions,admin-sessions-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:561,AdminStorageRecovery,admin-storage-recovery-root,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:581,AdminStorageRecovery,storage-recovery-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:599,AdminStorageRecovery,storage-recovery-ots-wrapper,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:607,AdminStorageRecovery,storage-recovery-ots-disclosure,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:611,AdminStorageRecovery,storage-recovery-retention-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:691,AdminStorageRecovery,storage-recovery-integrity-section,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:698,AdminStorageRecovery,storage-recovery-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:714,AdminStorageRecovery,storage-recovery-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:787,AdminStorageRecovery,storage-recovery-actions,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/AdminStorageRecovery.jsx:854,AdminStorageRecovery,storage-recovery-events-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:562,AdminStorageRecovery,admin-storage-recovery-root,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:582,AdminStorageRecovery,storage-recovery-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:600,AdminStorageRecovery,storage-recovery-ots-wrapper,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:608,AdminStorageRecovery,storage-recovery-ots-disclosure,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:612,AdminStorageRecovery,storage-recovery-retention-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:692,AdminStorageRecovery,storage-recovery-integrity-section,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:699,AdminStorageRecovery,storage-recovery-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:715,AdminStorageRecovery,storage-recovery-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:788,AdminStorageRecovery,storage-recovery-actions,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/AdminStorageRecovery.jsx:855,AdminStorageRecovery,storage-recovery-events-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminSystem.jsx:12,AdminSystem,admin-system-recovery-root,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AdminSystem.jsx:23,AdminSystem,admin-system-recovery-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/AssetProfile.jsx:65,AssetProfile,asset-profile-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2367,14 +2367,15 @@ frontend/src/pages/admin/SelfProtection.jsx:252,SelfProtection,self-protection-t
 frontend/src/pages/admin/SelfProtection.jsx:265,SelfProtection,self-protection-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/SystemHealth.jsx:45,SystemHealth,admin-system-health-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/admin/SystemHealth.jsx:61,SystemHealth,health-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:161,Wp17dCertificationDashboard,wp17d-certification-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:175,Wp17dCertificationDashboard,wp17d-open-active-batch-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:189,Wp17dCertificationDashboard,wp17d-route-status-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:201,Wp17dCertificationDashboard,wp17d-route-status-table,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:206,Wp17dCertificationDashboard,wp17d-readiness-summary-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:218,Wp17dCertificationDashboard,wp17d-go-no-go-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:223,Wp17dCertificationDashboard,wp17d-blockers-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:240,Wp17dCertificationDashboard,wp17d-batch-evidence-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:166,Wp17dCertificationDashboard,wp17d-certification-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:180,Wp17dCertificationDashboard,wp17d-open-active-batch-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:187,Wp17dCertificationDashboard,wp17d-provenance-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:198,Wp17dCertificationDashboard,wp17d-route-status-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:210,Wp17dCertificationDashboard,wp17d-route-status-table,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:215,Wp17dCertificationDashboard,wp17d-readiness-summary-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:227,Wp17dCertificationDashboard,wp17d-go-no-go-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:232,Wp17dCertificationDashboard,wp17d-blockers-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/admin/Wp17dCertificationDashboard.jsx:249,Wp17dCertificationDashboard,wp17d-batch-evidence-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/daily-report-v2/DailyReportV2.jsx:88,DailyReportV2,dr-v2-shell,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/daily-report-v2/DailyReportV2.jsx:95,DailyReportV2,dr-v2-status-saving,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/pages/daily-report-v2/DailyReportV2.jsx:116,DailyReportV2,dr-v2-header,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2648,43 +2649,43 @@ frontend/src/pages/transportation/_intelligence.jsx:898,_intelligence,tx-intel-c
 frontend/src/pages/transportation/_lists.jsx:124,_lists,carriers-list-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_lists.jsx:136,_lists,carriers-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_lists.jsx:145,_lists,carriers-list-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:228,_lists,drivers-list-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:239,_lists,drivers-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:248,_lists,drivers-list-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:345,_lists,tx-fleet-bulk-adopt-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:349,_lists,trucks-list-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:384,_lists,trucks-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:413,_lists,trucks-list-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:554,_lists,tx-fleet-bulk-adopt-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:564,_lists,tx-fleet-bulk-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:568,_lists,tx-fleet-bulk-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:607,_lists,tx-fleet-bulk-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:712,_lists,tx-fleet-edit-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:725,_lists,tx-fleet-edit-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:764,_lists,tx-fleet-edit-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/transportation/_lists.jsx:827,_lists,tx-fleet-edit-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:833,_lists,tx-fleet-edit-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:834,_lists,tx-fleet-edit-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:875,_lists,carrier-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:882,_lists,carrier-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:892,_lists,carrier-ws-tabs,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1064,_lists,carrier-rate-history-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1101,_lists,driver-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1108,_lists,driver-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1327,_lists,truck-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1335,_lists,truck-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_lists.jsx:1382,_lists,truck-start-inspection-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:149,_modals,link-hr-driver-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:157,_modals,link-hr-driver-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:161,_modals,link-hr-driver-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:165,_modals,link-hr-driver-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:306,_modals,add-leased-driver-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:307,_modals,add-leased-driver-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:338,_modals,carrier-form-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/transportation/_modals.jsx:392,_modals,add-carrier-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:393,_modals,add-carrier-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:448,_modals,edit-carrier-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_modals.jsx:449,_modals,edit-carrier-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:230,_lists,drivers-list-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:249,_lists,drivers-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:258,_lists,drivers-list-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:355,_lists,tx-fleet-bulk-adopt-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:359,_lists,trucks-list-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:394,_lists,trucks-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:423,_lists,trucks-list-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:564,_lists,tx-fleet-bulk-adopt-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:574,_lists,tx-fleet-bulk-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:578,_lists,tx-fleet-bulk-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:617,_lists,tx-fleet-bulk-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:722,_lists,tx-fleet-edit-modal,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:735,_lists,tx-fleet-edit-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:774,_lists,tx-fleet-edit-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/transportation/_lists.jsx:837,_lists,tx-fleet-edit-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:843,_lists,tx-fleet-edit-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:844,_lists,tx-fleet-edit-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:885,_lists,carrier-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:892,_lists,carrier-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:902,_lists,carrier-ws-tabs,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1074,_lists,carrier-rate-history-link,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1111,_lists,driver-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1118,_lists,driver-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1337,_lists,truck-ws-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1345,_lists,truck-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_lists.jsx:1392,_lists,truck-start-inspection-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:155,_modals,link-hr-driver-search,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:163,_modals,link-hr-driver-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:167,_modals,link-hr-driver-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:171,_modals,link-hr-driver-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:312,_modals,add-leased-driver-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:313,_modals,add-leased-driver-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:344,_modals,carrier-form-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/transportation/_modals.jsx:398,_modals,add-carrier-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:399,_modals,add-carrier-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:454,_modals,edit-carrier-cancel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_modals.jsx:455,_modals,edit-carrier-submit,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_orientation.jsx:111,_orientation,tx-orient-dashboard-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_orientation.jsx:242,_orientation,tx-orient-module-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_orientation.jsx:269,_orientation,tx-orient-module-back,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2700,19 +2701,19 @@ frontend/src/pages/transportation/_views.jsx:223,_views,tx-dashboard-hr-health-l
 frontend/src/pages/transportation/_views.jsx:287,_views,compliance-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_views.jsx:292,_views,tx-compliance-page,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_views.jsx:296,_views,compliance-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:366,_views,doc-filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
-frontend/src/pages/transportation/_views.jsx:388,_views,doc-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:391,_views,doc-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:505,_views,insp-launcher-truck-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:515,_views,insp-launcher-start-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:548,_views,insp-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:551,_views,insp-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:627,_views,rate-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:628,_views,rate-new-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:669,_views,rate-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:671,_views,rate-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:719,_views,audit-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/transportation/_views.jsx:723,_views,audit-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:369,_views,doc-filter-status,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
+frontend/src/pages/transportation/_views.jsx:391,_views,doc-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:394,_views,doc-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:508,_views,insp-launcher-truck-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:518,_views,insp-launcher-start-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:551,_views,insp-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:554,_views,insp-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:630,_views,rate-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:631,_views,rate-new-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:672,_views,rate-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:674,_views,rate-empty,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:722,_views,audit-refresh,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/pages/transportation/_views.jsx:726,_views,audit-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_widgets.jsx:102,_widgets,dropzone-type-select,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_widgets.jsx:112,_widgets,dropzone-expires-input,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/transportation/_widgets.jsx:138,_widgets,dropzone-browse-btn,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
@@ -2885,7 +2886,7 @@ frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:195,TrenchSafetyPolish,q
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:196,TrenchSafetyPolish,quick-add-save,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:274,TrenchSafetyPolish,ops-summary-loading,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:280,TrenchSafetyPolish,ops-summary-error,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:287,TrenchSafetyPolish,"<Stat label={t(""Total Assets"")}         value={total}                 ",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
+frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:287,TrenchSafetyPolish,"<Stat label={t(""Active Assets"")}         value={total}                ",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:288,TrenchSafetyPolish,"<Stat label={t(""Available"")}            value={cs[""Available""]   ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:289,TrenchSafetyPolish,"<Stat label={t(""Assigned"")}             value={cs[""Assigned""]    ?? 0}",DIRECT_FACT,displayed_count_fact,count of displayed/queried population
 frontend/src/pages/trench_safety/TrenchSafetyPolish.jsx:290,TrenchSafetyPolish,"<Stat label={t(""On Hold"")}              value={al.on_hold        ?? 0}",DIRECT_FACT,value_component_fact,value-bearing component rendering a fetched fact
