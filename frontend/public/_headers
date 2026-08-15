@@ -56,3 +56,22 @@
 # Hashed CRA build output — safe to cache forever.
 /static/*
   Cache-Control: public, max-age=31536000, immutable
+
+# Application bootstrap MUST revalidate on every load so a deployed release
+# cannot leave an obsolete app shell living in the browser cache. The HTML is
+# tiny and references content-hashed /static/* assets, so revalidation is cheap
+# and correct. This is the Zero-Stale-Client app-shell revalidation contract.
+/
+  Cache-Control: no-cache, must-revalidate
+/index.html
+  Cache-Control: no-cache, must-revalidate
+
+# The CRA asset manifest maps logical chunks to their current hashed files;
+# it must never be served stale or the shell could request obsolete chunks.
+/asset-manifest.json
+  Cache-Control: no-cache, must-revalidate
+
+# The (narrow, thumbnail-only) service worker script must revalidate so an
+# updated worker is picked up promptly and an old one is never pinned.
+/sw-thumbs.js
+  Cache-Control: no-cache, must-revalidate

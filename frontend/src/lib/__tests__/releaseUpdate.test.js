@@ -6,6 +6,7 @@ import {
   getReleaseState,
   checkNow,
   applyUpdateNow,
+  onClientUpdateRequired,
   _resetReleaseUpdate,
   _setBootFingerprintForTest,
 } from "@/lib/releaseUpdate";
@@ -96,5 +97,24 @@ describe("Zero-Stale-Client release controller", () => {
     await checkNow("force");
     expect(getReleaseState().state).toBe(RELEASE_STATES.UNKNOWN);
     expect(reloadSpy).not.toHaveBeenCalled();
+  });
+
+  test("CLIENT_UPDATE_REQUIRED (clean) → transitions to UPDATING and reloads", () => {
+    _setBootFingerprintForTest("dcf-A");
+    onClientUpdateRequired();
+    expect(getReleaseState().state).toBe(RELEASE_STATES.UPDATING);
+    jest.advanceTimersByTime(100);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
+  });
+
+  test("CLIENT_UPDATE_REQUIRED (dirty) protects work, reloads only at safe boundary", () => {
+    _setBootFingerprintForTest("dcf-A");
+    markDirty("safety-form");
+    onClientUpdateRequired();
+    expect(getReleaseState().state).toBe(RELEASE_STATES.UPDATE_REQUIRED);
+    expect(reloadSpy).not.toHaveBeenCalled(); // dirty work never destroyed
+    markClean("safety-form");
+    jest.advanceTimersByTime(100);
+    expect(reloadSpy).toHaveBeenCalledTimes(1);
   });
 });

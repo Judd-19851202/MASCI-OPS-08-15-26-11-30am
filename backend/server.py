@@ -2404,7 +2404,19 @@ def api_version():
             "mongo_hostname_redacted": runtime_identity_identity.get("mongo_hostname_redacted"),
             "identity_fingerprint": runtime_identity_identity.get("identity_fingerprint"),
         },
+        # Zero-Stale-Client compatibility policy (non-secret). Normally
+        # "accept-all"; lists governed incompatible releases when a breaking
+        # change requires clients to update. Never used for authorization.
+        "client_compatibility": _client_compat_policy_safe(),
     }
+
+
+def _client_compat_policy_safe() -> Dict[str, Any]:
+    try:
+        from client_compat import client_compat_policy
+        return client_compat_policy()
+    except Exception:  # noqa: BLE001
+        return {"policy": "accept-all", "incompatible_releases": []}
 
 
 def _deployment_verification_id(version_payload: Dict[str, Any]) -> str:
@@ -21158,6 +21170,35 @@ async def _canonical_security_headers(request, call_next):
     if (os.environ.get("APP_ENV") or "").strip().lower() == "production":
         response.headers.setdefault("Strict-Transport-Security", "max-age=31536000; includeSubDomains")
     return response
+
+
+@app.middleware("http")
+async def _client_update_required_gate(request, call_next):
+    """Zero-Stale-Client compatibility gate. If the client's loaded release
+    (X-MASCI-Client-Release, untrusted compatibility metadata — never used for
+    authorization) is on the governed incompatible list, answer API calls with
+    a specific 426 CLIENT_UPDATE_REQUIRED instead of a misleading generic
+    error, so the client can protect work and converge to the current release.
+    Default policy is empty ⇒ this never fires on ordinary deploys. Health /
+    version / auth paths are always exempt so a stale client can still update."""
+    try:
+        from client_compat import (
+            CLIENT_RELEASE_HEADER, UPDATE_REQUIRED_STATUS,
+            is_incompatible_client, path_is_exempt, update_required_body,
+        )
+        path = request.url.path or ""
+        if path.startswith("/api/") and not path_is_exempt(path):
+            client_release = request.headers.get(CLIENT_RELEASE_HEADER)
+            if is_incompatible_client(client_release):
+                from fastapi.responses import JSONResponse  # noqa: PLC0415
+                return JSONResponse(
+                    status_code=UPDATE_REQUIRED_STATUS,
+                    content=update_required_body(client_release),
+                    headers={"Cache-Control": "no-store", "X-MASCI-Update-Required": "1"},
+                )
+    except Exception:  # noqa: BLE001 — compatibility gate must never break traffic
+        pass
+    return await call_next(request)
 
 
 @app.middleware("http")

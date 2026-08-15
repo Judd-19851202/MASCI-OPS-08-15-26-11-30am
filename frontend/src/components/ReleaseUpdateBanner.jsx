@@ -16,8 +16,9 @@ export default function ReleaseUpdateBanner() {
   useEffect(() => subscribeReleaseState(({ state: s }) => setState(s)), []);
 
   const pending = state === RELEASE_STATES.UPDATE_PENDING_DIRTY_WORK;
+  const required = state === RELEASE_STATES.UPDATE_REQUIRED;
   const failed = state === RELEASE_STATES.UPDATE_FAILED;
-  if (!pending && !failed) return null;
+  if (!pending && !required && !failed) return null;
 
   return (
     <div
@@ -25,12 +26,15 @@ export default function ReleaseUpdateBanner() {
       role="status"
       aria-live="polite"
       data-testid="release-update-banner"
+      data-release-state={state}
     >
-      <div className="pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-2xl border border-slate-200 bg-white/95 px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)] backdrop-blur-xl">
-        <RefreshCw className={`h-4 w-4 shrink-0 text-slate-500 ${failed ? "" : "animate-spin"}`} />
+      <div className={`pointer-events-auto flex w-full max-w-xl items-center gap-3 rounded-2xl border px-4 py-3 shadow-[0_18px_40px_rgba(15,23,42,0.18)] backdrop-blur-xl ${required ? "border-amber-300 bg-amber-50/95" : "border-slate-200 bg-white/95"}`}>
+        <RefreshCw className={`h-4 w-4 shrink-0 ${required ? "text-amber-600" : "text-slate-500"} ${failed ? "" : "animate-spin"}`} />
         <div className="min-w-0 flex-1 text-sm text-slate-800">
           {failed ? (
             <>MASCI OPS couldn't finish updating on its own. Your work is safe — tap Reload when you're ready.</>
+          ) : required ? (
+            <>This version of MASCI OPS is no longer supported. <span className="font-semibold">Your current work is protected</span> — save this record and MASCI OPS will update automatically.</>
           ) : (
             <>A new version of MASCI OPS is ready. <span className="font-semibold">Your current work is protected</span> — finish or save this record and it will update automatically.</>
           )}

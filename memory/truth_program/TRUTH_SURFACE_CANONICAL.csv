@@ -355,7 +355,7 @@ frontend/src/components/QueueStatusPill.jsx:153,QueueStatusPill,queue-drawer-err
 frontend/src/components/QueueStatusPill.jsx:385,QueueStatusPill,queue-status-drawer-backdrop,CANONICAL_STATUS,status,Wave-2 status vocab (TC-0002)
 frontend/src/components/QueueStatusPill.jsx:390,QueueStatusPill,queue-status-drawer,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/QueueStatusPill.jsx:404,QueueStatusPill,queue-drawer-close,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
-frontend/src/components/ReleaseUpdateBanner.jsx:27,ReleaseUpdateBanner,release-update-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
+frontend/src/components/ReleaseUpdateBanner.jsx:28,ReleaseUpdateBanner,release-update-banner,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/RestoreBackupPanel.jsx:173,RestoreBackupPanel,restore-backup-panel,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/RestoreBackupPanel.jsx:196,RestoreBackupPanel,restore-source-toggle,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,
 frontend/src/components/RestoreBackupPanel.jsx:225,RestoreBackupPanel,restore-mode-toggle,NON_TRUTH_SURFACE_EXCLUDED_WITH_REASON,structural/control/label testid,

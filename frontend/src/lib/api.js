@@ -64,6 +64,13 @@ api.interceptors.request.use((config) => {
       config.headers["X-Device-Id"] = deviceId;
     }
   } catch (_e) { /* ignore */ }
+  try {
+    // Zero-Stale-Client: advertise the release this client actually loaded so
+    // the backend can answer an incompatible old client with a governed
+    // CLIENT_UPDATE_REQUIRED. Compatibility metadata ONLY — never auth.
+    const clientRelease = typeof window !== "undefined" ? window.__MASCI_CLIENT_RELEASE__ : null;
+    if (clientRelease) config.headers["X-MASCI-Client-Release"] = clientRelease;
+  } catch (_e) { /* ignore */ }
   applyScopedAuthHeaders(config);
   const devTok = getDevToken();
   if (devTok && String(config?.url || "").startsWith("/dev/")) {
@@ -149,6 +156,21 @@ api.interceptors.response.use(
         } catch { /* never crash the interceptor */ }
       }
     }
+
+    // ─────────────────────────────────────────────────────────────
+    // Zero-Stale-Client · backend answered 426 CLIENT_UPDATE_REQUIRED:
+    // this loaded release is no longer supported. Hand off to the release
+    // controller which protects unsaved work then converges to the current
+    // release. Absorb it so it never surfaces as a generic error/overlay.
+    // ─────────────────────────────────────────────────────────────
+    try {
+      if (err?.response?.status === 426 || err?.response?.data?.code === "CLIENT_UPDATE_REQUIRED") {
+        import("@/lib/releaseUpdate").then(({ onClientUpdateRequired }) => {
+          try { onClientUpdateRequired(); } catch { /* noop */ }
+        }).catch(() => { /* noop */ });
+        return Promise.reject(err);
+      }
+    } catch { /* never crash the interceptor */ }
 
     // ─────────────────────────────────────────────────────────────
     // Track 15.14A · Layer 3 client handler — backend backstop sent

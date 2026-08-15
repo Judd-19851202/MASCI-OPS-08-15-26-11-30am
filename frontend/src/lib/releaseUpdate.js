@@ -44,6 +44,7 @@ let _lastCheckAt = 0;
 let _inflight = null;
 let _timer = null;
 let _channel = null;
+let _requiredPending = false;
 const _subs = new Set();
 
 function _isDirty() {
@@ -152,6 +153,12 @@ function _ensureDirtySubscription() {
 // Apply a detected update if it is safe. Called after every successful check
 // and whenever dirty work clears at a safe boundary.
 function _maybeApply() {
+  if (_requiredPending && !_isDirty()) {
+    _requiredPending = false;
+    _setState(RELEASE_STATES.UPDATE_REQUIRED);
+    _performReload(_target || "required");
+    return;
+  }
   if (!_target || _target === _bootFingerprint) return;
   if (_isDirty()) {
     _ensureDirtySubscription();
@@ -176,6 +183,7 @@ export async function checkNow(reason = "manual") {
       if (!fp) { _setState(RELEASE_STATES.UNKNOWN); return; }
       if (!_bootFingerprint) {
         _bootFingerprint = fp;             // first successful check = boot anchor
+        try { if (typeof window !== "undefined") window.__MASCI_CLIENT_RELEASE__ = fp; } catch { /* noop */ }
         _clearGuardIfConverged();
         _setState(RELEASE_STATES.CURRENT);
         return;
@@ -201,8 +209,27 @@ export async function checkNow(reason = "manual") {
 // Called by the UI when the operator explicitly chooses to update now (only
 // offered once work is protected).
 export function applyUpdateNow() {
+  if (_state === RELEASE_STATES.UPDATE_REQUIRED) {
+    if (_isDirty()) { _ensureDirtySubscription(); _setState(RELEASE_STATES.UPDATE_REQUIRED); return; }
+    _performReload(_target || "required");
+    return;
+  }
   if (_target && _target !== _bootFingerprint) _performReload(_target);
   else checkNow("force");
+}
+
+// Called by the API layer when the backend returns 426 CLIENT_UPDATE_REQUIRED:
+// this loaded release is no longer supported. Protect any unsaved work first
+// (defer + reload at a safe boundary); reload immediately when clean.
+export function onClientUpdateRequired() {
+  if (_isDirty()) {
+    _ensureDirtySubscription();
+    _setState(RELEASE_STATES.UPDATE_REQUIRED);
+    _requiredPending = true;
+    return;
+  }
+  _setState(RELEASE_STATES.UPDATE_REQUIRED);
+  _performReload(_target || "required");
 }
 
 let _started = false;
@@ -256,6 +283,7 @@ export function _resetReleaseUpdate() {
   _timer = null;
   _started = false;
   _dirtySubBound = false;
+  _requiredPending = false;
   _subs.clear();
   try { sessionStorage.removeItem(LOOP_KEY); } catch { /* noop */ }
 }
